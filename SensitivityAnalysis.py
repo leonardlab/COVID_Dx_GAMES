@@ -559,7 +559,7 @@ elif data_type == 'prediction':
     fig = plt.figure(figsize = (4.5, 3))
     
     for j, doses in enumerate([doses_optimal, doses_original]):
-      input_RNA_dose_response_readouts = []
+        input_RNA_dose_response_readouts = []
         for i, input_RNA_dose in enumerate(input_RNA_doses):
             doses[3] = input_RNA_dose
             t, solution, timecourse_readout = solveSingle(doses, p, p_fixed, 'model C')
