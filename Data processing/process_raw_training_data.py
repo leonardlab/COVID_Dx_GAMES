@@ -124,18 +124,14 @@ fname2_p1 = 'Data processing/20221115_covidscreen_processed_FITC_part1.xlsx'
 fname2_p2 = 'Data processing/20221117_covidscreen_processed_FITC_part2.xlsx'
 fnames2 = [fname2_p1, fname2_p2]
 saveFilename2 = 'PROCESSED_DATA_rep2_'
-compile_dataset(path, fnames2, sheetNames, vRNA_doses, Cas13_doses, saveFilename2)
+# compile_dataset(path, fnames2, sheetNames, vRNA_doses, Cas13_doses, saveFilename2)
 
-# exp_data, exp_err = processData(path, fname2_p1, sheetNames[0], vRNA_doses[0], Cas13_doses[0])
-
-# with pd.ExcelWriter('df exp' + '.xlsx') as writer:  # doctest: +SKIP
-#     dfExp_all.to_excel(writer, sheet_name=' ')
-    
-# with pd.ExcelWriter('df err' + '.xlsx') as writer:  # doctest: +SKIP
-#     dfErr_all.to_excel(writer, sheet_name=' ')
-
-
-
+#repeat data pt2 (rep3)
+fname3_p1 = 'Data processing/20221209_covidsscreen_processed_FITC_part1.xlsx'
+fname3_p2 = 'Data processing/20221213_covidscreen_processed_FITC_part2.xlsx'
+fnames3 = [fname3_p1, fname3_p2]
+saveFilename3 = 'PROCESSED_DATA_rep3_'
+compile_dataset(path, fnames3, sheetNames, vRNA_doses, Cas13_doses, saveFilename3)
 
 
 
