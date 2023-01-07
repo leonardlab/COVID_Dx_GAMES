@@ -19,7 +19,7 @@ from gen_mechanism import *
       
 #GAMES imports
 import Settings_COVID_Dx
-from Solvers_COVID_Dx import calcRsq, calcChi2
+from Solvers_COVID_Dx import calcRsq, calc_chi_sq
 from DefineExpData_COVID_Dx import defineExp
 # from Run_COVID_Dx import solveAll
 # from Saving_COVID_Dx import createFolder
@@ -37,7 +37,7 @@ timecourses_err = data_dictionary["timecourses_err"]
 timecourses_exp = data_dictionary["timecourses"]
 problem_free = conditions_dictionary["problem"]
 bounds = problem_free['bounds']
-plt.style.use('/Users/kate/Documents/GitHub/GAMES_COVID_Dx/paper.mplstyle.py')
+plt.style.use('/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/paper.mplstyle.py')
 
 def solveAll(p, exp_data):
     
@@ -102,7 +102,7 @@ def solveAll(p, exp_data):
             chi2 = 1e10
             return x, solutions_norm, chi2, dfSimResults
 
-    chi2 = calcChi2(exp_data, solutions_norm)
+    chi2 = calc_chi_sq(exp_data, solutions_norm)
     mse = chi2/len(solutions_norm)
     print('mse: ' + str(np.round(mse, 4)))
     
@@ -392,6 +392,7 @@ def singleParamSweep_10percent(param_index, p_type, data_type):
         input_RNA_dose_response_readouts = []
         for i, input_RNA_dose in enumerate(input_RNA_doses):
             doses[3] = input_RNA_dose
+            print(doses)
             t, solution, timecourse_readout = solveSingle(doses, p, p_fixed, 'model C')
             input_RNA_dose_response_readouts.append(timecourse_readout[-1])
         f0_low, fmax_low, km_low, n_low, R_sq_low = fitHill(input_RNA_dose_response_readouts)
@@ -436,7 +437,7 @@ def tornadoPlot(metric, low_vals, high_vals, p_type):
     ax_left.set_yticks(pos)
     ax_left.set_yticklabels(labels, ha='center', x=-.1)
     ax_right.set_xlabel('% change in metric')
-
+    # plt.show()
     plt.savefig('./tornado plot ' + metric + ' ' + p_type + ' ' + data_type + '.svg', dpi = 600)
    
 def plot_tradeoff(x, fmax, t_half, k_CV, fmax_sd_list, t_half_sd_list):
@@ -482,7 +483,7 @@ def plot_tradeoff(x, fmax, t_half, k_CV, fmax_sd_list, t_half_sd_list):
             ax.set_ylim([0, 1])
             #ax.set_xlim([60, 150])
         
-    plt.savefig('./Results/Results tuning/experimental performance metric tradeoff test' + '.svg')
+    # plt.savefig('./Results/Results tuning/experimental performance metric tradeoff test' + '.svg')
     
 def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
@@ -531,21 +532,24 @@ plotPerformanceMetricTradeoffs(solutions_norm, k_CV)
 # =============================================================================
  
 #Define doses on which to perform sensitivity analysis 
-doses_norm = [1.0, 2.5, 0.005, 10, 90]
+doses_norm = [1.0, 2.5, 0.005, 10, 90] #(condition for norm- highest readout)
+doses_optimal = [5.0, 10.0, 0.02, 1, 90] #(optimal conditions?)
+
 
 p_fixed_labels = ['k_RTon', 'k_RToff', 'k_T7on', 'k_T7off', 'k_RNaseon', 'k_RNaseoff']
 p_fixed = [.024, 2.4, 3.36, 12, .024, 2.4]
 
 
-input_RNA_doses = np.logspace(-1, 1, 10) #100 aM (.1fM) to 10 fM (10000 aM)
+input_RNA_doses = np.logspace(-5, 1, 10) #100 aM (.1fM) to 10 fM (10000 aM)
 
 #use parameters from fitting to slice
 p = [5.98681E-05,	721.1529526,	1360.727836,	0.385250686,	2.580973544,	58.85708085,	7.876468573]
 p_labels = ['k_cas13', 'k_degv', 'k_txn', 'k_FSS', 'k_RHA', 'k_loc', 'k_scale']
 
-data_type = 'prediction'
+data_type = 'training'
 
 if data_type == 'training':
+    doses = doses_optimal
     t, solution, timecourse_readout = solveSingle(doses, p, p_fixed, 'model C')
     t, solution, timecourse_readout_norm_condition = solveSingle(doses_norm, p, p_fixed, 'model C')
     timecourse_readout_norm = [i/max(timecourse_readout_norm_condition) for i in timecourse_readout]
@@ -553,12 +557,12 @@ if data_type == 'training':
 
 
 elif data_type == 'prediction':
-    doses_optimal = [5.0, 10.0, 0.02, 1, 90]
-    doses_original =  [5.0, 2.5, 0.005, 1, 90]
+    doses_optimal = [5.0, 10.0, 0.02, 1, 90] #(optimal conditions?)
+    doses_original =  [5.0, 2.5, 0.005, 1, 90] #(mid conditions)
     colors = ['forestgreen', 'dimgrey']
     fig = plt.figure(figsize = (4.5, 3))
     
-    for j, doses in enumerate([doses_optimal, doses_original]):
+    for j, doses in enumerate([doses_original, doses_optimal]):
         input_RNA_dose_response_readouts = []
         for i, input_RNA_dose in enumerate(input_RNA_doses):
             doses[3] = input_RNA_dose
@@ -573,9 +577,9 @@ elif data_type == 'prediction':
         plt.ylabel('Readout (au) at 240 min.')    
         plt.xscale('log')
         plt.ylim([0,2500])
-        plt.legend(['optimal', 'original'], loc='center left', bbox_to_anchor=(1, 0.5))
+        plt.legend(['original', 'optimal'], loc='center left', bbox_to_anchor=(1, 0.5))
     plt.savefig('./input RNA dose response prediction for original and optimal conditions updated.svg', dpi = 600)
-        
+
 
 fmax_low_list = []
 thalf_low_list = []

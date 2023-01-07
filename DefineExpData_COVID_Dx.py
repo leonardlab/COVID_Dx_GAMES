@@ -46,42 +46,42 @@ def defineExp(data, model, k_CV, k_PEM_evaluation):
   '''
 
     #Import training data
-    df_data = pd.read_pickle('/Users/kate/Documents/GitHub/GAMES_COVID_Dx/PROCESSED DATA EXP.pkl')
-    df_error = pd.read_pickle('/Users/kate/Documents/GitHub/GAMES_COVID_Dx/PROCESSED DATA ERR.pkl')
-    
-    with open("/Users/kate/Documents/GitHub/GAMES_COVID_Dx/x_CV_train2.json", "r") as fp:
+    df_data = pd.read_pickle('/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/PROCESSED DATA EXP.pkl')
+    df_error = pd.read_pickle('/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/PROCESSED DATA ERR.pkl')
+
+    with open("/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/x_CV_train2.json", "r") as fp:
         x_CV_train = json.load(fp)
         
-    with open("/Users/kate/Documents/GitHub/GAMES_COVID_Dx/x_CV_test2.json", "r") as fp:
+    with open("/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/x_CV_test2.json", "r") as fp:
         x_CV_test = json.load(fp)
 
-    if data == 'PEM evaluation':
-        #Import df for appropriate model and k_PEM_evaluation
-        filename = '/Users/kate/Documents/GitHub/GAMES_COVID_Dx/PEM evaluation data/PEM EVALUATION DATA NOISE ' + model + '.xlsx'
-        df = pd.read_excel(filename, sheet_name = str(k_PEM_evaluation))
+    # if data == 'PEM evaluation':
+    #     #Import df for appropriate model and k_PEM_evaluation
+    #     filename = '/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/PEM evaluation data/PEM EVALUATION DATA NOISE ' + model + '.xlsx'
+    #     df = pd.read_excel(filename, sheet_name = str(k_PEM_evaluation))
         
-        exp_data = []
-        i = 0
-        for column in df:
-            if i != 0: #skip column 0 (indicies)
-                vals = list(df[column])
-                exp_data = exp_data + vals
-            i += 1
-        exp_data = [i/max(exp_data) for i in exp_data]
+    #     exp_data = []
+    #     i = 0
+    #     for column in df:
+    #         if i != 0: #skip column 0 (indicies)
+    #             vals = list(df[column])
+    #             exp_data = exp_data + vals
+    #         i += 1
+    #     exp_data = [i/max(exp_data) for i in exp_data]
        
-        #error not used for PEM evaluation paramter estimation runs, so use placeholder
-        error = [1] * len(exp_data)
+    #     #error not used for PEM evaluation paramter estimation runs, so use placeholder
+    #     error = [1] * len(exp_data)
         
-        #same x as 'slice drop high error'
-        x = [[20.0, 2.5, 0.005, 10, 90], [5.0, 10.0, 0.005, 10, 90], [5.0, 2.5, 0.02, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.001, 10, 90], [1.0, 2.5, 0.005, 10, 90], [20.0, 2.5, 0.005, 1, 90], [5.0, 10.0, 0.005, 1, 90], [5.0, 2.5, 0.02, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.001, 1, 90], [5.0, 0.5, 0.005, 1, 90], [1.0, 2.5, 0.005, 1, 90]]
+    #     #same x as 'slice drop high error'
+    #     x = [[20.0, 2.5, 0.005, 10, 90], [5.0, 10.0, 0.005, 10, 90], [5.0, 2.5, 0.02, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.001, 10, 90], [1.0, 2.5, 0.005, 10, 90], [20.0, 2.5, 0.005, 1, 90], [5.0, 10.0, 0.005, 1, 90], [5.0, 2.5, 0.02, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.001, 1, 90], [5.0, 0.5, 0.005, 1, 90], [1.0, 2.5, 0.005, 1, 90]]
         
-        #not used for PEM evaluation, so use placeholder
-        timecourses = []
-        timecourses_err = []
+    #     #not used for PEM evaluation, so use placeholder
+    #     timecourses = []
+    #     timecourses_err = []
         
 
     #Choose conditions to include or drop
-    elif data == 'all echo without low iCas13 or 0 vRNA':
+    if data == 'all echo without low iCas13 or 0 vRNA':
         x = []
         exp_data = []
         error = []

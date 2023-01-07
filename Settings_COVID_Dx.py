@@ -106,7 +106,7 @@ def init():
     #Initialize conditions dictionary
     conditions_dictionary = {}
     conditions_dictionary["model"] = modelID
-    conditions_dictionary["data"] = 'PEM evaluation' 
+    conditions_dictionary["data"] = 'all echo without low iCas13 or 0 vRNA and drop high error'
     conditions_dictionary["run_type"] = ''  
     conditions_dictionary["n_search"] = 5000
     conditions_dictionary["n_initial_guesses"] = 24
