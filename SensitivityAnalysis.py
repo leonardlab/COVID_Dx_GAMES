@@ -126,7 +126,8 @@ def solveAll(p, exp_data):
 
     return x, solutions_norm, mse, dfSimResults
 
-
+### update p list -> add k_bds, k_degRrep, k_sss (set = to corresponding params
+### iniially, then vary individually)
 
 def solveSingle(doses, p, p_fixed, model): 
     '''Purpose: 
