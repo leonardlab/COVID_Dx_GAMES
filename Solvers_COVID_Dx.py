@@ -171,8 +171,11 @@ def solveSingle(doses, p, model):
     #Restructure t and readout time course to match exp data sampling
     t = t[::400]
     timecourse_readout = timecourse_readout[::400]
+
+    #Restructure other model state time courses to match exp data and t
+    solutions = [solution[:, i][::400] for i in range(0, np.shape(solution)[-1])]
     
-    return t, solution, timecourse_readout
+    return t, solutions, timecourse_readout
          
          
    
