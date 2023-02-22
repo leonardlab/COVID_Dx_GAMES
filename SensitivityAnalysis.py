@@ -159,19 +159,25 @@ def solveSingle(doses, p, p_fixed, model):
     x_init[30] = 2500 # x_qRf
     solver.set_initial_condition(np.array(x_init))
   
+# p = [5.98681E-05, 5.98681E-05, 721.1529526, 721.1529526, 1360.727836, 0.385250686, 0.385250686, 2.580973544, 58.85708085, 7.876468573]
+# p_labels = ['k_cas13', 'k_bds', 'k_degv', 'k_degRrep', 'k_txn', 'k_FSS', 'k_SSS', 'k_RHA', 'k_loc', 'k_scale']
+
     #Parameters
     k_cas13  = p[0] #nM-1 min-1
-    k_degv = p[1] #nM-1 min-1
-    k_txn = p[2] #min-1
-    k_FSS = p[3] #min-1
-    k_RHA = p[4] #min-1
-    k_bds = k_cas13 #nM-1 min-1
+    k_bds = p[1] #= k_cas13 #nM-1 min-1
+    k_degv = p[2] #nM-1 min-1
+    k_degRrep = p[3]  #= k_degv  #nM-1 min-1
+    k_txn = p[4] #min-1
+    k_FSS = p[5] #min-1
+    k_SSS = p[6] #= k_FSS #min-1
+    k_RHA = p[7] #min-1
+
     k_RTon = p_fixed[0] #nM-1 min-1
     k_RToff = p_fixed[1] #min-1
     k_T7on = p_fixed[2] #nM-1 min-1
     k_T7off = p_fixed[3] #min-1
-    k_SSS = k_FSS #min-1
-    k_degRrep = k_degv  #nM-1 min-1
+    
+    
     k_RNaseon = p_fixed[4] #nM-1 min-1
     k_RNaseoff = p_fixed[5] #min-1
     the_rates = np.array([k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, k_T7off, k_FSS, k_RHA, k_SSS, k_txn, k_cas13, k_degRrep]).astype(float)
@@ -189,8 +195,8 @@ def solveSingle(doses, p, p_fixed, model):
     #Set solver type and algorithm
     solver.solver_type = 'solve_ivp'
     solver.solver_alg = 'LSODA'
-    solver.k_loc_deactivation = p[5]
-    solver.k_scale_deactivation = p[6]
+    solver.k_loc_deactivation = p[8]
+    solver.k_scale_deactivation = p[9]
     
     if model == 'model A':
         solver.mechanism_B = 'no'
@@ -205,16 +211,16 @@ def solveSingle(doses, p, p_fixed, model):
         solver.mechanism_C = 'yes'
         solver.txn_poisoning = 'no'
         
-    elif model == 'w/txn poisoning':
+    # elif model == 'w/txn poisoning':
         
-        solver.mechanism_B = 'yes'
-        solver.mechanism_C = 'yes'
-        solver.txn_poisoning = 'yes'
+    #     solver.mechanism_B = 'yes'
+    #     solver.mechanism_C = 'yes'
+    #     solver.txn_poisoning = 'yes'
     
-        solver.k_loc_deactivation = p[5]
-        solver.k_Mg = p[6]
-        solver.n_Mg = p[7]
-        solver.k_scale_deactivation = p[8]
+    #     solver.k_loc_deactivation = p[5]
+    #     solver.k_Mg = p[6]
+    #     solver.n_Mg = p[7]
+    #     solver.k_scale_deactivation = p[8]
         
     
     
@@ -355,7 +361,8 @@ def singleParamSweep(param_index):
     
     
 def singleParamSweep_10percent(param_index, p_type, data_type):
-    p = [5.98681E-05,	721.1529526,	1360.727836,	0.385250686,	2.580973544,	58.85708085,	7.876468573]
+    p = [5.98681E-05, 5.98681E-05, 721.1529526, 721.1529526, 1360.727836, 0.385250686, 0.385250686, 2.580973544, 58.85708085, 7.876468573]
+    # p = [5.98681E-05,	721.1529526,	1360.727836,	0.385250686,	2.580973544,	58.85708085,	7.876468573]
     p_fixed = [.024, 2.4, 3.36, 12, .024, 2.4]
     
     if p_type == 'free':
@@ -522,8 +529,8 @@ p_fixed_labels = ['k_RTon', 'k_RToff', 'k_T7on', 'k_T7off', 'k_RNaseon', 'k_RNas
 p_fixed = [.024, 2.4, 3.36, 12, .024, 2.4]
 p = [0.000467243,	23034.47396,	1174.784961,	0.006634409,	1.083733895,	25.37653242,	16.83162789]
 
-x, solutions_norm, mse, dfSimResults = solveAll(p, exp_data)
-plotPerformanceMetricTradeoffs(solutions_norm, k_CV)
+# x, solutions_norm, mse, dfSimResults = solveAll(p, exp_data)
+# plotPerformanceMetricTradeoffs(solutions_norm, k_CV)
                          
     
   
@@ -544,8 +551,8 @@ p_fixed = [.024, 2.4, 3.36, 12, .024, 2.4]
 input_RNA_doses = np.logspace(-5, 1, 10) #100 aM (.1fM) to 10 fM (10000 aM)
 
 #use parameters from fitting to slice
-p = [5.98681E-05,	721.1529526,	1360.727836,	0.385250686,	2.580973544,	58.85708085,	7.876468573]
-p_labels = ['k_cas13', 'k_degv', 'k_txn', 'k_FSS', 'k_RHA', 'k_loc', 'k_scale']
+p = [5.98681E-05, 5.98681E-05, 721.1529526, 721.1529526, 1360.727836, 0.385250686, 0.385250686, 2.580973544, 58.85708085, 7.876468573]
+p_labels = ['k_cas13', 'k_bds', 'k_degv', 'k_degRrep', 'k_txn', 'k_FSS', 'k_SSS', 'k_RHA', 'k_loc', 'k_scale']
 
 data_type = 'training'
 
@@ -579,7 +586,7 @@ elif data_type == 'prediction':
         plt.xscale('log')
         plt.ylim([0,2500])
         plt.legend(['original', 'optimal'], loc='center left', bbox_to_anchor=(1, 0.5))
-    plt.savefig('./input RNA dose response prediction for original and optimal conditions updated.svg', dpi = 600)
+    # plt.savefig('./input RNA dose response prediction for original and optimal conditions updated.svg', dpi = 600)
 
 
 fmax_low_list = []
