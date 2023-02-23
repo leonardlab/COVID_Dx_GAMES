@@ -126,6 +126,42 @@ def init():
     conditions_dictionary["problem"] = problem
     conditions_dictionary["problem_all_params"] = problem_all_params
     conditions_dictionary["parallelization"] = 'yes'
+    model_states = [
+        'vRNA (input)',
+        'ssDNA primer 1',
+        'ssDNA primer 2',
+        'ssDNA primer 1: vRNA',
+        'ssDNA primer 2: tRNA',
+        'ssDNA primer 1: cvRNA',
+        'ssDNA primer 2: ctRNA',
+        'RT',
+        'RNase H',
+        'RT-ssDNA primer 1: vRNA',
+        'RT-ssDNA primer 2: tRNA',
+        'RT-ssDNA primer 1: cvRNA',
+        'RT-ssDNA primer 2: ctRNA',
+        'cDNA 1: vRNA',
+        'cDNA 2: tRNA',
+        'cDNA 1: vRNA: RNase H',
+        'cDNA 2: tRNA: RNase H',
+        'cDNA 1: vRNA frag',
+        'cDNA 2: tRNA frag',
+        'cDNA 1: ssDNA primer 2',
+        'cDNA 2: ssDNA primer 1',
+        'cDNA 1: ssDNA primer 2: RT',
+        'cDNA 2: ssDNA primer 1: RT',
+        'T7 RNAP',
+        'dsDNA T7 target',
+        'T7: dsDNA T7 target',
+        'tRNA (target)',
+        'target iCas13a-gRNA',
+        'target aCas13a-gRNA',
+        'dsRNA (input:target)',
+        'quencher-ssRNA-fluorophore',
+        'quencher',
+        'fluorophore (output)'
+    ]
+    conditions_dictionary["model states"] = model_states
   
     
     # =============================================================================

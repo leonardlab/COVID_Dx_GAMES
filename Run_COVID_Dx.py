@@ -61,6 +61,7 @@ x = data_dictionary["x_vals"]
 exp_data = data_dictionary["exp_data"]
 error = data_dictionary["error"]
 parallelization = conditions_dictionary["parallelization"]
+model_states = conditions_dictionary["model states"]
 save_internal_states_flag = False
 data_type = 'experimental'
 
@@ -129,7 +130,7 @@ def check_filters(solutions: list, mse: float , doses: list, p: str) -> float:
     return float(mse)
 
 
-def solveAll(p: list, exp_data: list) -> Tuple[list, list, float, pd.DataFrame]:
+def solveAll(p: list, exp_data: list, output: str) -> Tuple[list, list, float, pd.DataFrame]:
     """
     Solves ODEs for the entire dataset using parameters defined in p 
         
@@ -144,6 +145,9 @@ def solveAll(p: list, exp_data: list) -> Tuple[list, list, float, pd.DataFrame]:
     exp_data
         a list of floats containing the experimental data (length = # data points)
 
+    output
+        a string defining the desired output: 'reporter' or 'all states'
+
     Returns
     -------
     x
@@ -157,8 +161,13 @@ def solveAll(p: list, exp_data: list) -> Tuple[list, list, float, pd.DataFrame]:
         
     dfSimResults
         df containing the normalized simulation values"""
-  
-   
+    ###start here (to plot RHS, use rates in solvesingle)
+    df_all_states = pd.DataFrame(
+        index=model_states,
+        columns = [str(i) for i in x],
+        dtype=object
+    )
+    
     dfSimResults = pd.DataFrame()
     solutions = []
    
