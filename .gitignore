@@ -100,5 +100,8 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
+# .svg plots
+*.svg
+
 # generally informed by:
 # https://gist.github.com/GhostofGoes/94580e76cd251972b15b4821c8a06f59/
