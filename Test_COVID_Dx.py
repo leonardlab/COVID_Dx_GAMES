@@ -63,25 +63,25 @@ def testSingleSet(p):
     
     doses, solutions, chi2, df_sim, df_all_states = solveAll(p, exp_data, 'all states')
     R_sq = calcRsq(solutions, exp_data)  
-    parityPlot(solutions, exp_data, data)
+    # parityPlot(solutions, exp_data, data)
     
     #Plot modeling objectives
-    plotModelingObjectives123(solutions)
-    plotModelingObjectives456(df_sim)
+    # plotModelingObjectives123(solutions)
+    # plotModelingObjectives456(df_sim)
 
-    #Plot all model states
-    plot_all_states(df_all_states, 'mid', 'ensemble')
-    plot_all_states(df_all_states, 'opt', 'ensemble')
+    #Plot all model states ('ensemble' or 'slice')
+    plot_all_states(df_all_states, 'mid', 'slice')
+    plot_all_states(df_all_states, 'opt', 'slice')
 
     #Plot all states ODE RHS
-    plot_states_RHS(df_all_states, 'mid', 'ensemble', p)
-    plot_states_RHS(df_all_states, 'opt', 'ensemble', p)
+    plot_states_RHS(df_all_states, 'mid', 'slice', p)
+    plot_states_RHS(df_all_states, 'opt', 'slice', p)
     
     print('*******')
     print('R2: ' + str(np.round(R_sq, 3)))
     print('chi2: ' + str(np.round(chi2, 3)))
     print('*******')
-    print(df_all_states.at['target aCas13a-gRNA', str([5.0, 2.5, 0.005, 1, 90])])
+    # print(df_all_states.at['target aCas13a-gRNA', str([5.0, 2.5, 0.005, 1, 90])])
     
 
 #p = [8.73073E-05,689.9907897,1074.669737,0.190102635,69522.58812,51.10418826,1.377712318,1391.322358,9.030497548, 0]
@@ -101,10 +101,10 @@ def testSingleSet(p):
 
 
 #ensemble model params
-p = [0.00039, 17890.64388, 1392.99139, 0.08828, 79.9926, 2.11343, 6.74207] #use for CV       
+# p = [0.00039, 17890.64388, 1392.99139, 0.08828, 79.9926, 2.11343, 6.74207] #use for CV       
 
 #params from fitting to slice
-#p = [5.98681E-05, 5.98681E-05, 721.1529526, 721.1529526, 1360.727836, 0.385250686, 0.385250686, 2.580973544, 58.85708085, 7.876468573]
+p = [5.98681E-05,	721.1529526,	1360.727836,	0.385250686,	2.580973544,	58.85708085,	7.876468573]
 
 testSingleSet(p)   
 

@@ -587,6 +587,7 @@ def plot_all_states(df: pd.DataFrame, dose: str, params: str):
         axs[i].set_box_aspect(1)
     axs[-1].axis('off')
     axs[-2].axis('off')
+    fig.suptitle('All Model States '+params+' '+dose)
     # plt.show()
     plt.savefig('All_model_states_'+params+'_'+dose+'.svg')
 
@@ -659,18 +660,12 @@ def plot_states_RHS(df: pd.DataFrame, dose: str, params: str, p: list,):
     # + k_RToff*x_RTp1cDNA2 - k_RTon*x_RT*x_p1v - k_RTon*x_RT*x_p1cv - k_RTon*x_RT*x_p2cDNA1 
     # - k_RTon*x_RT*x_p2u - k_RTon*x_RT*x_p2cu - k_RTon*x_RT*x_p1cDNA2 + k_FSS*x_RTp1v + k_FSS*x_RTp2u
     # + k_SSS*x_RTp2cDNA1 + k_SSS   · x_RTp1cDNA2
-    
     #u_RNase = + k_RNaseoff*x_RNasecDNA1v + k_RNaseoff*x_RNasecDNA2u - k_RNaseon*x_RNase*x_cDNA1v
     # - k_RNaseon*x_RNase*x_cDNA2u + k_RHA*x_RNasecDNA1v + k_RHA*x_RNasecDNA2u
-
     #u_T7 = + k_T7off*x_T7pro - k_T7on*x_T7*x_pro + k_txn*x_T7pro
     #u_iCas13 = - k_cas13*x_u*x_iCas13
-
-
     #u_q = + k_degRrep*x_aCas13*x_qRf
     #u_f = + k_degRrep*x_aCas13*x_qRf
-
-
 
     x_v_RHS = [k_degv*x_v*x_aCas13 - k_bds*x_v*x_u - k_bds*x_v*x_p1  \
         for x_v, x_aCas13, x_u, x_p1 in zip(
@@ -679,8 +674,18 @@ def plot_states_RHS(df: pd.DataFrame, dose: str, params: str, p: list,):
         x_u_list,
         x_p1_list
     )]
-    x_p1_RHS = [0]*len(time)
-    x_p2_RHS = [0]*len(time)
+    x_p1_RHS = [- k_bds*x_v*x_p1- k_bds*x_p1*x_cDNA2  \
+        for x_v, x_p1, x_cDNA2 in zip(
+            x_v_list,
+            x_p1_list, 
+            x_cDNA2_list
+        )]
+    x_p2_RHS = [- k_bds*x_u*x_p2 - k_bds*x_p2*x_cDNA1  \
+        for x_u, x_p2, x_cDNA1 in zip(
+            x_u_list,
+            x_p2_list,
+            x_cDNA1_list
+        )]
     x_p1v_RHS = [k_bds*x_v*x_p1 - k_degv*x_p1v*x_aCas13 - k_RTon*x_p1v*x_RT + k_RToff*x_RTp1v  \
         for x_v, x_p1, x_p1v, x_aCas13, x_RT, x_RTp1v in zip(
         x_v_list,
@@ -715,8 +720,35 @@ def plot_states_RHS(df: pd.DataFrame, dose: str, params: str, p: list,):
         x_RT_list,
         x_RTp2cu_list
         )]
-    x_RT_RHS = [0]*len(time)
-    x_RNase_RHS = [0]*len(time)
+    x_RT_RHS = [+ k_RToff*x_RTp1v + k_RToff*x_RTp1cv + k_RToff*x_RTp2cDNA1 + k_RToff*x_RTp2u
+        + k_RToff*x_RTp2cu + k_RToff*x_RTp1cDNA2 - k_RTon*x_RT*x_p1v - k_RTon*x_RT*x_p1cv
+        - k_RTon*x_RT*x_p2cDNA1 - k_RTon*x_RT*x_p2u - k_RTon*x_RT*x_p2cu - k_RTon*x_RT*x_p1cDNA2
+        + k_FSS*x_RTp1v + k_FSS*x_RTp2u + k_SSS*x_RTp2cDNA1 + k_SSS*x_RTp1cDNA2  \
+        for x_RTp1v, x_RTp1cv, x_RTp2cDNA1, x_RTp2u, x_RTp2cu, x_RTp1cDNA2, x_RT, x_p1v,
+        x_p1cv, x_p2cDNA1, x_p2u, x_p2cu, x_p1cDNA2 in zip(
+        x_RTp1v_list,
+        x_RTp1cv_list,
+        x_RTp2cDNA1_list,
+        x_RTp2u_list,
+        x_RTp2cu_list,
+        x_RTp1cDNA2_list,
+        x_RT_list,
+        x_p1v_list,
+        x_p1cv_list,
+        x_p2cDNA1_list,
+        x_p2u_list,
+        x_p2cu_list,
+        x_p1cDNA2_list  
+        )]
+    x_RNase_RHS = [+ k_RNaseoff*x_RNasecDNA1v + k_RNaseoff*x_RNasecDNA2u- k_RNaseon*x_RNase*x_cDNA1v
+        - k_RNaseon*x_RNase*x_cDNA2u + k_RHA*x_RNasecDNA1v + k_RHA*x_RNasecDNA2u  \
+        for x_RNasecDNA1v, x_RNasecDNA2u, x_RNase, x_cDNA1v, x_cDNA2u in zip(
+        x_RNasecDNA1v_list, 
+        x_RNasecDNA2u_list,
+        x_RNase_list,
+        x_cDNA1v_list,
+        x_cDNA2u_list
+        )]
     x_RTp1v_RHS = [- k_RToff*x_RTp1v + k_RTon*x_RT*x_p1v - k_degv*x_RTp1v*x_aCas13 - k_FSS*x_RTp1v  \
         for x_RTp1v, x_RT, x_p1v, x_aCas13 in zip(
         x_RTp1v_list,
@@ -814,7 +846,12 @@ def plot_states_RHS(df: pd.DataFrame, dose: str, params: str, p: list,):
         x_p1cDNA2_list,
         x_RTp1cDNA2_list
         )]
-    x_T7_RHS = [0]*len(time)
+    x_T7_RHS = [+ k_T7off*x_T7pro - k_T7on*x_T7*x_pro + k_txn*x_T7pro  \
+        for x_T7pro, x_T7, x_pro in zip(
+        x_T7pro_list,
+        x_T7_list,
+        x_pro_list
+        )]
     x_pro_RHS = [k_SSS*x_RTp2cDNA1 + k_SSS*x_RTp1cDNA2 - k_T7on*x_T7*x_pro + k_T7off*x_T7pro + k_txn*x_T7pro  \
         for x_RTp2cDNA1, x_RTp1cDNA2, x_T7, x_pro, x_T7pro in zip(
         x_RTp2cDNA1_list,
@@ -838,7 +875,11 @@ def plot_states_RHS(df: pd.DataFrame, dose: str, params: str, p: list,):
         x_iCas13_list,
         x_p2_list
         )]
-    x_iCas13_RHS = [0]*len(time)
+    x_iCas13_RHS = [- k_cas13*x_u*x_iCas13  \
+        for x_u, x_iCas13 in zip(
+            x_u_list, 
+            x_iCas13_list
+        )]
     x_Cas13_RHS = [k_cas13*x_u*x_iCas13  \
         for x_u, x_iCas13 in zip(
         x_u_list,
@@ -914,8 +955,9 @@ def plot_states_RHS(df: pd.DataFrame, dose: str, params: str, p: list,):
         axs[i].set_box_aspect(1)
     axs[-1].axis('off')
     axs[-2].axis('off')
-    plt.show()
-    # plt.savefig('All_states_RHS_'+params+'_'+dose+'.svg')
+    fig.suptitle('All States RHS '+params+' '+dose)
+    # plt.show()
+    plt.savefig('All_states_RHS_'+params+'_'+dose+'.svg')
 
     
     
