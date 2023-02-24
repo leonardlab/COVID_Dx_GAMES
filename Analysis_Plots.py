@@ -14,6 +14,8 @@ import seaborn as sns
 from math import log10
 from lmfit import Parameters, minimize
 from Solvers_COVID_Dx import calcRsq
+from scipy.stats import expon
+
 
 #GAMES imports
 import Settings_COVID_Dx
@@ -26,11 +28,12 @@ real_param_labels_all = conditions_dictionary['real_param_labels_all']
 model = conditions_dictionary['model']
 param_labels = real_param_labels_all 
 error = data_dictionary["error"]
-df_data = pd.read_pickle('/Users/kate/Documents/GitHub/GAMES_COVID_Dx/PROCESSED DATA EXP.pkl')
-df_error = pd.read_pickle('/Users/kate/Documents/GitHub/GAMES_COVID_Dx/PROCESSED DATA ERR.pkl')
+model_states = conditions_dictionary["model states"]
+df_data = pd.read_pickle('/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/PROCESSED DATA EXP.pkl')
+df_error = pd.read_pickle('/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/PROCESSED DATA ERR.pkl')
 
 #Import custom style file for plotting
-plt.style.use('/Users/kate/Documents/GitHub/GAMES_COVID_Dx/paper.mplstyle.py')
+plt.style.use('/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/paper.mplstyle.py')
 dpi_ = 600
 
 def plotMeanMeasurementError():
@@ -267,7 +270,7 @@ def plotModelingObjectives123(solutions):
         
         filename = 'experimental summary metrics' + model
         with pd.ExcelWriter(filename + '.xlsx') as writer:  
-            df.to_excel(writer, sheet_name='')
+            df.to_excel(writer, sheet_name=' ')
     
         fig = plt.figure(figsize = (8,5))
         ax1 = plt.subplot(231)   
@@ -493,8 +496,6 @@ def plotModelingObjectives456(df_sim):
     varyCondition = 'RNAse'
     resultsPanel(df_sim, df_data, df_error, labels, varyCondition) 
     print('RNAse done')
-
- 
     
 def plotLowCas13(df, data_type):
     '''Purpose: Plot Fmax distributions (box plot) for low and high Cas13a-gRNA conditions
@@ -563,7 +564,359 @@ def plotLowCas13(df, data_type):
     sns.swarmplot(x="label", y="Readout at final timepoint", data=df, color = 'dimgrey')
     plt.savefig('./LOW VS HIGH CAS13A-GRNA COMPARISON.svg')
     
+def plot_all_states(df: pd.DataFrame, dose: str, params: str):
     
+    if dose == 'mid':
+        doses = [5.0, 2.5, 0.005, 1, 90]
+
+    elif dose == 'opt':
+        doses = [5.0, 10.0, 0.02, 1, 90]
+    
+    time = np.linspace(0, 240, 61)
+
+    fig, axs = plt.subplots(nrows=7, ncols=5, sharex=False, sharey=False, figsize = (10, 15))
+    fig.subplots_adjust(hspace=0.5)
+    fig.subplots_adjust(wspace=0)
+    axs = axs.ravel()
+
+    for i, state in enumerate(model_states):
+        axs[i].plot(time, df.at[state, str(doses)])
+        axs[i].set_xlabel('time (min)')
+        axs[i].set_ylabel('simulation value')
+        axs[i].set_title(state)
+        axs[i].set_box_aspect(1)
+    axs[-1].axis('off')
+    axs[-2].axis('off')
+    # plt.show()
+    plt.savefig('All_model_states_'+params+'_'+dose+'.svg')
+
+def plot_states_RHS(df: pd.DataFrame, dose: str, params: str, p: list,):
+
+    if dose == 'mid':
+        doses = [5.0, 2.5, 0.005, 1, 90]
+
+    elif dose == 'opt':
+        doses = [5.0, 10.0, 0.02, 1, 90]
+    
+    time = np.linspace(0, 240, 61)
+    #Parameters
+    k_cas13  = p[0] #nM-1 min-1
+    k_degv = p[1] #nM-1 min-1
+    k_txn = p[2] #min-1
+    k_FSS = p[3] #min-1
+    k_RHA = p[4] #min-1
+    k_bds = k_cas13 #nM-1 min-1
+    k_RTon = .024 #nM-1 min-1
+    k_RToff = 2.4 #min-1
+    k_T7on = 3.36 #nM-1 min-1
+    k_T7off = 12 #min-1
+    k_SSS = k_FSS #min-1
+    k_degRrep = k_degv  #nM-1 min-1
+    k_RNaseon = .024 #nM-1 min-1
+    k_RNaseoff = 2.4 #min-1
+    k_loc_deactivation = p[5]
+    k_scale_deactivation = p[6]
+
+    all_state_tcs = df[str(doses)].tolist()
+    
+    x_v_list, x_p1_list, x_p2_list, x_p1v_list, x_p2u_list, x_p1cv_list, x_p2cu_list, x_RT_list, x_RNase_list, x_RTp1v_list, x_RTp2u_list, x_RTp1cv_list \
+        , x_RTp2cu_list, x_cDNA1v_list, x_cDNA2u_list, x_RNasecDNA1v_list, x_RNasecDNA2u_list, x_cDNA1_list, x_cDNA2_list, x_p2cDNA1_list, x_p1cDNA2_list, x_RTp2cDNA1_list \
+        , x_RTp1cDNA2_list, x_T7_list, x_pro_list, x_T7pro_list, x_u_list, x_iCas13_list, x_Cas13_list, x_uv_list, x_qRf_list, x_q_list, x_f_list = all_state_tcs
+
+    dist = expon(loc = k_loc_deactivation, scale = k_scale_deactivation)
+    frac_act_list = dist.sf(time)
+    x_aCas13_list = [frac_act*x_Cas13 for frac_act, x_Cas13 in zip(frac_act_list, x_Cas13_list)]
+        # u_v = - k_degv*x_v*x_aCas13 - k_bds*x_v*x_u - k_bds*x_v*x_p1
+        # u_p1v =  k_bds*x_v*x_p1/C_scale - k_degv*x_p1v*x_aCas13 - k_RTon*x_p1v*x_RT + k_RToff*x_RTp1v
+        # u_p2u = k_bds*x_u*x_p2 - k_degv*x_p2u*x_aCas13 - k_RTon*x_p2u*x_RT + k_RToff*x_RTp2u
+        # u_p1cv = k_degv*x_p1v*x_aCas13 - k_RTon*x_p1cv*x_RT + k_RToff*x_RTp1cv
+        # u_p2cu = k_degv*x_p2u*x_aCas13 - k_RTon*x_p2cu*x_RT + k_RToff*x_RTp2cu
+        # u_RTp1v = - k_RToff*x_RTp1v + k_RTon*x_RT*x_p1v - k_degv*x_RTp1v*x_aCas13 - k_FSS*x_RTp1v
+        # u_RTp2u = - k_RToff*x_RTp2u + k_RTon*x_RT*x_p2u - k_degv*x_RTp2u*x_aCas13 - k_FSS*x_RTp2u
+        # u_RTp1cv = - k_RToff*x_RTp1cv + k_RTon*x_RT*x_p1cv + k_degv*x_RTp1v*x_aCas13
+        # u_RTp2cu = - k_RToff*x_RTp2cu + k_RTon*x_RT*x_p2cu + k_degv*x_RTp2u*x_aCas13
+        # u_cDNA1v = k_FSS*x_RTp1v - k_RNaseon*x_cDNA1v*x_RNase + k_RNaseoff*x_RNasecDNA1v
+        # u_cDNA2u = k_FSS*x_RTp2u - k_RNaseon*x_cDNA2u*x_RNase + k_RNaseoff *x_RNasecDNA2u
+        # u_RNasecDNA1v = - k_RHA*x_RNasecDNA1v - k_RNaseoff*x_RNasecDNA1v + k_RNaseon*x_RNase*x_cDNA1v
+        # u_RNasecDNA2u = - k_RHA*x_RNasecDNA2u - k_RNaseoff*x_RNasecDNA2u + k_RNaseon*x_RNase*x_cDNA2u
+        # u_cDNA1 = k_RHA*x_RNasecDNA1v - k_bds*x_cDNA1*x_p2
+        # u_cDNA2 = k_RHA*x_RNasecDNA2u - k_bds*x_cDNA2*x_p1
+        # u_p2cDNA1 =  k_bds*x_cDNA1*x_p2 + k_RToff*x_RTp2cDNA1 - k_RTon*x_RT*x_p2cDNA1
+        # u_p1cDNA2 = k_bds*x_cDNA2*x_p1 + k_RToff*x_RTp1cDNA2 - k_RTon*x_RT*x_p1cDNA2
+        # u_RTp2cDNA1 = k_RTon*x_RT*x_p2cDNA1 - k_RToff*x_RTp2cDNA1 - k_SSS*x_RTp2cDNA1
+        # u_RTp1cDNA2 = k_RTon*x_RT*x_p1cDNA2 - k_RToff*x_RTp1cDNA2 - k_SSS*x_RTp1cDNA2
+        # u_pro = k_SSS*x_RTp2cDNA1 + k_SSS*x_RTp1cDNA2 - k_T7on*x_T7*x_pro + k_T7off*x_T7pro + k_txn*x_T7pro
+        # u_T7pro = - k_T7off*x_T7pro + k_T7on*x_T7*x_pro - k_txn*x_T7pro
+        # u_u = k_txn*x_T7pro - k_bds*x_u*x_v/C_scale - k_degv*x_u*x_aCas13 - k_cas13*x_u*x_iCas13 - k_bds*x_u*x_p2
+        # u_Cas13 = k_cas13*x_u*x_iCas13
+        # u_uv = k_bds*x_u*x_v/C_scale
+        # u_qRf = - k_degRrep*x_aCas13*x_qRf
+
+    ###START HERE, Q AND F DONE
+    #u_p1 = - k_bds*x_v*x_p1- k_bds*x_p1*x_cDNA2
+    #u_p2 = - k_bds*x_u*x_p2 - k_bds*x_p2*x_cDNA1
+    #u_RT = + k_RToff*x_RTp1v + k_RToff*x_RTp1cv + k_RToff*x_RTp2cDNA1 + k_RToff*x_RTp2u + k_RToff · x_RTp2cu
+    # + k_RToff*x_RTp1cDNA2 - k_RTon*x_RT*x_p1v - k_RTon*x_RT*x_p1cv - k_RTon*x_RT*x_p2cDNA1 
+    # - k_RTon*x_RT*x_p2u - k_RTon*x_RT*x_p2cu - k_RTon*x_RT*x_p1cDNA2 + k_FSS*x_RTp1v + k_FSS*x_RTp2u
+    # + k_SSS*x_RTp2cDNA1 + k_SSS   · x_RTp1cDNA2
+    
+    #u_RNase = + k_RNaseoff*x_RNasecDNA1v + k_RNaseoff*x_RNasecDNA2u - k_RNaseon*x_RNase*x_cDNA1v
+    # - k_RNaseon*x_RNase*x_cDNA2u + k_RHA*x_RNasecDNA1v + k_RHA*x_RNasecDNA2u
+
+    #u_T7 = + k_T7off*x_T7pro - k_T7on*x_T7*x_pro + k_txn*x_T7pro
+    #u_iCas13 = - k_cas13*x_u*x_iCas13
+
+
+    #u_q = + k_degRrep*x_aCas13*x_qRf
+    #u_f = + k_degRrep*x_aCas13*x_qRf
+
+
+
+    x_v_RHS = [k_degv*x_v*x_aCas13 - k_bds*x_v*x_u - k_bds*x_v*x_p1  \
+        for x_v, x_aCas13, x_u, x_p1 in zip(
+        x_v_list,
+        x_aCas13_list,
+        x_u_list,
+        x_p1_list
+    )]
+    x_p1_RHS = [0]*len(time)
+    x_p2_RHS = [0]*len(time)
+    x_p1v_RHS = [k_bds*x_v*x_p1 - k_degv*x_p1v*x_aCas13 - k_RTon*x_p1v*x_RT + k_RToff*x_RTp1v  \
+        for x_v, x_p1, x_p1v, x_aCas13, x_RT, x_RTp1v in zip(
+        x_v_list,
+        x_p1_list,
+        x_p1v_list,
+        x_aCas13_list, 
+        x_RT_list,
+        x_RTp1v_list
+    )]
+    x_p2u_RHS = [k_bds*x_u*x_p2 - k_degv*x_p2u*x_aCas13 - k_RTon*x_p2u*x_RT + k_RToff*x_RTp2u  \
+        for x_u, x_p2, x_p2u, x_aCas13, x_RT, x_RTp2u in zip(
+        x_u_list,
+        x_p2_list,
+        x_p2u_list,
+        x_aCas13_list,
+        x_RT_list,
+        x_RTp2u_list
+        )]
+    x_p1cv_RHS = [k_degv*x_p1v*x_aCas13 - k_RTon*x_p1cv*x_RT + k_RToff*x_RTp1cv  \
+        for x_p1v, x_aCas13, x_p1cv, x_RT, x_RTp1cv in zip(
+        x_p1v_list,
+        x_aCas13_list,
+        x_p1cv_list,
+        x_RT_list,
+        x_RTp1cv_list
+        )]
+    x_p2cu_RHS = [k_degv*x_p2u*x_aCas13 - k_RTon*x_p2cu*x_RT + k_RToff*x_RTp2cu  \
+        for x_p2u, x_aCas13, x_p2cu, x_RT, x_RTp2cu in zip(
+        x_p2u_list,
+        x_aCas13_list,
+        x_p2cu_list,
+        x_RT_list,
+        x_RTp2cu_list
+        )]
+    x_RT_RHS = [0]*len(time)
+    x_RNase_RHS = [0]*len(time)
+    x_RTp1v_RHS = [- k_RToff*x_RTp1v + k_RTon*x_RT*x_p1v - k_degv*x_RTp1v*x_aCas13 - k_FSS*x_RTp1v  \
+        for x_RTp1v, x_RT, x_p1v, x_aCas13 in zip(
+        x_RTp1v_list,
+        x_RT_list,
+        x_p1v_list,
+        x_aCas13_list 
+        )]
+    x_RTp2u_RHS = [- k_RToff*x_RTp2u + k_RTon*x_RT*x_p2u - k_degv*x_RTp2u*x_aCas13 - k_FSS*x_RTp2u  \
+        for x_RTp2u, x_RT, x_p2u, x_RTp2u, x_aCas13 in zip(
+        x_RTp2u_list,
+        x_RT_list,
+        x_p2u_list,
+        x_RTp2u_list,
+        x_aCas13_list    
+        )]
+    x_RTp1cv_RHS = [- k_RToff*x_RTp1cv + k_RTon*x_RT*x_p1cv + k_degv*x_RTp1v*x_aCas13  \
+        for x_RTp1cv, x_RT, x_p1cv, x_RTp1v, x_aCas13 in zip(
+        x_RTp1cv_list,
+        x_RT_list,
+        x_p1cv_list,
+        x_RTp1v_list,
+        x_aCas13_list
+        )]
+    x_RTp2cu_RHS = [- k_RToff*x_RTp2cu + k_RTon*x_RT*x_p2cu + k_degv*x_RTp2u*x_aCas13  \
+        for x_RTp2cu, x_RT, x_p2cu, x_RTp2u, x_aCas13 in zip(
+        x_RTp2cu_list,
+        x_RT_list,
+        x_p2cu_list,
+        x_RTp2u_list,
+        x_aCas13_list
+        )]
+    x_cDNA1v_RHS = [k_FSS*x_RTp1v - k_RNaseon*x_cDNA1v*x_RNase + k_RNaseoff*x_RNasecDNA1v  \
+        for x_RTp1v, x_cDNA1v, x_RNase, x_RNasecDNA1v in zip(
+        x_RTp1v_list,
+        x_cDNA1v_list,
+        x_RNase_list,
+        x_RNasecDNA1v_list
+        )]
+    x_cDNA2u_RHS = [k_FSS*x_RTp2u - k_RNaseon*x_cDNA2u*x_RNase + k_RNaseoff *x_RNasecDNA2u  \
+        for x_RTp2u, x_cDNA2u, x_RNase, x_RNasecDNA2u in zip(
+        x_RTp2u_list,
+        x_cDNA2u_list,
+        x_RNase_list,
+        x_RNasecDNA2u_list
+        )]
+    x_RNasecDNA1v_RHS = [- k_RHA*x_RNasecDNA1v - k_RNaseoff*x_RNasecDNA1v + k_RNaseon*x_RNase*x_cDNA1v  \
+        for x_RNasecDNA1v, x_RNase, x_cDNA1v in zip(
+        x_RNasecDNA1v_list,
+        x_RNase_list,
+        x_cDNA1v_list
+        )]
+    x_RNasecDNA2u_RHS = [- k_RHA*x_RNasecDNA2u - k_RNaseoff*x_RNasecDNA2u + k_RNaseon*x_RNase*x_cDNA2u  \
+        for x_RNasecDNA2u, x_RNase, x_cDNA2u in zip(
+        x_RNasecDNA2u_list,
+        x_RNase_list,
+        x_cDNA2u_list
+        )]
+    x_cDNA1_RHS = [k_RHA*x_RNasecDNA1v - k_bds*x_cDNA1*x_p2  \
+        for x_RNasecDNA1v, x_cDNA1, x_p2 in zip(
+        x_RNasecDNA1v_list,
+        x_cDNA1_list,
+        x_p2_list
+        )]
+    x_cDNA2_RHS = [k_RHA*x_RNasecDNA2u - k_bds*x_cDNA2*x_p1  \
+        for x_RNasecDNA2u, x_cDNA2, x_p1 in zip(
+        x_RNasecDNA2u_list,
+        x_cDNA2_list,
+        x_p1_list
+        )]
+    x_p2cDNA1_RHS = [k_bds*x_cDNA1*x_p2 + k_RToff*x_RTp2cDNA1 - k_RTon*x_RT*x_p2cDNA1  \
+        for x_cDNA1, x_p2, x_RTp2cDNA1, x_RT, x_p2cDNA1 in zip(
+        x_cDNA1_list,
+        x_p2_list,
+        x_RTp2cDNA1_list,
+        x_RT_list,
+        x_p2cDNA1_list
+        )]
+    x_p1cDNA2_RHS = [k_bds*x_cDNA2*x_p1 + k_RToff*x_RTp1cDNA2 - k_RTon*x_RT*x_p1cDNA2  \
+        for x_cDNA2, x_p1, x_RTp1cDNA2, x_RT, x_p1cDNA2 in zip(
+        x_cDNA2_list,
+        x_p1_list,
+        x_RTp1cDNA2_list,
+        x_RT_list,
+        x_p1cDNA2_list
+        )]
+    x_RTp2cDNA1_RHS = [k_RTon*x_RT*x_p2cDNA1 - k_RToff*x_RTp2cDNA1 - k_SSS*x_RTp2cDNA1  \
+        for x_RT, x_p2cDNA1, x_RTp2cDNA1 in zip(
+        x_RT_list,
+        x_p2cDNA1_list,
+        x_RTp2cDNA1_list
+        )]
+    x_RTp1cDNA2_RHS = [k_RTon*x_RT*x_p1cDNA2 - k_RToff*x_RTp1cDNA2 - k_SSS*x_RTp1cDNA2  \
+        for x_RT, x_p1cDNA2, x_RTp1cDNA2 in zip(
+        x_RT_list,
+        x_p1cDNA2_list,
+        x_RTp1cDNA2_list
+        )]
+    x_T7_RHS = [0]*len(time)
+    x_pro_RHS = [k_SSS*x_RTp2cDNA1 + k_SSS*x_RTp1cDNA2 - k_T7on*x_T7*x_pro + k_T7off*x_T7pro + k_txn*x_T7pro  \
+        for x_RTp2cDNA1, x_RTp1cDNA2, x_T7, x_pro, x_T7pro in zip(
+        x_RTp2cDNA1_list,
+        x_RTp1cDNA2_list, 
+        x_T7_list,
+        x_pro_list,
+        x_T7pro_list
+        )]
+    x_T7pro_RHS = [- k_T7off*x_T7pro + k_T7on*x_T7*x_pro - k_txn*x_T7pro  \
+        for x_T7pro, x_T7, x_pro in zip(
+        x_T7pro_list,
+        x_T7_list,
+        x_pro_list
+        )]
+    x_u_RHS = [k_txn*x_T7pro - k_bds*x_u*x_v - k_degv*x_u*x_aCas13 - k_cas13*x_u*x_iCas13 - k_bds*x_u*x_p2  \
+        for x_T7pro, x_u, x_v, x_aCas13, x_iCas13, x_p2 in zip(
+        x_T7pro_list,
+        x_u_list,
+        x_v_list,
+        x_aCas13_list,
+        x_iCas13_list,
+        x_p2_list
+        )]
+    x_iCas13_RHS = [0]*len(time)
+    x_Cas13_RHS = [k_cas13*x_u*x_iCas13  \
+        for x_u, x_iCas13 in zip(
+        x_u_list,
+        x_iCas13_list
+        )]
+    x_uv_RHS = [k_bds*x_u*x_v  \
+        for x_u, x_v in zip(
+            x_u_list,
+            x_v_list
+        )]
+    x_qRf_RHS = [- k_degRrep*x_aCas13*x_qRf  \
+        for x_aCas13, x_qRf in zip(
+            x_aCas13_list, 
+            x_qRf_list
+        )]
+    x_q_RHS = [+ k_degRrep*x_aCas13*x_qRf  \
+        for x_aCas13, x_qRf in zip(
+        x_aCas13_list, 
+        x_qRf_list
+        )]
+    x_f_RHS = [+ k_degRrep*x_aCas13*x_qRf  \
+        for x_aCas13, x_qRf in zip(
+        x_aCas13_list, 
+        x_qRf_list
+        )]
+
+    all_state_RHS = [
+        x_v_RHS, 
+        x_p1_RHS,
+        x_p2_RHS,
+        x_p1v_RHS,
+        x_p2u_RHS,
+        x_p1cv_RHS,
+        x_p2cu_RHS,
+        x_RT_RHS,
+        x_RNase_RHS,
+        x_RTp1v_RHS,
+        x_RTp2u_RHS,
+        x_RTp1cv_RHS,
+        x_RTp2cu_RHS,
+        x_cDNA1v_RHS,
+        x_cDNA2u_RHS,
+        x_RNasecDNA1v_RHS,
+        x_RNasecDNA2u_RHS,
+        x_cDNA1_RHS,
+        x_cDNA2_RHS,
+        x_p2cDNA1_RHS,
+        x_p1cDNA2_RHS,
+        x_RTp2cDNA1_RHS,
+        x_RTp1cDNA2_RHS,
+        x_T7_RHS,
+        x_pro_RHS,
+        x_T7pro_RHS,
+        x_u_RHS,
+        x_iCas13_RHS,
+        x_Cas13_RHS,
+        x_uv_RHS,
+        x_qRf_RHS,
+        x_q_RHS,
+        x_f_RHS 
+    ]
+
+    fig, axs = plt.subplots(nrows=7, ncols=5, sharex=False, sharey=False, figsize = (10, 15))
+    fig.subplots_adjust(hspace=0.5)
+    fig.subplots_adjust(wspace=0)
+    axs = axs.ravel()
+
+    for i, state in enumerate(model_states):
+        axs[i].plot(time, all_state_RHS[i])
+        axs[i].set_xlabel('time (min)')
+        axs[i].set_ylabel('ODE RHS sim. value')
+        axs[i].set_title(state)
+        axs[i].set_box_aspect(1)
+    axs[-1].axis('off')
+    axs[-2].axis('off')
+    plt.show()
+    # plt.savefig('All_states_RHS_'+params+'_'+dose+'.svg')
+
     
     
     

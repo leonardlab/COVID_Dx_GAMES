@@ -68,11 +68,11 @@ data_type = 'experimental'
 #COVID-DX specific
 timecourses_err = data_dictionary["timecourses_err"]
 timecourses =  data_dictionary["timecourses"] 
-df_data = pd.read_pickle('/Users/kate/Documents/GitHub/GAMES_COVID_Dx/PROCESSED DATA EXP.pkl')
-df_error = pd.read_pickle('/Users/kate/Documents/GitHub/GAMES_COVID_Dx/PROCESSED DATA ERR.pkl')
+df_data = pd.read_pickle('/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/PROCESSED DATA EXP.pkl')
+df_error = pd.read_pickle('/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/PROCESSED DATA ERR.pkl')
 
 #Set style file
-plt.style.use('/Users/kate/Documents/GitHub/GAMES_COVID_Dx/paper.mplstyle.py')
+plt.style.use('/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/paper.mplstyle.py')
 
 #ignore ODEint warnings that clog up the console
 warnings.filterwarnings("ignore")
@@ -146,7 +146,7 @@ def solveAll(p: list, exp_data: list, output: str) -> Tuple[list, list, float, p
         a list of floats containing the experimental data (length = # data points)
 
     output
-        a string defining the desired output: 'reporter' or 'all states'
+        a string defining the desired output: '' or 'all states'
 
     Returns
     -------
@@ -160,7 +160,12 @@ def solveAll(p: list, exp_data: list, output: str) -> Tuple[list, list, float, p
         float or int defining the chi_sq/number of data points
         
     dfSimResults
-        df containing the normalized simulation values"""
+        df containing the normalized simulation values
+        
+    if output == 'all states': 
+    df_all_states
+        df containing all model states simulation values"""
+
     ###start here (to plot RHS, use rates in solvesingle)
     df_all_states = pd.DataFrame(
         index=model_states,
@@ -186,6 +191,9 @@ def solveAll(p: list, exp_data: list, output: str) -> Tuple[list, list, float, p
             
         dfSimResults[str(doses)] = reporter_timecourse
         
+        if output == 'all states':
+            for i, state in enumerate(model_states):
+                df_all_states.at[state, str(doses)] = solutions_all[i]
    
     #Normalize solutions
     if max(solutions) == 0:
@@ -214,7 +222,11 @@ def solveAll(p: list, exp_data: list, output: str) -> Tuple[list, list, float, p
     mse = chi_sq/len(solutions_norm)
     mse = check_filters(solutions, mse, doses, p)
    
-    return x, solutions_norm, mse, dfSimResults
+    if output == 'all states':
+        return x, solutions_norm, mse, dfSimResults, df_all_states
+    
+    else:
+        return x, solutions_norm, mse, dfSimResults
 
     
 def calculate_mse_k_PEM_evaluation(k_PEM_evaluation: int, df: pd.DataFrame) -> list:
@@ -278,7 +290,7 @@ def solvePar(row: tuple):
         p.append(row[i])
     
     print('p: ' + str(p))
-    x, norm_solutions, mse, df_sim = solveAll(p, exp_data)
+    x, norm_solutions, mse, df_sim = solveAll(p, exp_data, '')
 
     print('mse: ' + str(round(mse, 6)))
     print('**************')
@@ -324,7 +336,7 @@ def optPar(row: tuple) -> Tuple[list, list]:
         #This is the function that is solved at each step in the optimization algorithm
         #Solve ODEs for all data_sets
         p = [p1, p2, p3, p4, p5, p6, p7]
-        doses, norm_solutions, mse, df_sim = solveAll(p, exp_data)
+        doses, norm_solutions, mse, df_sim = solveAll(p, exp_data, '')
         print('eval #: ' + str(len(chi_sq_list)))
         print(p)
         print('mse: ' + str(mse))
@@ -370,7 +382,7 @@ def optPar(row: tuple) -> Tuple[list, list]:
     best_fit_params_list = list(best_fit_params.values())
     
     #Solve with final optimized parameters and calculate chi_sq
-    doses_ligand, norm_solutions, chi_sq, df_sim  = solveAll(best_fit_params_list, exp_data)
+    doses_ligand, norm_solutions, chi_sq, df_sim  = solveAll(best_fit_params_list, exp_data, '')
   
     result_row.append(chi_sq)
     result_row_labels.append('chi_sq')
@@ -560,7 +572,7 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
         best_case_params.append(round(val, 8))
         
     #Plot training data and model fits for best case params
-    doses, norm_solutions_best_case, chi_sq, df_sim_best_case = solveAll(best_case_params, exp_data)
+    doses, norm_solutions_best_case, chi_sq, df_sim_best_case = solveAll(best_case_params, exp_data, '')
     parityPlot(norm_solutions_best_case, exp_data, data)
         
     #Calculate R2 for each optimized parameter set
@@ -571,7 +583,7 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
             col_name = real_param_labels_all[i] + '*'
             val = df[col_name].iloc[j]
             params.append(val)
-        doses, norm_solutions, chi_sq, df_sim = solveAll(params, exp_data)
+        doses, norm_solutions, chi_sq, df_sim = solveAll(params, exp_data, '')
         Rsq = calcRsq(norm_solutions, exp_data)  
         Rsq_list.append(Rsq)
     df['Rsq'] = Rsq_list
@@ -610,7 +622,7 @@ def simLowCas13(p: list) -> None:
     x, exp_data, error, timecourses, timecourses_err = defineExp(conditions_dictionary["data"], conditions_dictionary["model"])
     data_dictionary["x_vals"] = x
     data_dictionary["exp_data"] = exp_data
-    x, solutions, mse, df_sim = solveAll(p, exp_data)
+    x, solutions, mse, df_sim = solveAll(p, exp_data, '')
     plotLowCas13(df_sim, 'sim')
 
 # =============================================================================
@@ -727,7 +739,7 @@ def generatePemEvalData(df_global_search: pd.DataFrame) -> list:
             p.append(row[i])
             
         #Solve for raw data
-        doses_ligand, norm_solutions, chi_sq, df_sim = solveAll(p, exp_data)
+        doses_ligand, norm_solutions, chi_sq, df_sim = solveAll(p, exp_data, '')
     
         #Add noise
         df_noise = pd.DataFrame()

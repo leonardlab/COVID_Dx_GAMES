@@ -16,7 +16,7 @@ import Settings_COVID_Dx
 from Solvers_COVID_Dx import calcRsq
 from Run_COVID_Dx import solveAll
 from Saving_COVID_Dx import createFolder
-from Analysis_Plots import plotModelingObjectives123, plotModelingObjectives456, parityPlot
+from Analysis_Plots import plotModelingObjectives123, plotModelingObjectives456, parityPlot, plot_all_states, plot_states_RHS
 
 #Define settings
 conditions_dictionary, initial_params_dictionary, data_dictionary = Settings_COVID_Dx.init()
@@ -32,7 +32,7 @@ problem_free = conditions_dictionary["problem"]
 bounds = problem_free['bounds']
 df_data = pd.read_pickle('./PROCESSED DATA EXP.pkl')
 df_error = pd.read_pickle('./PROCESSED DATA ERR.pkl')  
-plt.style.use('/Users/kate/Documents/GitHub/GAMES_COVID_Dx/paper.mplstyle.py')
+plt.style.use('/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/paper.mplstyle.py')
     
 
 def testSingleSet(p):
@@ -61,18 +61,28 @@ def testSingleSet(p):
     createFolder('./' + sub_folder_name)
     os.chdir('./' + sub_folder_name)
     
-    doses, solutions, chi2, df_sim = solveAll(p, exp_data)
+    doses, solutions, chi2, df_sim, df_all_states = solveAll(p, exp_data, 'all states')
     R_sq = calcRsq(solutions, exp_data)  
     parityPlot(solutions, exp_data, data)
     
     #Plot modeling objectives
     plotModelingObjectives123(solutions)
     plotModelingObjectives456(df_sim)
+
+    #Plot all model states
+    plot_all_states(df_all_states, 'mid', 'ensemble')
+    plot_all_states(df_all_states, 'opt', 'ensemble')
+
+    #Plot all states ODE RHS
+    plot_states_RHS(df_all_states, 'mid', 'ensemble', p)
+    plot_states_RHS(df_all_states, 'opt', 'ensemble', p)
     
     print('*******')
     print('R2: ' + str(np.round(R_sq, 3)))
     print('chi2: ' + str(np.round(chi2, 3)))
     print('*******')
+    print(df_all_states.at['target aCas13a-gRNA', str([5.0, 2.5, 0.005, 1, 90])])
+    
 
 #p = [8.73073E-05,689.9907897,1074.669737,0.190102635,69522.58812,51.10418826,1.377712318,1391.322358,9.030497548, 0]
 #p = [2.754411, 27355.04, 5.553618, 0.024552, 0.198738, 47.82998, 5.915647, 3.902321, 24.87791]
@@ -86,10 +96,16 @@ def testSingleSet(p):
 #p = [0.000391575,	17890.64388,	1392.991394,	0.088281649,	79.99260343,	2.113431759,	6.742071329]
 #p = [5.98681E-05,	721.1529526,	1360.727836,	0.385250686,	2.580973544,	58.85708085,	7.876468573]
 #p = [0.000168421,	47523.25047,	1555.791395,	0.177256736,	14.59213848,	1.196304863,	6.927381021]
+# p = [0.002600907,	7196.142726,	0.036236089,	0.770246558,	0.020866175, 0, 0]
+# p = [0.001186029,	10898.89966,	0.478019244,	0.050449563,	0.118303588,	35.14967272,	18.85547134]
 
-#p = [0.00039, 17890.64388, 1392.99139, 0.08828, 79.9926, 2.11343, 6.74207] #use for CV       
-p = [0.002600907,	7196.142726,	0.036236089,	0.770246558,	0.020866175, 0, 0]
-p = [0.001186029,	10898.89966,	0.478019244,	0.050449563,	0.118303588,	35.14967272,	18.85547134]
+
+#ensemble model params
+p = [0.00039, 17890.64388, 1392.99139, 0.08828, 79.9926, 2.11343, 6.74207] #use for CV       
+
+#params from fitting to slice
+#p = [5.98681E-05, 5.98681E-05, 721.1529526, 721.1529526, 1360.727836, 0.385250686, 0.385250686, 2.580973544, 58.85708085, 7.876468573]
+
 testSingleSet(p)   
 
 
