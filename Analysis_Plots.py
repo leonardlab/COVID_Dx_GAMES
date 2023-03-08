@@ -564,7 +564,12 @@ def plotLowCas13(df, data_type):
     sns.swarmplot(x="label", y="Readout at final timepoint", data=df, color = 'dimgrey')
     plt.savefig('./LOW VS HIGH CAS13A-GRNA COMPARISON.svg')
     
-def plot_all_states(df: pd.DataFrame, dose: str, params: str):
+def plot_all_states(
+        df: pd.DataFrame, 
+        dose: str, 
+        params: str,
+        t_len: str
+    ):
     
     if dose == 'mid':
         doses = [5.0, 2.5, 0.005, 1, 90]
@@ -573,6 +578,10 @@ def plot_all_states(df: pd.DataFrame, dose: str, params: str):
         doses = [5.0, 10.0, 0.02, 1, 90]
     
     time = np.linspace(0, 240, 61)
+    t_points = 61
+    if t_len == '2 hours':
+        time = time[:31]
+        t_points = 31
 
     fig, axs = plt.subplots(nrows=7, ncols=5, sharex=False, sharey=False, figsize = (10, 15))
     fig.subplots_adjust(hspace=0.5)
@@ -580,18 +589,24 @@ def plot_all_states(df: pd.DataFrame, dose: str, params: str):
     axs = axs.ravel()
 
     for i, state in enumerate(model_states):
-        axs[i].plot(time, df.at[state, str(doses)])
+        axs[i].plot(time, df.at[state, str(doses)][:t_points])
         axs[i].set_xlabel('time (min)')
         axs[i].set_ylabel('simulation value')
-        axs[i].set_title(state)
+        # axs[i].set_title(state)
         axs[i].set_box_aspect(1)
     axs[-1].axis('off')
     axs[-2].axis('off')
     fig.suptitle('All Model States '+params+' '+dose)
     # plt.show()
-    plt.savefig('All_model_states_'+params+'_'+dose+'.svg')
+    plt.savefig('notitle_All_model_states_'+params+'_'+dose+'.svg')
 
-def plot_states_RHS(df: pd.DataFrame, dose: str, params: str, p: list,):
+def plot_states_RHS(
+        df: pd.DataFrame,
+        dose: str,
+        params: str,
+        p: list,
+        t_len: str
+    ):
 
     if dose == 'mid':
         doses = [5.0, 2.5, 0.005, 1, 90]
@@ -600,6 +615,12 @@ def plot_states_RHS(df: pd.DataFrame, dose: str, params: str, p: list,):
         doses = [5.0, 10.0, 0.02, 1, 90]
     
     time = np.linspace(0, 240, 61)
+    t_points = 61
+    if t_len == '2 hours':
+        time = time[:31]
+        t_points = 31
+
+
     #Parameters
     k_cas13  = p[0] #nM-1 min-1
     k_degv = p[1] #nM-1 min-1
@@ -627,45 +648,6 @@ def plot_states_RHS(df: pd.DataFrame, dose: str, params: str, p: list,):
     dist = expon(loc = k_loc_deactivation, scale = k_scale_deactivation)
     frac_act_list = dist.sf(time)
     x_aCas13_list = [frac_act*x_Cas13 for frac_act, x_Cas13 in zip(frac_act_list, x_Cas13_list)]
-        # u_v = - k_degv*x_v*x_aCas13 - k_bds*x_v*x_u - k_bds*x_v*x_p1
-        # u_p1v =  k_bds*x_v*x_p1/C_scale - k_degv*x_p1v*x_aCas13 - k_RTon*x_p1v*x_RT + k_RToff*x_RTp1v
-        # u_p2u = k_bds*x_u*x_p2 - k_degv*x_p2u*x_aCas13 - k_RTon*x_p2u*x_RT + k_RToff*x_RTp2u
-        # u_p1cv = k_degv*x_p1v*x_aCas13 - k_RTon*x_p1cv*x_RT + k_RToff*x_RTp1cv
-        # u_p2cu = k_degv*x_p2u*x_aCas13 - k_RTon*x_p2cu*x_RT + k_RToff*x_RTp2cu
-        # u_RTp1v = - k_RToff*x_RTp1v + k_RTon*x_RT*x_p1v - k_degv*x_RTp1v*x_aCas13 - k_FSS*x_RTp1v
-        # u_RTp2u = - k_RToff*x_RTp2u + k_RTon*x_RT*x_p2u - k_degv*x_RTp2u*x_aCas13 - k_FSS*x_RTp2u
-        # u_RTp1cv = - k_RToff*x_RTp1cv + k_RTon*x_RT*x_p1cv + k_degv*x_RTp1v*x_aCas13
-        # u_RTp2cu = - k_RToff*x_RTp2cu + k_RTon*x_RT*x_p2cu + k_degv*x_RTp2u*x_aCas13
-        # u_cDNA1v = k_FSS*x_RTp1v - k_RNaseon*x_cDNA1v*x_RNase + k_RNaseoff*x_RNasecDNA1v
-        # u_cDNA2u = k_FSS*x_RTp2u - k_RNaseon*x_cDNA2u*x_RNase + k_RNaseoff *x_RNasecDNA2u
-        # u_RNasecDNA1v = - k_RHA*x_RNasecDNA1v - k_RNaseoff*x_RNasecDNA1v + k_RNaseon*x_RNase*x_cDNA1v
-        # u_RNasecDNA2u = - k_RHA*x_RNasecDNA2u - k_RNaseoff*x_RNasecDNA2u + k_RNaseon*x_RNase*x_cDNA2u
-        # u_cDNA1 = k_RHA*x_RNasecDNA1v - k_bds*x_cDNA1*x_p2
-        # u_cDNA2 = k_RHA*x_RNasecDNA2u - k_bds*x_cDNA2*x_p1
-        # u_p2cDNA1 =  k_bds*x_cDNA1*x_p2 + k_RToff*x_RTp2cDNA1 - k_RTon*x_RT*x_p2cDNA1
-        # u_p1cDNA2 = k_bds*x_cDNA2*x_p1 + k_RToff*x_RTp1cDNA2 - k_RTon*x_RT*x_p1cDNA2
-        # u_RTp2cDNA1 = k_RTon*x_RT*x_p2cDNA1 - k_RToff*x_RTp2cDNA1 - k_SSS*x_RTp2cDNA1
-        # u_RTp1cDNA2 = k_RTon*x_RT*x_p1cDNA2 - k_RToff*x_RTp1cDNA2 - k_SSS*x_RTp1cDNA2
-        # u_pro = k_SSS*x_RTp2cDNA1 + k_SSS*x_RTp1cDNA2 - k_T7on*x_T7*x_pro + k_T7off*x_T7pro + k_txn*x_T7pro
-        # u_T7pro = - k_T7off*x_T7pro + k_T7on*x_T7*x_pro - k_txn*x_T7pro
-        # u_u = k_txn*x_T7pro - k_bds*x_u*x_v/C_scale - k_degv*x_u*x_aCas13 - k_cas13*x_u*x_iCas13 - k_bds*x_u*x_p2
-        # u_Cas13 = k_cas13*x_u*x_iCas13
-        # u_uv = k_bds*x_u*x_v/C_scale
-        # u_qRf = - k_degRrep*x_aCas13*x_qRf
-
-    ###START HERE, Q AND F DONE
-    #u_p1 = - k_bds*x_v*x_p1- k_bds*x_p1*x_cDNA2
-    #u_p2 = - k_bds*x_u*x_p2 - k_bds*x_p2*x_cDNA1
-    #u_RT = + k_RToff*x_RTp1v + k_RToff*x_RTp1cv + k_RToff*x_RTp2cDNA1 + k_RToff*x_RTp2u + k_RToff · x_RTp2cu
-    # + k_RToff*x_RTp1cDNA2 - k_RTon*x_RT*x_p1v - k_RTon*x_RT*x_p1cv - k_RTon*x_RT*x_p2cDNA1 
-    # - k_RTon*x_RT*x_p2u - k_RTon*x_RT*x_p2cu - k_RTon*x_RT*x_p1cDNA2 + k_FSS*x_RTp1v + k_FSS*x_RTp2u
-    # + k_SSS*x_RTp2cDNA1 + k_SSS   · x_RTp1cDNA2
-    #u_RNase = + k_RNaseoff*x_RNasecDNA1v + k_RNaseoff*x_RNasecDNA2u - k_RNaseon*x_RNase*x_cDNA1v
-    # - k_RNaseon*x_RNase*x_cDNA2u + k_RHA*x_RNasecDNA1v + k_RHA*x_RNasecDNA2u
-    #u_T7 = + k_T7off*x_T7pro - k_T7on*x_T7*x_pro + k_txn*x_T7pro
-    #u_iCas13 = - k_cas13*x_u*x_iCas13
-    #u_q = + k_degRrep*x_aCas13*x_qRf
-    #u_f = + k_degRrep*x_aCas13*x_qRf
 
     x_v_RHS = [k_degv*x_v*x_aCas13 - k_bds*x_v*x_u - k_bds*x_v*x_p1  \
         for x_v, x_aCas13, x_u, x_p1 in zip(
@@ -948,16 +930,26 @@ def plot_states_RHS(df: pd.DataFrame, dose: str, params: str, p: list,):
     axs = axs.ravel()
 
     for i, state in enumerate(model_states):
-        axs[i].plot(time, all_state_RHS[i])
+        axs[i].plot(time, all_state_RHS[i][:t_points])
         axs[i].set_xlabel('time (min)')
         axs[i].set_ylabel('ODE RHS sim. value')
-        axs[i].set_title(state)
+        # axs[i].set_title(state)
         axs[i].set_box_aspect(1)
+    
     axs[-1].axis('off')
     axs[-2].axis('off')
     fig.suptitle('All States RHS '+params+' '+dose)
     # plt.show()
-    plt.savefig('All_states_RHS_'+params+'_'+dose+'.svg')
+    plt.savefig('notitle_All_states_RHS_'+params+'_'+dose+'.svg')
+
+    fig, ax = plt.subplots(nrows=1, ncols=1, sharex=False, sharey=False, figsize = (2, 3))
+    fig.subplots_adjust(hspace=0.5)
+    fig.subplots_adjust(wspace=0)
+
+    ax.plot(time, x_aCas13_list[:t_points])
+    ax.set_xlabel('time (min)')
+    ax.set_ylabel('sim. value')
+    plt.savefig('Active_cas13_time_series_'+params+'_'+dose+'.svg')
 
     
     

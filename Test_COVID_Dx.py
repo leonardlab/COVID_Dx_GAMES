@@ -70,12 +70,12 @@ def testSingleSet(p):
     # plotModelingObjectives456(df_sim)
 
     #Plot all model states ('ensemble' or 'slice')
-    plot_all_states(df_all_states, 'mid', 'slice')
-    plot_all_states(df_all_states, 'opt', 'slice')
+    plot_all_states(df_all_states, 'mid', 'slice', '2 hours')
+    plot_all_states(df_all_states, 'opt', 'slice', '2 hours')
 
     #Plot all states ODE RHS
-    plot_states_RHS(df_all_states, 'mid', 'slice', p)
-    plot_states_RHS(df_all_states, 'opt', 'slice', p)
+    plot_states_RHS(df_all_states, 'mid', 'slice', p, '2 hours')
+    plot_states_RHS(df_all_states, 'opt', 'slice', p, '2 hours')
     
     print('*******')
     print('R2: ' + str(np.round(R_sq, 3)))

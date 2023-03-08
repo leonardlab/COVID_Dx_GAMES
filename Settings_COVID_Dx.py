@@ -26,7 +26,7 @@ def init():
     # 1. Define and create folder for saving results
     # =============================================================================
     #This will be the name of the run-specific results folder. 
-    folder_name = '230223_test' 
+    folder_name = '230308_test_t_short' 
     #model B parameter estimation with par 5000 + 24'
     #fix with 0 for txn poisoning mechs'
 
@@ -128,28 +128,28 @@ def init():
     conditions_dictionary["parallelization"] = 'yes'
     model_states = [
         'vRNA (input)',
-        'ssDNA primer 1',
-        'ssDNA primer 2',
-        'ssDNA primer 1: vRNA',
-        'ssDNA primer 2: tRNA',
-        'ssDNA primer 1: cvRNA',
-        'ssDNA primer 2: ctRNA',
+        'ssDNA p1',
+        'ssDNA p2',
+        'ssDNA p1:vRNA',
+        'ssDNA p2:tRNA',
+        'ssDNA p1:cvRNA',
+        'ssDNA p2:ctRNA',
         'RT',
         'RNase H',
-        'RT-ssDNA primer 1: vRNA',
-        'RT-ssDNA primer 2: tRNA',
-        'RT-ssDNA primer 1: cvRNA',
-        'RT-ssDNA primer 2: ctRNA',
-        'cDNA 1: vRNA',
-        'cDNA 2: tRNA',
-        'cDNA 1: vRNA: RNase H',
-        'cDNA 2: tRNA: RNase H',
-        'cDNA 1: vRNA frag',
-        'cDNA 2: tRNA frag',
-        'cDNA 1: ssDNA primer 2',
-        'cDNA 2: ssDNA primer 1',
-        'cDNA 1: ssDNA primer 2: RT',
-        'cDNA 2: ssDNA primer 1: RT',
+        'RT-ssDNA p1:vRNA',
+        'RT-ssDNA p2:tRNA',
+        'RT-ssDNA p1:cvRNA',
+        'RT-ssDNA p2:ctRNA',
+        'cDNA1:vRNA',
+        'cDNA2:tRNA',
+        'cDNA1:vRNA: RNase H',
+        'cDNA2:tRNA: RNase H',
+        'cDNA1:vRNA frag',
+        'cDNA2:tRNA frag',
+        'cDNA1:ssDNA p2',
+        'cDNA2:ssDNA p1',
+        'cDNA1:ssDNA p2:RT',
+        'cDNA2:ssDNA p1:RT',
         'T7 RNAP',
         'dsDNA T7 target',
         'T7: dsDNA T7 target',
@@ -157,7 +157,7 @@ def init():
         'target iCas13a-gRNA',
         'target aCas13a-gRNA',
         'dsRNA (input:target)',
-        'quencher-ssRNA-fluorophore',
+        'quench-ssRNA-fluoro',
         'quencher',
         'fluorophore (output)'
     ]
