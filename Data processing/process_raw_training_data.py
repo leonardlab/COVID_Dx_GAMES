@@ -107,7 +107,7 @@ def compile_dataset(path, fnames, sheet_names, vRNA_doses, Cas13_doses, out_fnam
 
 
 #args for all datasets
-path = '/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/'
+path = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/'
 sheetNames = ['Processed-0fM_FITC', 'Processed-1fM_FITC', 'Processed-10fM_FITC']
 Cas13_doses = [90, 4.5] #nM
 vRNA_doses = [0, 1, 10] #fm

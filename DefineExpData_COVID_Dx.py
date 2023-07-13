@@ -46,8 +46,17 @@ def defineExp(data, model, k_CV, k_PEM_evaluation):
   '''
 
     #Import training data
-    df_data = pd.read_pickle('/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/PROCESSED DATA EXP.pkl')
-    df_error = pd.read_pickle('/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/PROCESSED DATA ERR.pkl')
+    if 'rep2' in data:
+        df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED_DATA_rep2_EXP.pkl')
+        df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED_DATA_rep2_ERR.pkl') 
+
+    elif 'rep3' in data:
+        df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED_DATA_rep3_EXP.pkl')
+        df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED_DATA_rep3_ERR.pkl')
+    
+    else:
+        df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED_DATA_rep1_fix_EXP.pkl')
+        df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED_DATA_rep1_fix_ERR.pkl')
 
     with open("/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/x_CV_train2.json", "r") as fp:
         x_CV_train = json.load(fp)
@@ -55,29 +64,29 @@ def defineExp(data, model, k_CV, k_PEM_evaluation):
     with open("/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/x_CV_test2.json", "r") as fp:
         x_CV_test = json.load(fp)
 
-    # if data == 'PEM evaluation':
-    #     #Import df for appropriate model and k_PEM_evaluation
-    #     filename = '/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/PEM evaluation data/PEM EVALUATION DATA NOISE ' + model + '.xlsx'
-    #     df = pd.read_excel(filename, sheet_name = str(k_PEM_evaluation))
+    if data == 'PEM evaluation':
+        #Import df for appropriate model and k_PEM_evaluation
+        filename = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PEM evaluation data/PEM EVALUATION DATA NOISE ' + model + '.xlsx'
+        df = pd.read_excel(filename, sheet_name = str(k_PEM_evaluation))
         
-    #     exp_data = []
-    #     i = 0
-    #     for column in df:
-    #         if i != 0: #skip column 0 (indicies)
-    #             vals = list(df[column])
-    #             exp_data = exp_data + vals
-    #         i += 1
-    #     exp_data = [i/max(exp_data) for i in exp_data]
+        exp_data = []
+        i = 0
+        for column in df:
+            if i != 0: #skip column 0 (indicies)
+                vals = list(df[column])
+                exp_data = exp_data + vals
+            i += 1
+        exp_data = [i/max(exp_data) for i in exp_data]
        
-    #     #error not used for PEM evaluation paramter estimation runs, so use placeholder
-    #     error = [1] * len(exp_data)
+        #error not used for PEM evaluation paramter estimation runs, so use placeholder
+        error = [1] * len(exp_data)
         
-    #     #same x as 'slice drop high error'
-    #     x = [[20.0, 2.5, 0.005, 10, 90], [5.0, 10.0, 0.005, 10, 90], [5.0, 2.5, 0.02, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.001, 10, 90], [1.0, 2.5, 0.005, 10, 90], [20.0, 2.5, 0.005, 1, 90], [5.0, 10.0, 0.005, 1, 90], [5.0, 2.5, 0.02, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.001, 1, 90], [5.0, 0.5, 0.005, 1, 90], [1.0, 2.5, 0.005, 1, 90]]
+        #same x as 'slice drop high error'
+        x = [[20.0, 2.5, 0.005, 10, 90], [5.0, 10.0, 0.005, 10, 90], [5.0, 2.5, 0.02, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.001, 10, 90], [1.0, 2.5, 0.005, 10, 90], [20.0, 2.5, 0.005, 1, 90], [5.0, 10.0, 0.005, 1, 90], [5.0, 2.5, 0.02, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.001, 1, 90], [5.0, 0.5, 0.005, 1, 90], [1.0, 2.5, 0.005, 1, 90]]
         
-    #     #not used for PEM evaluation, so use placeholder
-    #     timecourses = []
-    #     timecourses_err = []
+        #not used for PEM evaluation, so use placeholder
+        timecourses = []
+        timecourses_err = []
         
 
     #Choose conditions to include or drop
@@ -494,7 +503,115 @@ def defineExp(data, model, k_CV, k_PEM_evaluation):
                 timecourses_err.append(err)
                 error = error + err 
                 
+    elif data == 'rep2 slice drop high error':
+        labels1 = [[1.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.005, 1, 90], [20.0, 2.5, 0.005, 1, 90]]
+        labels10 = [[1.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.005, 10, 90], [20.0, 2.5, 0.005, 10, 90]]
+        labels_T7 = labels1 + labels10
+        
+        labels1 = [[5.0, 0.5, 0.005, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 10.0, 0.005, 1, 90]]
+        labels10 = [[5.0, 0.5, 0.005, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 10.0, 0.005, 10, 90]]
+        labels_RT = labels1 + labels10
+        
+        labels1 = [[5.0, 2.5, 0.001, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.02, 1, 90]]
+        labels10 = [[5.0, 2.5, 0.001, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.02, 10, 90]]
+        labels_RNase =labels1 + labels10
+        
+        labels_pre_drop = labels_T7 + labels_RT + labels_RNase
+        drop_labels = [[20.0, 2.5, 0.02, 10, 90]] #not even in the slice labels so not relevant
+        labels = []
+        for label in labels_pre_drop:
+            if label not in drop_labels:
+                labels.append(label)
+     
+        x = []
+        exp_data = []
+        for (columnName, columnData) in df_data.iteritems():
+            label = list(columnData.iloc[0])
+        
+            if label in labels:
+                x.append(label)
+                timecourse = list(columnData.iloc[1:])
 
+                exp_data = exp_data + timecourse
+        
+        maxVal = max(exp_data)
+        exp_data = []
+        timecourses = []
+        timecourses_err = []
+        for (columnName, columnData) in df_data.iteritems():
+            label = list(columnData.iloc[0])
+  
+            if label in labels:
+                timecourse = list(columnData.iloc[1:])
+                timecourse = [i/maxVal for i in timecourse]
+                
+                timecourses.append(timecourse)
+                exp_data = exp_data + timecourse           
+     
+        error = []
+        for (columnName, columnData) in df_error.iteritems():
+            label = list(columnData.iloc[0])
+            
+            if label in labels:
+                err = list(columnData.iloc[1:])
+                err = [i/maxVal for i in err]
+                timecourses_err.append(err)
+                error = error + err 
+
+    elif data == 'rep3 slice drop high error':
+        labels1 = [[1.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.005, 1, 90], [20.0, 2.5, 0.005, 1, 90]]
+        labels10 = [[1.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.005, 10, 90], [20.0, 2.5, 0.005, 10, 90]]
+        labels_T7 = labels1 + labels10
+        
+        labels1 = [[5.0, 0.5, 0.005, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 10.0, 0.005, 1, 90]]
+        labels10 = [[5.0, 0.5, 0.005, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 10.0, 0.005, 10, 90]]
+        labels_RT = labels1 + labels10
+        
+        labels1 = [[5.0, 2.5, 0.001, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.02, 1, 90]]
+        labels10 = [[5.0, 2.5, 0.001, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.02, 10, 90]]
+        labels_RNase =labels1 + labels10
+        
+        labels_pre_drop = labels_T7 + labels_RT + labels_RNase
+        drop_labels = [[5.0, 10.0, 0.02, 10, 90]]
+        labels = []
+        for label in labels_pre_drop:
+            if label not in drop_labels:
+                labels.append(label)
+     
+        x = []
+        exp_data = []
+        for (columnName, columnData) in df_data.iteritems():
+            label = list(columnData.iloc[0])
+        
+            if label in labels:
+                x.append(label)
+                timecourse = list(columnData.iloc[1:])
+
+                exp_data = exp_data + timecourse
+        
+        maxVal = max(exp_data)
+        exp_data = []
+        timecourses = []
+        timecourses_err = []
+        for (columnName, columnData) in df_data.iteritems():
+            label = list(columnData.iloc[0])
+  
+            if label in labels:
+                timecourse = list(columnData.iloc[1:])
+                timecourse = [i/maxVal for i in timecourse]
+                
+                timecourses.append(timecourse)
+                exp_data = exp_data + timecourse           
+     
+        error = []
+        for (columnName, columnData) in df_error.iteritems():
+            label = list(columnData.iloc[0])
+            
+            if label in labels:
+                err = list(columnData.iloc[1:])
+                err = [i/maxVal for i in err]
+                timecourses_err.append(err)
+                error = error + err 
             
     
     return x, exp_data, error, timecourses, timecourses_err
