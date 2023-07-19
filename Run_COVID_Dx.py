@@ -68,11 +68,12 @@ data_type = 'experimental'
 #COVID-DX specific
 timecourses_err = data_dictionary["timecourses_err"]
 timecourses =  data_dictionary["timecourses"] 
-df_data = pd.read_pickle('/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/PROCESSED DATA EXP.pkl')
-df_error = pd.read_pickle('/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/PROCESSED DATA ERR.pkl')
+df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA EXP.pkl')
+df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA ERR.pkl')
+
 
 #Set style file
-plt.style.use('/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/paper.mplstyle.py')
+plt.style.use('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/paper.mplstyle.py')
 
 #ignore ODEint warnings that clog up the console
 warnings.filterwarnings("ignore")
@@ -166,7 +167,6 @@ def solveAll(p: list, exp_data: list, output: str) -> Tuple[list, list, float, p
     df_all_states
         df containing all model states simulation values"""
 
-    ###start here (to plot RHS, use rates in solvesingle)
     df_all_states = pd.DataFrame(
         index=model_states,
         columns = [str(i) for i in x],

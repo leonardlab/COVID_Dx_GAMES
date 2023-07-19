@@ -26,8 +26,8 @@ from Analysis_Plots import plotModelingObjectives123, plotModelingObjectives456
 plt.style.use('/Users/kate/Documents/GitHub/GAMES_COVID_Dx/paper.mplstyle.py')
 
 #Import experimental data and experimental error
-df_data = pd.read_pickle('/Users/kate/Documents/GitHub/GAMES_COVID_Dx/PROCESSED DATA EXP.pkl')
-df_error = pd.read_pickle('/Users/kate/Documents/GitHub/GAMES_COVID_Dx/PROCESSED DATA ERR.pkl')
+df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA EXP.pkl')
+df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA ERR.pkl')
     
 fontsize_ = 10
 dpi_ = 600

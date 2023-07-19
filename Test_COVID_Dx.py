@@ -30,9 +30,9 @@ timecourses_exp = data_dictionary["timecourses"]
 x = data_dictionary["x_vals"]
 problem_free = conditions_dictionary["problem"]
 bounds = problem_free['bounds']
-df_data = pd.read_pickle('./PROCESSED DATA EXP.pkl')
-df_error = pd.read_pickle('./PROCESSED DATA ERR.pkl')  
-plt.style.use('/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/paper.mplstyle.py')
+df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA EXP.pkl')
+df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA ERR.pkl')
+plt.style.use('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/paper.mplstyle.py')
     
 
 def testSingleSet(p):
@@ -66,16 +66,16 @@ def testSingleSet(p):
     # parityPlot(solutions, exp_data, data)
     
     #Plot modeling objectives
-    # plotModelingObjectives123(solutions)
-    # plotModelingObjectives456(df_sim)
+    plotModelingObjectives123(solutions)
+    plotModelingObjectives456(df_sim)
 
     #Plot all model states ('ensemble' or 'slice')
-    plot_all_states(df_all_states, 'mid', 'slice', '2 hours')
-    plot_all_states(df_all_states, 'opt', 'slice', '2 hours')
+    # plot_all_states(df_all_states, 'mid', 'slice', '2 hours')
+    # plot_all_states(df_all_states, 'opt', 'slice', '2 hours')
 
     #Plot all states ODE RHS
-    plot_states_RHS(df_all_states, 'mid', 'slice', p, '2 hours')
-    plot_states_RHS(df_all_states, 'opt', 'slice', p, '2 hours')
+    # plot_states_RHS(df_all_states, 'mid', 'slice', p, '2 hours')
+    # plot_states_RHS(df_all_states, 'opt', 'slice', p, '2 hours')
     
     print('*******')
     print('R2: ' + str(np.round(R_sq, 3)))
@@ -101,10 +101,11 @@ def testSingleSet(p):
 
 
 #ensemble model params
-# p = [0.00039, 17890.64388, 1392.99139, 0.08828, 79.9926, 2.11343, 6.74207] #use for CV       
+###THESE are used for supp fig sim/exp comparisons
+p = [0.00039, 17890.64388, 1392.99139, 0.08828, 79.9926, 2.11343, 6.74207] #use for CV       
 
 #params from fitting to slice
-p = [5.98681E-05,	721.1529526,	1360.727836,	0.385250686,	2.580973544,	58.85708085,	7.876468573]
+# p = [5.98681E-05,	721.1529526,	1360.727836,	0.385250686,	2.580973544,	58.85708085,	7.876468573]
 
 testSingleSet(p)   
 

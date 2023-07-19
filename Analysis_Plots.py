@@ -29,11 +29,11 @@ model = conditions_dictionary['model']
 param_labels = real_param_labels_all 
 error = data_dictionary["error"]
 model_states = conditions_dictionary["model states"]
-df_data = pd.read_pickle('/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/PROCESSED DATA EXP.pkl')
-df_error = pd.read_pickle('/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/PROCESSED DATA ERR.pkl')
+df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA EXP.pkl')
+df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA ERR.pkl')
 
 #Import custom style file for plotting
-plt.style.use('/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/paper.mplstyle.py')
+plt.style.use('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/paper.mplstyle.py')
 dpi_ = 600
 
 def plotMeanMeasurementError():
@@ -456,8 +456,8 @@ def resultsPanel(dfSim, dfExp, dfErr, labels, varyCondition):
     elif varyCondition == 'RNAse':
         objective = 4
         y_max_1 = 0.25
-        y_max_10 = 1.0
-        #0.85
+        y_max_10 = 0.85 #1.0
+    
     elif varyCondition == 'T7':
         objective = 6
         y_max_1 = 0.65

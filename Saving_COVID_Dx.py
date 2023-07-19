@@ -19,7 +19,7 @@ def makeMainDir(folder_name):
         results_folder_path + folder_name: a string defining the location of the new folder
     '''
 
-    results_folder_path = '/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/Results/'
+    results_folder_path = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/'
     
     try:
         if not os.path.exists(results_folder_path + folder_name):

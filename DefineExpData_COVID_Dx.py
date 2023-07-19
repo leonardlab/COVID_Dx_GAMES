@@ -55,13 +55,13 @@ def defineExp(data, model, k_CV, k_PEM_evaluation):
         df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED_DATA_rep3_ERR.pkl')
     
     else:
-        df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED_DATA_rep1_fix_EXP.pkl')
-        df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED_DATA_rep1_fix_ERR.pkl')
+        df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA EXP.pkl')
+        df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA ERR.pkl')
 
-    with open("/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/x_CV_train2.json", "r") as fp:
+    with open("/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/x_CV_train2.json", "r") as fp:
         x_CV_train = json.load(fp)
         
-    with open("/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/x_CV_test2.json", "r") as fp:
+    with open("/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/x_CV_test2.json", "r") as fp:
         x_CV_test = json.load(fp)
 
     if data == 'PEM evaluation':
