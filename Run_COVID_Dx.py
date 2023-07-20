@@ -455,7 +455,7 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
     '''1. Global search'''   
     #use results from previous global search used to generate PEM evaluation data
     if data == 'PEM evaluation': 
-        df_results = pd.read_pickle('/Users/kate/Documents/GitHub/GAMES_COVID_Dx/PEM evaluation data/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
+        df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230719_test_PEM_eval_data_rep1_slice/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
         mse_values_PEM_evaluation_data = calculate_mse_k_PEM_evaluation(k_PEM_evaluation, df_results)
         label = 'chi_sq_' + str(k_PEM_evaluation)
         df_results[label] = mse_values_PEM_evaluation_data
@@ -909,7 +909,7 @@ def runGlobalSearchPemEval() -> pd.DataFrame:
     filename = './GLOBAL SEARCH RESULTS ' + model
     df_results.to_pickle(filename + '.pkl')
     with pd.ExcelWriter(filename + '.xlsx') as writer: 
-        df_results.to_excel(writer, sheet_name='')
+        df_results.to_excel(writer, sheet_name=' ')
     print('Global search complete')
     
     return df_results
@@ -1246,88 +1246,89 @@ def defineExpData_CV(data_lists: list, n_indicies: int, n_sets: int) -> Tuple[li
 # =============================================================================
 # Code to RUN the workflow
 # =============================================================================
-if run_type == 'generate PEM evaluation data':
-    #Record start time
-    startTime_1 = datetime.datetime.now()
+if __name__ == '__main__':
+    if run_type == 'generate PEM evaluation data':
+        #Record start time
+        startTime_1 = datetime.datetime.now()
+            
+        #Set up file structure
+        os.chdir(full_path)
+        sub_folder_name = 'GENERATE PEM EVALUATION DATA'
+        createFolder('./' + sub_folder_name)
+        os.chdir('./' + sub_folder_name)
         
-    #Set up file structure
-    os.chdir(full_path)
-    sub_folder_name = 'GENERATE PEM EVALUATION DATA'
-    createFolder('./' + sub_folder_name)
-    os.chdir('./' + sub_folder_name)
-    
-    print('Generating PEM evaluation data...')
-    #Run the global search and output the df of filtered results
-    df_results = runGlobalSearchPemEval()
-    
-    #Generate PEM evaluation data (add noise and save)
-    df_pem_eval = generatePemEvalData(df_results)
- 
-    
-if run_type == 'parameter estimation':
-    #Record start time
-    start_time = datetime.datetime.now()
-
-    #Set data_type to experimental 
-    data_dictionary["data_type"] = 'experimental'
-    data_type = data_dictionary["data_type"]
-     
-    #Set up file structure and save conditions
-    os.chdir(full_path)
-    sub_folder_name = 'PARAMETER ESTIMATION ' + data
-    if data == 'PEM evaluation':
-         sub_folder_name =  sub_folder_name + ' ' + str(k_PEM_evaluation)
-         
-    createFolder('./' + sub_folder_name)
-    os.chdir('./' + sub_folder_name)
-    saveConditions(conditions_dictionary, initial_params_dictionary, data_dictionary)
-    
-    #Run parameter estimation method and analysis
-    df_opt, calibrated_params, solutions_best_case, df_sim_best_case = runParameterEstimation()
-    
-    if data != 'cross-validation train' and data != 'PEM evaluation':
-        #Plot parameter distributions 
-        plotParamDistributions(df_opt)
-        plotParamBounds(calibrated_params, bounds)
+        print('Generating PEM evaluation data...')
+        #Run the global search and output the df of filtered results
+        df_results = runGlobalSearchPemEval()
         
-        #Plot modeling objectives
-        plotModelingObjectives123(solutions_best_case)
+        #Generate PEM evaluation data (add noise and save)
+        df_pem_eval = generatePemEvalData(df_results)
+    
         
-        #Solve equations for data = 'slice'
-        plotModelingObjectives456(df_sim_best_case)
-       
-    #Print stop time
-    stop_time = datetime.datetime.now()
-    elapsed_time = stop_time - start_time
-    elapsed_time_total = round(elapsed_time.total_seconds(), 1)
-    elapsed_time_total = elapsed_time_total/60
-    print('')
-    print('********************************************')
-    print('PARAMETER ESTIMATION')
-    print('Total run time (min): ' + str(round(elapsed_time_total, 3)))
-    print('Total run time (hours): ' + str(round(elapsed_time_total/60, 3))) 
-    print('********************************************')
+    if run_type == 'parameter estimation':
+        #Record start time
+        start_time = datetime.datetime.now()
 
-if run_type == 'generate cross-validation data':
-    #Set up file structure and save conditions
-    os.chdir(full_path)
-    sub_folder_name = 'CROSS VALIDATION'
-    createFolder('./' + sub_folder_name)
-    os.chdir('./' + sub_folder_name)
-    saveConditions(conditions_dictionary, initial_params_dictionary, data_dictionary)
-    
-    #Subsection data for 
-    data_lists = list(chunks(exp_data, 61))
-    n_indicies = 14
-    n_sets = 10
-    run_type = ''
-    x_CV_train, exp_data_CV_train, x_CV_test, exp_data_CV_test = defineExpData_CV(data_lists, n_indicies, n_sets)
-    
+        #Set data_type to experimental 
+        data_dictionary["data_type"] = 'experimental'
+        data_type = data_dictionary["data_type"]
+        
+        #Set up file structure and save conditions
+        os.chdir(full_path)
+        sub_folder_name = 'PARAMETER ESTIMATION ' + data
+        if data == 'PEM evaluation':
+            sub_folder_name =  sub_folder_name + ' ' + str(k_PEM_evaluation)
+            
+        createFolder('./' + sub_folder_name)
+        os.chdir('./' + sub_folder_name)
+        saveConditions(conditions_dictionary, initial_params_dictionary, data_dictionary)
+        
+        #Run parameter estimation method and analysis
+        df_opt, calibrated_params, solutions_best_case, df_sim_best_case = runParameterEstimation()
+        
+        if data != 'cross-validation train' and data != 'PEM evaluation':
+            #Plot parameter distributions 
+            plotParamDistributions(df_opt)
+            plotParamBounds(calibrated_params, bounds)
+            
+            #Plot modeling objectives
+            plotModelingObjectives123(solutions_best_case)
+            
+            #Solve equations for data = 'slice'
+            plotModelingObjectives456(df_sim_best_case)
+        
+        #Print stop time
+        stop_time = datetime.datetime.now()
+        elapsed_time = stop_time - start_time
+        elapsed_time_total = round(elapsed_time.total_seconds(), 1)
+        elapsed_time_total = elapsed_time_total/60
+        print('')
+        print('********************************************')
+        print('PARAMETER ESTIMATION')
+        print('Total run time (min): ' + str(round(elapsed_time_total, 3)))
+        print('Total run time (hours): ' + str(round(elapsed_time_total/60, 3))) 
+        print('********************************************')
 
-  
+    if run_type == 'generate cross-validation data':
+        #Set up file structure and save conditions
+        os.chdir(full_path)
+        sub_folder_name = 'CROSS VALIDATION'
+        createFolder('./' + sub_folder_name)
+        os.chdir('./' + sub_folder_name)
+        saveConditions(conditions_dictionary, initial_params_dictionary, data_dictionary)
+        
+        #Subsection data for 
+        data_lists = list(chunks(exp_data, 61))
+        n_indicies = 14
+        n_sets = 10
+        run_type = ''
+        x_CV_train, exp_data_CV_train, x_CV_test, exp_data_CV_test = defineExpData_CV(data_lists, n_indicies, n_sets)
+        
+
     
-    
+        
+        
 
 
 
-    
+        
