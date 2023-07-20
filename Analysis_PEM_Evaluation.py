@@ -93,7 +93,7 @@ def plotPemEvaluation(files, folder_name):
     R_sq_list = []
   
     for i, file in enumerate(files):
-        df = pd.read_excel(file)
+        df = pd.read_excel(file, engine='openpyxl')
         chi_sq, Rsq = analyzeSingleRun(df, i + 1)
         chi_sq_list = chi_sq_list + chi_sq
         R_sq_list = R_sq_list + Rsq

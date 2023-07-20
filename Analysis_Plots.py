@@ -119,7 +119,7 @@ def plotParamDistributions(df):
                 Plot of distribution of all parameter sets for R2 values within 10% of the highest value'''
 
     #Only keep rows with Rsq within 10% of the highest value
-    chi2 = df.sort_values(by=['chi2'])
+    chi2 = df.sort_values(by=['chi_sq'])
     max_R2 = df['Rsq'][0]
     cutoff_R2 = max_R2 - (max_R2 * .1)
     df = df[df['Rsq']>= cutoff_R2]
