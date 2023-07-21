@@ -26,7 +26,8 @@ def init():
     # 1. Define and create folder for saving results
     # =============================================================================
     #This will be the name of the run-specific results folder. 
-    folder_name = '230718_PEM_rep1_slice' 
+    folder_name = '230720_PEM_rep1_slice_nofilter'
+
     #model B parameter estimation with par 5000 + 24'
     #fix with 0 for txn poisoning mechs'
 
@@ -106,8 +107,8 @@ def init():
     #Initialize conditions dictionary
     conditions_dictionary = {}
     conditions_dictionary["model"] = modelID
-    conditions_dictionary["data"] = 'slice drop high error'
-    conditions_dictionary["run_type"] = 'parameter estimation'  
+    conditions_dictionary["data"] = 'slice drop high error' #'PEM evaluation'
+    conditions_dictionary["run_type"] = 'parameter estimation' #'generate PEM evaluation data'
     conditions_dictionary["n_search"] = 5000
     conditions_dictionary["n_initial_guesses"] = 24
     conditions_dictionary['k_CV'] = 13 #starts at 1, not 0. Only relevant if data == 'cross-validation train' or data == 'cross-validation test'

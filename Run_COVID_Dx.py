@@ -117,14 +117,14 @@ def check_filters(solutions: list, mse: float , doses: list, p: str) -> float:
         filter_code = 1
         
     #low iCas13 filter
-    else:
-        doses = [5.0, 0.5, 0.005, 1, 4.5]
-        t, solutions_all, reporter_timecourse = solveSingle(doses, p, model)
-        final_timepoint_iCas13 = reporter_timecourse[-1] #no norm
-        max_high_iCas13 = max(solutions) #no norm
-        ratio_2 = final_timepoint_iCas13/max_high_iCas13
-        if ratio_2 > 0.10:
-            filter_code = 2
+    # else:
+    #     doses = [5.0, 0.5, 0.005, 1, 4.5]
+    #     t, solutions_all, reporter_timecourse = solveSingle(doses, p, model)
+    #     final_timepoint_iCas13 = reporter_timecourse[-1] #no norm
+    #     max_high_iCas13 = max(solutions) #no norm
+    #     ratio_2 = final_timepoint_iCas13/max_high_iCas13
+    #     if ratio_2 > 0.10:
+    #         filter_code = 2
             
     mse = max(mse, filter_code)
             
@@ -455,7 +455,7 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
     '''1. Global search'''   
     #use results from previous global search used to generate PEM evaluation data
     if data == 'PEM evaluation': 
-        df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230719_test_PEM_eval_data_rep1_slice/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
+        df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230720_PEM_eval_rep1_slice_nofilter/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
         mse_values_PEM_evaluation_data = calculate_mse_k_PEM_evaluation(k_PEM_evaluation, df_results)
         label = 'chi_sq_' + str(k_PEM_evaluation)
         df_results[label] = mse_values_PEM_evaluation_data
@@ -470,8 +470,8 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
             parallelization_GS = 'yes'
         else:
             parallelization_GS = 'no'
-        if model == 'model A' or model == 'model C':
-            parallelization_GS = 'no'
+        # if model == 'model A' or model == 'model C':
+        #     parallelization_GS = 'no'
             
         #perform GS without parallelization
         if parallelization_GS == 'no':
