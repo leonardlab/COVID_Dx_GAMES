@@ -126,6 +126,8 @@ class ODE_solver(Mechanism_Solver):
         self.dummy_variables = np.array([x_dummy])
 
         #rates
+        ###add if statement- if self.mechanism_D == 'yes':
+        ###list rates- no k_RHA, instead init vals for a, b, c
         k_degv = 30.6
         k_bds = 0.198
         k_RTon = 0.024
@@ -147,7 +149,8 @@ class ODE_solver(Mechanism_Solver):
         self.k_loc_deactivation = 1
         self.k_scale_deactivation = 0.5
         self.dist_type = 'expon'
-
+        ###add if statement here- if self.mechanism_D == 'yes'
+        ###self.rates = np.array([k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, k_T7off, k_FSS, a, b, c, k_SSS, k_txn, k_cas13, k_degRrep]).astype(float)
         self.rates = np.array([k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, k_T7off, k_FSS, k_RHA, k_SSS, k_txn, k_cas13, k_degRrep]).astype(float)
         self.free_indices = [element for element in list(range(33)) if element not in [1, 2, 7, 8, 23, 27, 31, 32]]
         self.conserved_pairs = [[1, 3, 5, 9, 11, 13, 15, 17, 19, 20, 21, 22, 24, 25], \
@@ -178,13 +181,17 @@ class ODE_solver(Mechanism_Solver):
         , x_RTp1cDNA2, x_pro, x_T7pro, x_u, x_Cas13, x_uv, x_qRf, x_dummy, x_aCas13 = sp.symbols('x_v, x_p1v, x_p2u, x_p1cv, x_p2cu, x_RTp1v, x_RTp2u,\
          x_RTp1cv, x_RTp2cu, x_cDNA1v, x_cDNA2u, x_RNasecDNA1v, x_RNasecDNA2u, x_cDNA1, x_cDNA2, x_p2cDNA1, x_p1cDNA2, x_RTp2cDNA1 \
         , x_RTp1cDNA2, x_pro, x_T7pro, x_u, x_Cas13, x_uv, x_qRf, x_dummy, x_aCas13')
-
-        k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, k_T7off, k_FSS, k_RHA, k_SSS, k_txn_p, k_cas13, k_degRrep =\
-        sp.symbols('k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, k_T7off, k_FSS, k_RHA, k_SSS, k_txn_p, k_cas13, k_degRrep')
-
+        
         x = [x_v, x_p1v, x_p2u, x_p1cv, x_p2cu, x_RTp1v, x_RTp2u, x_RTp1cv \
         , x_RTp2cu, x_cDNA1v, x_cDNA2u, x_RNasecDNA1v, x_RNasecDNA2u, x_cDNA1, x_cDNA2, x_p2cDNA1, x_p1cDNA2, x_RTp2cDNA1 \
         , x_RTp1cDNA2, x_pro, x_T7pro, x_u, x_Cas13, x_uv, x_qRf, x_dummy, x_aCas13 ]
+
+        ###add if statement here- if self.mechanism_D == 'yes':
+        ###k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, k_T7off, k_FSS, a, b, c, k_SSS, k_txn_p, k_cas13, k_degRrep =\
+        ###sp.symbols('k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, k_T7off, k_FSS, a, b, c, k_SSS, k_txn_p, k_cas13, k_degRrep')
+        ### rates = [k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, k_T7off, k_FSS, a, b, c, k_SSS, k_txn_p, k_cas13, k_degRrep]
+        k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, k_T7off, k_FSS, k_RHA, k_SSS, k_txn_p, k_cas13, k_degRrep =\
+        sp.symbols('k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, k_T7off, k_FSS, k_RHA, k_SSS, k_txn_p, k_cas13, k_degRrep')
      
         rates = [k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, k_T7off, k_FSS, k_RHA, k_SSS, k_txn_p, k_cas13, k_degRrep]
 
@@ -212,6 +219,10 @@ class ODE_solver(Mechanism_Solver):
                 k_txn = k_txn_p/self.conserved_amounts[4]
             else:
                 k_txn = k_txn_p
+
+        ###add if statement here- if self.mechanism_D == 'yes':
+        ###k_RHA = -a*self.conserved_amounts[3] + b*self.conserved_amounts[3] + c
+        ######START HERE
 
         #Rates
         C_scale =  10 ** 6
