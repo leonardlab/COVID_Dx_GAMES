@@ -332,10 +332,10 @@ def optPar(row: tuple) -> Tuple[list, list]:
     #Initialize list to keep track of CF at each function evaluation
     chi_sq_list = []
 
-    def solveForOpt(x, p1, p2, p3, p4, p5, p6, p7):
+    def solveForOpt(x, p1, p2, p3, p4, p5, p6, p7, p8, p9):
         #This is the function that is solved at each step in the optimization algorithm
         #Solve ODEs for all data_sets
-        p = [p1, p2, p3, p4, p5, p6, p7]
+        p = [p1, p2, p3, p4, p5, p6, p7, p8, p9]
         doses, norm_solutions, mse, df_sim = solveAll(p, exp_data, '')
         print('eval #: ' + str(len(chi_sq_list)))
         print(p)
@@ -402,9 +402,10 @@ def optPar(row: tuple) -> Tuple[list, list]:
     for i in range(0, len(items)):
         result_row.append(items[i])
         result_row_labels.append(item_labels[i])
-        
-    result_row = result_row[:20]
-    result_row_labels = result_row_labels[:20]
+
+    ### val = num params *2 + 6    
+    result_row = result_row[:24]
+    result_row_labels = result_row_labels[:24]
     return result_row, result_row_labels
 
 

@@ -26,7 +26,7 @@ def init():
     # 1. Define and create folder for saving results
     # =============================================================================
     #This will be the name of the run-specific results folder. 
-    folder_name = '230720_PEM_rep1_slice_nofilter'
+    folder_name = '230727_PEM_eval_model_D_rep1'
 
     #model B parameter estimation with par 5000 + 24'
     #fix with 0 for txn poisoning mechs'
@@ -34,7 +34,7 @@ def init():
     # =============================================================================
     # 2. Define modelID, free parameters, and bounds
     # =============================================================================
-    modelID = 'model C'
+    modelID = 'model D'
     
     real_param_labels_all = ['k_cas13', 'k_degv', 'k_txn', 'k_FSS', 'k_RHA', 'k_loc_deactivation', 'k_scale_deactivation'] #real labels for p_all
     
@@ -52,7 +52,13 @@ def init():
         p_all = [0.00198, 30.6, 36, 0.6, 7.8, 1, 1] #use for 1st round
         #p_all = [0.00063308,	2327.274696,	48.42183504,	0.059341649,	0.419926497,	67.13961241,	12.30863445] #use for 2nd round
         # p_all = [0.00039, 17890.64388, 1392.99139, 0.08828, 79.9926, 2.11343, 6.74207] #use for CV
-        
+
+    elif modelID == 'model D':
+        p_all = [0.00198, 30.6, 36, 0.6, 0.0001, 0.01, 7.8, 1, 1]
+        real_param_labels_free = ['k_cas13', 'k_degv', 'k_txn', 'k_FSS', 'a_RHA', 'b_RHA', 'c_RHA', 'k_loc_deactivation', 'k_scale_deactivation']
+        real_param_labels_all = real_param_labels_free
+        p_labels_all = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9']
+
     # elif modelID == 'w/txn poisoning':
     #     p_all = [0.00198, 30.6, 36, 0.6, 7.8, 1, 0, 0, 1] #use for 1st round
     #     real_param_labels_free = ['k_cas13', 'k_degv', 'k_txn', 'k_FSS', 'k_RHA', 'k_loc_deactivation', 'k_Mg', 'n_Mg', 'k_scale_deactivation']
@@ -60,7 +66,7 @@ def init():
     #     p_labels_all = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9']
         
     #Change param labels to generalizable param labels
-    p_labels_all = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7'] 
+    # p_labels_all = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7'] 
     num_free_params = len(real_param_labels_free)
     initial_params_dictionary = {}
     params = []
@@ -95,6 +101,20 @@ def init():
                 maxBound = log10(p_all[i]) + 3
             bounds_log.append([minBound, maxBound])
 
+        elif modelID == 'model D':
+            if i == 7: #k_loc_deactivation
+                minBound = 0
+                maxBound = 2.38
+                
+            elif i == 8: #k_scale_deactivation
+                minBound = 0
+                maxBound = 2.38
+                
+            else: 
+                minBound = log10(p_all[i]) - 3
+                maxBound = log10(p_all[i]) + 3
+            bounds_log.append([minBound, maxBound])
+
     
     #Define the parameter estimation problem (free parameters for this run only)
     problem = {'num_vars': num_free_params,  #set free parameters and bounds
@@ -107,8 +127,8 @@ def init():
     #Initialize conditions dictionary
     conditions_dictionary = {}
     conditions_dictionary["model"] = modelID
-    conditions_dictionary["data"] = 'slice drop high error' #'PEM evaluation'
-    conditions_dictionary["run_type"] = 'parameter estimation' #'generate PEM evaluation data'
+    conditions_dictionary["data"] = 'PEM evaluation' #'slice drop high error'
+    conditions_dictionary["run_type"] = 'generate PEM evaluation data' #'parameter estimation'
     conditions_dictionary["n_search"] = 5000
     conditions_dictionary["n_initial_guesses"] = 24
     conditions_dictionary['k_CV'] = 13 #starts at 1, not 0. Only relevant if data == 'cross-validation train' or data == 'cross-validation test'

@@ -102,10 +102,13 @@ def testSingleSet(p):
 
 #ensemble model params
 ###THESE are used for supp fig sim/exp comparisons
-p = [0.00039, 17890.64388, 1392.99139, 0.08828, 79.9926, 2.11343, 6.74207] #use for CV       
+# p = [0.00039, 17890.64388, 1392.99139, 0.08828, 79.9926, 2.11343, 6.74207] #use for CV       
 
 #params from fitting to slice
 # p = [5.98681E-05,	721.1529526,	1360.727836,	0.385250686,	2.580973544,	58.85708085,	7.876468573]
+
+#testing params for new RNase H mechanism
+p = [0.000579507,	82.98547, 1100.232245, 0.042172694, 0, 0, 5.307287201, 56.66392306, 7.081248575]
 
 testSingleSet(p)   
 
