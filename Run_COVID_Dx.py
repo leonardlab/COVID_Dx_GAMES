@@ -116,15 +116,15 @@ def check_filters(solutions: list, mse: float , doses: list, p: str) -> float:
     if max(solutions) < 2000:
         filter_code = 1
         
-    #low iCas13 filter
-    # else:
-    #     doses = [5.0, 0.5, 0.005, 1, 4.5]
-    #     t, solutions_all, reporter_timecourse = solveSingle(doses, p, model)
-    #     final_timepoint_iCas13 = reporter_timecourse[-1] #no norm
-    #     max_high_iCas13 = max(solutions) #no norm
-    #     ratio_2 = final_timepoint_iCas13/max_high_iCas13
-    #     if ratio_2 > 0.10:
-    #         filter_code = 2
+    # low iCas13 filter
+    else:
+        doses = [5.0, 0.5, 0.005, 1, 4.5]
+        t, solutions_all, reporter_timecourse = solveSingle(doses, p, model)
+        final_timepoint_iCas13 = reporter_timecourse[-1] #no norm
+        max_high_iCas13 = max(solutions) #no norm
+        ratio_2 = final_timepoint_iCas13/max_high_iCas13
+        if ratio_2 > 0.10:
+            filter_code = 2
             
     mse = max(mse, filter_code)
             
@@ -332,10 +332,10 @@ def optPar(row: tuple) -> Tuple[list, list]:
     #Initialize list to keep track of CF at each function evaluation
     chi_sq_list = []
 
-    def solveForOpt(x, p1, p2, p3, p4, p5, p6, p7, p8, p9):
+    def solveForOpt(x, p1, p2, p3, p4, p5, p6, p7):
         #This is the function that is solved at each step in the optimization algorithm
         #Solve ODEs for all data_sets
-        p = [p1, p2, p3, p4, p5, p6, p7, p8, p9]
+        p = [p1, p2, p3, p4, p5, p6, p7]
         doses, norm_solutions, mse, df_sim = solveAll(p, exp_data, '')
         print('eval #: ' + str(len(chi_sq_list)))
         print(p)
@@ -404,8 +404,8 @@ def optPar(row: tuple) -> Tuple[list, list]:
         result_row_labels.append(item_labels[i])
 
     ### val = num params *2 + 6    
-    result_row = result_row[:24]
-    result_row_labels = result_row_labels[:24]
+    result_row = result_row[:20]
+    result_row_labels = result_row_labels[:20]
     return result_row, result_row_labels
 
 

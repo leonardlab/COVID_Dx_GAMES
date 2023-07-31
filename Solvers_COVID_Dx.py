@@ -88,7 +88,7 @@ def solveSingle(doses, p, model):
         x_init[1] = 250 # x_p1
         x_init[2] = 250 # x_p2
         x_init[7] = doses[1] * 139.1 # x_RT
-        x_init[8] = doses[2] * 6060 # x_RNase (doses = 0.001, 0.005, 0.02), RNase_0 = 6.06, 30.3, 121.2
+        x_init[8] = doses[2] * 6060 # x_RNase (doses = 0.001, 0.005, 0.02), RNase_0 = 6.06, 30.3, 121.2, RNase_0**2 = 36.7236, 918.09, 14689.44
         x_init[23] = doses[0] * 16.16 # x_T7
         x_init[27] = doses[4]/2 # x_iCas13
         x_init[30] = 2500 # x_qRf

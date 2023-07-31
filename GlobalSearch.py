@@ -124,7 +124,7 @@ def filterGlobalSearch(df_results, num_ig, all_param_labels, sort_col):
     df_filtered = pd.DataFrame()
     df_results = df_results.sort_values(by=[sort_col])
     
-    if sort_col != 'chi2': #if data is not PEM evaluation data
+    if sort_col != 'chi_sq': #if data is not PEM evaluation data
         #drop first row (this is the parameter set used to generate the PEM evaluation data)
         df_results = df_results.iloc[1: , :]
         

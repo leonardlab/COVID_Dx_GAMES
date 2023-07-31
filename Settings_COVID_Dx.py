@@ -26,7 +26,7 @@ def init():
     # 1. Define and create folder for saving results
     # =============================================================================
     #This will be the name of the run-specific results folder. 
-    folder_name = '230727_PEM_eval_model_D_rep1'
+    folder_name = '230728_ModelC_PEM_rep1_slice_redo_run2'
 
     #model B parameter estimation with par 5000 + 24'
     #fix with 0 for txn poisoning mechs'
@@ -34,7 +34,7 @@ def init():
     # =============================================================================
     # 2. Define modelID, free parameters, and bounds
     # =============================================================================
-    modelID = 'model D'
+    modelID = 'model C'
     
     real_param_labels_all = ['k_cas13', 'k_degv', 'k_txn', 'k_FSS', 'k_RHA', 'k_loc_deactivation', 'k_scale_deactivation'] #real labels for p_all
     
@@ -49,7 +49,8 @@ def init():
         
     elif modelID == 'model C':
         real_param_labels_free = real_param_labels_all
-        p_all = [0.00198, 30.6, 36, 0.6, 7.8, 1, 1] #use for 1st round
+        # p_all = [0.00198, 30.6, 36, 0.6, 7.8, 1, 1] #use for 1st round
+        p_all = [0.000900988, 3950.759594, 45.42883694, 0.039433974, 0.387098088, 60.51203729, 15.15736952] #my best fit round 1, use for 2nd round
         #p_all = [0.00063308,	2327.274696,	48.42183504,	0.059341649,	0.419926497,	67.13961241,	12.30863445] #use for 2nd round
         # p_all = [0.00039, 17890.64388, 1392.99139, 0.08828, 79.9926, 2.11343, 6.74207] #use for CV
 
@@ -66,7 +67,7 @@ def init():
     #     p_labels_all = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9']
         
     #Change param labels to generalizable param labels
-    # p_labels_all = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7'] 
+    p_labels_all = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7'] 
     num_free_params = len(real_param_labels_free)
     initial_params_dictionary = {}
     params = []
@@ -97,8 +98,8 @@ def init():
                 maxBound = 2.38
                 
             else: 
-                minBound = log10(p_all[i]) - 3
-                maxBound = log10(p_all[i]) + 3
+                minBound = log10(p_all[i]) - 2
+                maxBound = log10(p_all[i]) + 2
             bounds_log.append([minBound, maxBound])
 
         elif modelID == 'model D':
@@ -127,8 +128,8 @@ def init():
     #Initialize conditions dictionary
     conditions_dictionary = {}
     conditions_dictionary["model"] = modelID
-    conditions_dictionary["data"] = 'PEM evaluation' #'slice drop high error'
-    conditions_dictionary["run_type"] = 'generate PEM evaluation data' #'parameter estimation'
+    conditions_dictionary["data"] = 'slice drop high error' #'PEM evaluation' 
+    conditions_dictionary["run_type"] = 'parameter estimation' #'generate PEM evaluation data' 
     conditions_dictionary["n_search"] = 5000
     conditions_dictionary["n_initial_guesses"] = 24
     conditions_dictionary['k_CV'] = 13 #starts at 1, not 0. Only relevant if data == 'cross-validation train' or data == 'cross-validation test'
