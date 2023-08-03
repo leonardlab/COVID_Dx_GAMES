@@ -30,8 +30,8 @@ timecourses_exp = data_dictionary["timecourses"]
 x = data_dictionary["x_vals"]
 problem_free = conditions_dictionary["problem"]
 bounds = problem_free['bounds']
-df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA EXP.pkl')
-df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA ERR.pkl')
+# df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA EXP.pkl')
+# df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA ERR.pkl')
 plt.style.use('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/paper.mplstyle.py')
     
 
@@ -105,10 +105,10 @@ def testSingleSet(p):
 # p = [0.00039, 17890.64388, 1392.99139, 0.08828, 79.9926, 2.11343, 6.74207] #use for CV       
 
 #params from fitting to slice
-p = [5.98681E-05,	721.1529526,	1360.727836,	0.385250686,	2.580973544,	58.85708085,	7.876468573]
+# p = [5.98681E-05,	721.1529526,	1360.727836,	0.385250686,	2.580973544,	58.85708085,	7.876468573]
 
 #testing params for new RNase H mechanism
-# p = [0.000579507,	82.98547, 1100.232245, 0.042172694, 0, 0, 5.307287201, 56.66392306, 7.081248575]
+p = [0.000496013, 53.98269419, 1259.764131, 0.053919663, 0.001190127, 2.504945662, 157.826015, 53.3279602, 6.652618014]
 
 testSingleSet(p)   
 

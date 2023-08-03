@@ -26,7 +26,7 @@ def init():
     # 1. Define and create folder for saving results
     # =============================================================================
     #This will be the name of the run-specific results folder. 
-    folder_name = '230728_ModelC_PEM_rep1_slice_redo_run2'
+    folder_name = '230802_ModelC_PEM_rep1_slice_seed2_run2'
 
     #model B parameter estimation with par 5000 + 24'
     #fix with 0 for txn poisoning mechs'
@@ -50,7 +50,9 @@ def init():
     elif modelID == 'model C':
         real_param_labels_free = real_param_labels_all
         # p_all = [0.00198, 30.6, 36, 0.6, 7.8, 1, 1] #use for 1st round
-        p_all = [0.000900988, 3950.759594, 45.42883694, 0.039433974, 0.387098088, 60.51203729, 15.15736952] #my best fit round 1, use for 2nd round
+        p_all = [0.66817052, 4686.51020965, 13.84815167, 0.04248505, 0.24118273, 71.65494069, 16.24859821] #my best fit round 1 seed 2
+        # p_all = [0.000900988, 3950.759594, 45.42883694, 0.039433974, 0.387098088, 60.51203729, 15.15736952] #my best fit round 1 og seed
+       
         #p_all = [0.00063308,	2327.274696,	48.42183504,	0.059341649,	0.419926497,	67.13961241,	12.30863445] #use for 2nd round
         # p_all = [0.00039, 17890.64388, 1392.99139, 0.08828, 79.9926, 2.11343, 6.74207] #use for CV
 
@@ -128,10 +130,10 @@ def init():
     #Initialize conditions dictionary
     conditions_dictionary = {}
     conditions_dictionary["model"] = modelID
-    conditions_dictionary["data"] = 'slice drop high error' #'PEM evaluation' 
-    conditions_dictionary["run_type"] = 'parameter estimation' #'generate PEM evaluation data' 
-    conditions_dictionary["n_search"] = 5000
-    conditions_dictionary["n_initial_guesses"] = 24
+    conditions_dictionary["data"] =  'slice drop high error' #'PEM evaluation' #'rep2 slice drop high error'
+    conditions_dictionary["run_type"] = 'parameter estimation' #'generate PEM evaluation data'
+    conditions_dictionary["n_search"] = 5000 #5000
+    conditions_dictionary["n_initial_guesses"] = 24 #24
     conditions_dictionary['k_CV'] = 13 #starts at 1, not 0. Only relevant if data == 'cross-validation train' or data == 'cross-validation test'
     conditions_dictionary['k_PEM_evaluation'] = 3 #starts at 1, not 0. Only relevant if data == 'PEM evaluation'
     

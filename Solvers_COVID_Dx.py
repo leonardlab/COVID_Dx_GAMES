@@ -160,6 +160,13 @@ def solveSingle(doses, p, model):
         k_txn = p[2] #min-1
         k_FSS = p[3] #min-1
         k_RHA = p[4] #min-1
+        # if x_init[8] == 0.001*6060:
+        #     k_RHA = 172.9622799
+        # elif x_init[8] == 0.005*6060:
+        #     k_RHA = 232.6332248
+        # elif x_init[8] == 0.02*6060:
+        #     k_RHA = 443.94313
+        
         k_bds = k_cas13 #nM-1 min-1
         k_RTon = .024 #nM-1 min-1
         k_RToff = 2.4 #min-1

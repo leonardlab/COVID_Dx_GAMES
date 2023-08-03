@@ -29,8 +29,19 @@ model = conditions_dictionary['model']
 param_labels = real_param_labels_all 
 error = data_dictionary["error"]
 model_states = conditions_dictionary["model states"]
-df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA EXP.pkl')
-df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA ERR.pkl')
+data = conditions_dictionary["data"]
+
+if 'rep2' in data:
+    df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED_DATA_rep2_EXP.pkl')
+    df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED_DATA_rep2_ERR.pkl') 
+
+elif 'rep3' in data:
+    df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED_DATA_rep3_EXP.pkl')
+    df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED_DATA_rep3_ERR.pkl')
+
+else:
+    df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA EXP.pkl')
+    df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA ERR.pkl')
 
 #Import custom style file for plotting
 plt.style.use('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/paper.mplstyle.py')
@@ -345,8 +356,12 @@ def resultsPanel(dfSim, dfExp, dfErr, labels, varyCondition):
             elif label == str(labels[2]):
                 sim[2] = t_course
  
-                
-        maxVal = 0.6599948235700113
+        if 'rep2' in data:
+            maxVal = 2.94995531724754
+        elif 'rep3' in data:
+            maxVal = 1.12314566577301
+        else:        
+            maxVal = 0.6599948235700113
         exp =  [[0] * 61] * 3
         for (columnName, columnData) in dfExp.iteritems():
             label = list(columnData.iloc[0])
@@ -449,19 +464,40 @@ def resultsPanel(dfSim, dfExp, dfErr, labels, varyCondition):
   
     if varyCondition == 'RT':
         objective = 5
-        y_max_1 = 0.35
-        y_max_10 = 0.85
+        if 'rep2' in data:
+            y_max_1 = 0.15
+            y_max_10 = 0.85
+        elif 'rep3' in data:
+            y_max_1 = 0.4
+            y_max_10 = 0.7
+        else:
+            y_max_1 = 0.35
+            y_max_10 = 0.85
      
         
     elif varyCondition == 'RNAse':
         objective = 4
-        y_max_1 = 0.25
-        y_max_10 = 0.85 #1.0
+        if 'rep2' in data:
+            y_max_1 = 0.15
+            y_max_10 = 0.5
+        elif 'rep3' in data:
+            y_max_1 = 0.35
+            y_max_10 = 0.5  
+        else:
+            y_max_1 = 0.25
+            y_max_10 = 0.85 #1.0
     
     elif varyCondition == 'T7':
         objective = 6
-        y_max_1 = 0.65
-        y_max_10 = 1.0
+        if 'rep2' in data:
+            y_max_1 = 0.45
+            y_max_10 = 1.0
+        elif 'rep3' in data:
+            y_max_1 = 0.5
+            y_max_10 = 1.0
+        else:
+            y_max_1 = 0.65
+            y_max_10 = 1.0
         
         
     ax1.set_ylim(0, y_max_1)
@@ -516,7 +552,13 @@ def plotLowCas13(df, data_type):
     highCas13_only = []
 
     if data_type == 'exp':
-        maxVal = 0.6599948235700113
+        
+        if 'rep2' in data:
+            maxVal = 2.94995531724754
+        elif 'rep3' in data:
+            maxVal = 1.12314566577301
+        else:        
+            maxVal = 0.6599948235700113
         for (columnName, columnData) in df.iteritems():
             label = list(columnData.iloc[0])
 
