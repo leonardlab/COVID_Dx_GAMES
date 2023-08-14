@@ -585,9 +585,8 @@ class ODE_solver_D(Mechanism_Solver):
 
             #RNase H mechanism- negative parabolic relationship
             k_RHA = -a_RHA*(self.conserved_amounts[3])**2 + b_RHA*self.conserved_amounts[3] + c_RHA
-            if k_RHA < 0:
-                k_RHA = 0
-
+            if k_RHA < 0.0:
+                k_RHA = 0.0
             #Conservation laws
             x_p1 =  self.conserved_amounts[0] - x_p1v - x_p1cv - x_RTp1v - x_RTp1cv - x_cDNA1v - x_RNasecDNA1v \
                     - x_cDNA1 - x_p2cDNA1 - x_p1cDNA2 - x_RTp2cDNA1 - x_RTp1cDNA2 - x_pro - x_T7pro

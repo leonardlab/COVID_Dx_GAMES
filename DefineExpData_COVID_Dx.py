@@ -66,7 +66,7 @@ def defineExp(data, model, k_CV, k_PEM_evaluation):
 
     if data == 'PEM evaluation':
         #Import df for appropriate model and k_PEM_evaluation
-        filename = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230731_ModelD_PEM_eval_rep1_slice/GENERATE PEM EVALUATION DATA/PEM EVALUATION DATA NOISE model D.xlsx'
+        filename = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230807_ModelD_PEM_eval_rep2_slice/GENERATE PEM EVALUATION DATA/PEM EVALUATION DATA NOISE model D.xlsx'
         df = pd.read_excel(filename, sheet_name = str(k_PEM_evaluation), engine='openpyxl')
         
         exp_data = []
@@ -82,8 +82,9 @@ def defineExp(data, model, k_CV, k_PEM_evaluation):
         error = [1] * len(exp_data)
         
         #same x as 'slice drop high error'
-        x = [[20.0, 2.5, 0.005, 10, 90], [5.0, 10.0, 0.005, 10, 90], [5.0, 2.5, 0.02, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.001, 10, 90], [1.0, 2.5, 0.005, 10, 90], [20.0, 2.5, 0.005, 1, 90], [5.0, 10.0, 0.005, 1, 90], [5.0, 2.5, 0.02, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.001, 1, 90], [5.0, 0.5, 0.005, 1, 90], [1.0, 2.5, 0.005, 1, 90]]
-        
+        # x = [[20.0, 2.5, 0.005, 10, 90], [5.0, 10.0, 0.005, 10, 90], [5.0, 2.5, 0.02, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.001, 10, 90], [1.0, 2.5, 0.005, 10, 90], [20.0, 2.5, 0.005, 1, 90], [5.0, 10.0, 0.005, 1, 90], [5.0, 2.5, 0.02, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.001, 1, 90], [5.0, 0.5, 0.005, 1, 90], [1.0, 2.5, 0.005, 1, 90]]
+        #for rep 2 data
+        x = [[20.0, 2.5, 0.005, 1, 90], [5.0, 10.0, 0.005, 1, 90], [5.0, 2.5, 0.02, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.001, 1, 90], [5.0, 0.5, 0.005, 1, 90], [1.0, 2.5, 0.005, 1, 90], [20.0, 2.5, 0.005, 10, 90], [5.0, 10.0, 0.005, 10, 90], [5.0, 2.5, 0.02, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.001, 10, 90], [5.0, 0.5, 0.005, 10, 90], [1.0, 2.5, 0.005, 10, 90]]
         #not used for PEM evaluation, so use placeholder
         timecourses = []
         timecourses_err = []
@@ -535,7 +536,6 @@ def defineExp(data, model, k_CV, k_PEM_evaluation):
                 exp_data = exp_data + timecourse
         
         maxVal = max(exp_data)
-        print(maxVal)
         exp_data = []
         timecourses = []
         timecourses_err = []

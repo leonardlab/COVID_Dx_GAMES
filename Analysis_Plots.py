@@ -618,6 +618,9 @@ def plot_all_states(
 
     elif dose == 'opt':
         doses = [5.0, 10.0, 0.02, 1, 90]
+
+    elif dose == 'high RNase H':
+        doses = [5.0, 2.5, 0.02, 1, 90]
     
     time = np.linspace(0, 240, 61)
     t_points = 61
@@ -634,7 +637,7 @@ def plot_all_states(
         axs[i].plot(time, df.at[state, str(doses)][:t_points])
         axs[i].set_xlabel('time (min)')
         axs[i].set_ylabel('simulation value')
-        # axs[i].set_title(state)
+        axs[i].set_title(state)
         axs[i].set_box_aspect(1)
     axs[-1].axis('off')
     axs[-2].axis('off')

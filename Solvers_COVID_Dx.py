@@ -93,9 +93,6 @@ def solveSingle(doses, p, model):
         x_init[27] = doses[4]/2 # x_iCas13
         x_init[30] = 2500 # x_qRf
         solver.set_initial_condition(np.array(x_init))
-    
-        #real_param_labels_all = ['k_cas13', 'k_degv', 'k_txn', 'k_FSS', 'a_RHA', 'b_RHA', 'c_RHA', 'k_loc_deactivation', 'k_scale_deactivation'] #real labels for p_all
-
 
         #Parameters
         k_cas13  = p[0] #nM-1 min-1

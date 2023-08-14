@@ -56,7 +56,7 @@ def generateParams(problem, n_search, parameters, problem_all_params, model, dat
         df_params[param] = param_array[0]
 
     #Perform LHS
-    param_values = latin.sample(problem, n_search, seed=123) #og seed= 456767, seed2 = 123, seed3 = 654
+    param_values = latin.sample(problem, n_search, seed=123) #og seed= 456767, seed2 = 123, seed3 = 654, seed4 = 8352
 
     #To sample parameters over a log scale, we sample the exponent space and then 
     #transform the values following LHS.
