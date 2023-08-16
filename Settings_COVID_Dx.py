@@ -26,7 +26,7 @@ def init():
     # 1. Define and create folder for saving results
     # =============================================================================
     #This will be the name of the run-specific results folder. 
-    folder_name = '230813_ModelD_PEM_eval_rep2_slice_seed2'
+    folder_name = '230814_ModelD_PEM_rep2_slice_new_ig_ninit50'
 
     #model B parameter estimation with par 5000 + 24'
     #fix with 0 for txn poisoning mechs'
@@ -132,10 +132,10 @@ def init():
     #Initialize conditions dictionary
     conditions_dictionary = {}
     conditions_dictionary["model"] = modelID
-    conditions_dictionary["data"] = 'rep2 slice drop high error' #'PEM evaluation' #'slice drop high error'
-    conditions_dictionary["run_type"] = 'generate PEM evaluation data' #'parameter estimation'
+    conditions_dictionary["data"] = 'rep2 slice drop high error' #'slice drop high error' #'PEM evaluation'
+    conditions_dictionary["run_type"] = '' #'parameter estimation' #'generate PEM evaluation data'
     conditions_dictionary["n_search"] = 5000 #5000
-    conditions_dictionary["n_initial_guesses"] = 24 #24
+    conditions_dictionary["n_initial_guesses"] = 24 #24 #50
     conditions_dictionary['k_CV'] = 13 #starts at 1, not 0. Only relevant if data == 'cross-validation train' or data == 'cross-validation test'
     conditions_dictionary['k_PEM_evaluation'] = 1 #starts at 1, not 0. Only relevant if data == 'PEM evaluation'
     
@@ -151,7 +151,7 @@ def init():
     conditions_dictionary["directory"] = full_path
     conditions_dictionary["problem"] = problem
     conditions_dictionary["problem_all_params"] = problem_all_params
-    conditions_dictionary["parallelization"] = 'no'
+    conditions_dictionary["parallelization"] = 'yes'
     model_states = [
         'vRNA (input)',
         'ssDNA p1',

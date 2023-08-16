@@ -621,6 +621,9 @@ def plot_all_states(
 
     elif dose == 'high RNase H':
         doses = [5.0, 2.5, 0.02, 1, 90]
+
+    elif dose == 'high RNase H 10fM':
+        doses = [5.0, 2.5, 0.02, 10, 90]
     
     time = np.linspace(0, 240, 61)
     t_points = 61

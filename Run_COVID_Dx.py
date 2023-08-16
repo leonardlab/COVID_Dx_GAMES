@@ -394,18 +394,23 @@ def optPar(row: tuple) -> Tuple[list, list]:
         result_row_labels.append(fit_param_label)
     
     #Define other conditions and result metrics and add to result_row for saving
-    items = [method,  results.success, model, 
-             chi_sq_list, norm_solutions]
-    item_labels = ['method', 'success', 'model', 'chi_sq_list', 
+    items = [method,  results.success, results.ier,
+             results.lmdif_message, model, chi_sq_list,
+             norm_solutions]
+    item_labels = ['method', 'success', 'integer flag',
+                   'lmdif message', 'model', 'chi_sq_list', 
                    'Simulation results']
    
+    # print('integer flag: ', results.ier)
+    # print('lmdif message: ', results.lmdif_message)
+
     for i in range(0, len(items)):
         result_row.append(items[i])
         result_row_labels.append(item_labels[i])
 
-    ### val = num params *2 + 6    
-    result_row = result_row[:24]
-    result_row_labels = result_row_labels[:24]
+    ### val = num params *2 + 8 (original code: val = num params *2 + 6)   
+    result_row = result_row[:26]
+    result_row_labels = result_row_labels[:26]
     return result_row, result_row_labels
 
 
@@ -456,12 +461,17 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
     '''1. Global search'''   
     #use results from previous global search used to generate PEM evaluation data
     if data == 'PEM evaluation': 
-        df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230807_ModelD_PEM_eval_rep2_slice/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
+        df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230809_ModelD_PEM_eval_rep2_slice_new_ig/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
         mse_values_PEM_evaluation_data = calculate_mse_k_PEM_evaluation(k_PEM_evaluation, df_results)
         label = 'chi_sq_' + str(k_PEM_evaluation)
         df_results[label] = mse_values_PEM_evaluation_data
 
-    # elif data == 'rep2 slice drop high error' and model == 'model D':
+    elif data == 'slice drop high error' and model == 'model C':
+        df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230720_PEM_eval_rep1_slice_nofilter/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
+    
+    elif data == 'rep2 slice drop high error' and model == 'model D':
+        df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230813_ModelD_PEM_eval_rep2_slice_seed2/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
+
         # df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230808_ModelD_PEM_rep2_slice_new_ig/PARAMETER ESTIMATION rep2 slice drop high error/Global_Search_Results.pkl')
         
     #run global seach

@@ -70,7 +70,7 @@ def testSingleSet(p):
     plotModelingObjectives456(df_sim)
 
     #plot all model states for high RNase H dose (- kRHA)
-    plot_all_states(df_all_states, 'high RNase H', 'rep2 slice', '')
+    plot_all_states(df_all_states, 'mid', 'rep2 slice', '')
     
     #Plot all model states ('ensemble' or 'slice')
     # plot_all_states(df_all_states, 'mid', 'slice', '2 hours')
@@ -113,8 +113,11 @@ def testSingleSet(p):
 #testing params for new RNase H mechanism
 # p = [0.000496013, 53.98269419, 1259.764131, 0.053919663, 0.001190127, 2.504945662, 157.826015, 53.3279602, 6.652618014]
 
-# test weird result for rep2 with -kRHA for high RNase dose
-p = [8.28058E-05, 45087.15053, 3.269977332, 27.37400767, 0.000125147, 0.009849285, 0.053989265, 50.70258662, 36.71982125]
+# test weird result for rep2 with -kRHA for high RNase dose (230806)
+# p = [8.28058E-05, 45087.15053, 3.269977332, 27.37400767, 0.000125147, 0.009849285, 0.053989265, 50.70258662, 36.71982125]
+
+#test plotting all states for rep2 with -kRHA for high RNase dose (230814)
+p = [0.000122484, 6696.205042, 4.664269886, 1.219248218, 0.000175636, 0.006530844, 0.148145804, 103.9475542, 25.87761909]
 
 testSingleSet(p)   
 
