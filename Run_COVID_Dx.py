@@ -175,11 +175,15 @@ def solveAll(p: list, exp_data: list, output: str) -> Tuple[list, list, float, p
     
     dfSimResults = pd.DataFrame()
     solutions = []
-   
+    full_solutions_all = []
     for doses in x: #For each condition (dose combination) in x 
 
         t, solutions_all, reporter_timecourse = solveSingle(doses, p, model)
-     
+        solutions_all_arr = np.concatenate(solutions_all) #save solutions for all states as a 1D array
+        # print(np.shape(solutions_all))
+        # print(np.shape(solutions_all_arr))
+        full_solutions_all.append(solutions_all_arr) #add to list of all state solutions for full dose set
+
         if len(reporter_timecourse) == len(t):
             reporter_timecourse = reporter_timecourse
             
@@ -194,7 +198,6 @@ def solveAll(p: list, exp_data: list, output: str) -> Tuple[list, list, float, p
         if output == 'all states':
             for i, state in enumerate(model_states):
                 df_all_states.at[state, str(doses)] = solutions_all[i]
-   
     #Normalize solutions
     if max(solutions) == 0:
         solutions_norm = [0] * len(solutions)
@@ -225,6 +228,14 @@ def solveAll(p: list, exp_data: list, output: str) -> Tuple[list, list, float, p
     if output == 'all states':
         return x, solutions_norm, mse, dfSimResults, df_all_states
     
+    elif output == 'check negative':
+        full_solutions_all_arr = np.concatenate(full_solutions_all) #save solutions for all states/ full dose set as a 1D array
+        is_negative = np.any(full_solutions_all_arr < 0.0) #for full simulation all states, check if any vals are negative
+        # print(is_negative)
+        # print(np.shape(full_solutions_all))
+        # print(np.shape(full_solutions_all_arr))
+        return is_negative, full_solutions_all_arr
+        
     else:
         return x, solutions_norm, mse, dfSimResults
 
@@ -332,10 +343,10 @@ def optPar(row: tuple) -> Tuple[list, list]:
     #Initialize list to keep track of CF at each function evaluation
     chi_sq_list = []
 
-    def solveForOpt(x, p1, p2, p3, p4, p5, p6, p7, p8, p9):
+    def solveForOpt(x, p1, p2, p3, p4, p5, p6, p7):
         #This is the function that is solved at each step in the optimization algorithm
         #Solve ODEs for all data_sets
-        p = [p1, p2, p3, p4, p5, p6, p7, p8, p9]
+        p = [p1, p2, p3, p4, p5, p6, p7]
         doses, norm_solutions, mse, df_sim = solveAll(p, exp_data, '')
         print('eval #: ' + str(len(chi_sq_list)))
         print(p)
@@ -408,9 +419,9 @@ def optPar(row: tuple) -> Tuple[list, list]:
         result_row.append(items[i])
         result_row_labels.append(item_labels[i])
 
-    ### val = num params *2 + 8 (original code: val = num params *2 + 6)   
-    result_row = result_row[:26]
-    result_row_labels = result_row_labels[:26]
+    ### val = num params *2 + 8 (original code: val = num params *2 + 6)  #26 for modelD 
+    result_row = result_row[:22]
+    result_row_labels = result_row_labels[:22]
     return result_row, result_row_labels
 
 
@@ -461,7 +472,7 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
     '''1. Global search'''   
     #use results from previous global search used to generate PEM evaluation data
     if data == 'PEM evaluation': 
-        df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230809_ModelD_PEM_eval_rep2_slice_new_ig/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
+        df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230818_ModelD_PEM_rep2_slice_new_ig_run2/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
         mse_values_PEM_evaluation_data = calculate_mse_k_PEM_evaluation(k_PEM_evaluation, df_results)
         label = 'chi_sq_' + str(k_PEM_evaluation)
         df_results[label] = mse_values_PEM_evaluation_data
@@ -469,10 +480,9 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
     elif data == 'slice drop high error' and model == 'model C':
         df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230720_PEM_eval_rep1_slice_nofilter/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
     
-    elif data == 'rep2 slice drop high error' and model == 'model D':
-        df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230813_ModelD_PEM_eval_rep2_slice_seed2/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
+    # elif data == 'rep2 slice drop high error' and model == 'model D':
+    #     df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230822_ModelD_PEM_rep2_slice/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
 
-        # df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230808_ModelD_PEM_rep2_slice_new_ig/PARAMETER ESTIMATION rep2 slice drop high error/Global_Search_Results.pkl')
         
     #run global seach
     else:
@@ -539,8 +549,25 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
     
     '''3. Optimization'''
     print('Starting optimization...')
-    df = initial_guesses
+    df = initial_guesses.copy(deep=True)
     df['exp_data'] = [exp_data] * len(df.index)
+    ig_df = initial_guesses.copy(deep=True)
+
+    is_negative_list = []
+    full_solutions_arr = []
+    for row in ig_df.itertuples(name = None):
+        ig_params = row[-2]
+        is_negative, full_solutions = solveAll(ig_params, exp_data, 'check negative')
+        is_negative_list.append(is_negative)
+        full_solutions_arr.append(full_solutions)
+    ig_df['negative vals?'] = is_negative_list
+    ig_df['full solutions'] = full_solutions_arr
+
+    #Save initial guesses df with negative vals check
+    filename = 'INITIAL GUESSES NEGATIVE CHECK'
+    with pd.ExcelWriter(filename + '.xlsx') as writer:  # doctest: +SKIP
+        ig_df.to_excel(writer, sheet_name='initial_guesses')
+
     all_opt_results = []
     
     if parallelization == 'no':  ###without multiprocessing###
@@ -1273,9 +1300,6 @@ if __name__ == '__main__':
         
         print('Generating PEM evaluation data...')
         #Run the global search and output the df of filtered results
-        # if model == 'model D':
-        #     df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230810_ModelD_PEM_eval_rep2_slice_nsearch6000/GENERATE PEM EVALUATION DATA/GLOBAL SEARCH RESULTS model D.pkl')
-        # else:
         df_results = runGlobalSearchPemEval()
         
         #Generate PEM evaluation data (add noise and save)

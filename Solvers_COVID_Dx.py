@@ -102,6 +102,12 @@ def solveSingle(doses, p, model):
         a_RHA = p[4]
         b_RHA = p[5]
         c_RHA = p[6]
+        if (-a_RHA*(x_init[8])**2 + b_RHA*x_init[8] + c_RHA) < 0.0:
+            a_RHA = 0.0
+            b_RHA = 0.0
+            c_RHA = 0.0
+
+
         k_bds = k_cas13 #nM-1 min-1
         k_RTon = .024 #nM-1 min-1
         k_RToff = 2.4 #min-1
@@ -155,6 +161,9 @@ def solveSingle(doses, p, model):
         k_cas13  = p[0] #nM-1 min-1
         k_degv = p[1] #nM-1 min-1
         k_txn = p[2] #min-1
+        # if model == 'model C':
+        #     k_txn = float(p[2])/x_init[23]
+
         k_FSS = p[3] #min-1
         k_RHA = p[4] #min-1
         # if x_init[8] == 0.001*6060:

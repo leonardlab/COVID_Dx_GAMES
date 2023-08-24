@@ -63,14 +63,16 @@ def testSingleSet(p):
     
     doses, solutions, chi2, df_sim, df_all_states = solveAll(p, exp_data, 'all states')
     R_sq = calcRsq(solutions, exp_data)  
+    is_negative, full_solutions = solveAll(p, exp_data, 'check negative')
+    print(is_negative)
     # parityPlot(solutions, exp_data, data)
-    
+
     #Plot modeling objectives
     plotModelingObjectives123(solutions)
     plotModelingObjectives456(df_sim)
 
     #plot all model states for high RNase H dose (- kRHA)
-    plot_all_states(df_all_states, 'mid', 'rep2 slice', '')
+    plot_all_states(df_all_states, 'high RNase H', 'rep2 slice', '')
     
     #Plot all model states ('ensemble' or 'slice')
     # plot_all_states(df_all_states, 'mid', 'slice', '2 hours')
@@ -105,7 +107,7 @@ def testSingleSet(p):
 
 #ensemble model params
 ###THESE are used for supp fig sim/exp comparisons
-# p = [0.00039, 17890.64388, 1392.99139, 0.08828, 79.9926, 2.11343, 6.74207] #use for CV       
+p = [0.00039, 17890.64388, 1392.99139, 0.08828, 79.9926, 2.11343, 6.74207] #use for CV       
 
 #params from fitting to slice
 # p = [5.98681E-05,	721.1529526,	1360.727836,	0.385250686,	2.580973544,	58.85708085,	7.876468573]
@@ -117,7 +119,12 @@ def testSingleSet(p):
 # p = [8.28058E-05, 45087.15053, 3.269977332, 27.37400767, 0.000125147, 0.009849285, 0.053989265, 50.70258662, 36.71982125]
 
 #test plotting all states for rep2 with -kRHA for high RNase dose (230814)
-p = [0.000122484, 6696.205042, 4.664269886, 1.219248218, 0.000175636, 0.006530844, 0.148145804, 103.9475542, 25.87761909]
+# p = [0.000122484, 6696.205042, 4.664269886, 1.219248218, 0.000175636, 0.006530844, 0.148145804, 103.9475542, 25.87761909]
+
+#test my best fit for model C params (230731_ModelC_PEM_rep1_slice_nofilter_redo_run2)
+# p = [0.00031178, 78.91898242, 1194.417613, 0.074241899, 0.0, 55.58341311, 6.745005326]
+
+# p = [7.088e-05, 7651.74881243, 7.81430277, 519.26968343, 0.00067357, 0.03287263, 0.00780273, 105.82786447, 23.78349548]
 
 testSingleSet(p)   
 

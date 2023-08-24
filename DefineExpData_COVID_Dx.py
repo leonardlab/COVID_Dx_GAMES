@@ -66,7 +66,7 @@ def defineExp(data, model, k_CV, k_PEM_evaluation):
 
     if data == 'PEM evaluation':
         #Import df for appropriate model and k_PEM_evaluation
-        filename = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230809_ModelD_PEM_eval_rep2_slice_new_ig/GENERATE PEM EVALUATION DATA/PEM EVALUATION DATA NOISE model D.xlsx'
+        filename = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230818_ModelD_PEM_rep2_slice_new_ig_run2/GENERATE PEM EVALUATION DATA/PEM EVALUATION DATA NOISE model D.xlsx'
         df = pd.read_excel(filename, sheet_name = str(k_PEM_evaluation), engine='openpyxl')
         
         exp_data = []

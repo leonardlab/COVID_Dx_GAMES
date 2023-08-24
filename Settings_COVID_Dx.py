@@ -26,7 +26,7 @@ def init():
     # 1. Define and create folder for saving results
     # =============================================================================
     #This will be the name of the run-specific results folder. 
-    folder_name = '230814_ModelD_PEM_rep2_slice_new_ig_ninit50'
+    folder_name = '230822_ModelC_test_negative_opt'
 
     #model B parameter estimation with par 5000 + 24'
     #fix with 0 for txn poisoning mechs'
@@ -34,7 +34,7 @@ def init():
     # =============================================================================
     # 2. Define modelID, free parameters, and bounds
     # =============================================================================
-    modelID = 'model D'
+    modelID = 'model C'
     
     real_param_labels_all = ['k_cas13', 'k_degv', 'k_txn', 'k_FSS', 'k_RHA', 'k_loc_deactivation', 'k_scale_deactivation'] #real labels for p_all
     
@@ -71,7 +71,7 @@ def init():
     #     p_labels_all = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9']
         
     #Change param labels to generalizable param labels
-    # p_labels_all = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7'] 
+    p_labels_all = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7'] 
     num_free_params = len(real_param_labels_free)
     initial_params_dictionary = {}
     params = []
@@ -132,8 +132,8 @@ def init():
     #Initialize conditions dictionary
     conditions_dictionary = {}
     conditions_dictionary["model"] = modelID
-    conditions_dictionary["data"] = 'rep2 slice drop high error' #'slice drop high error' #'PEM evaluation'
-    conditions_dictionary["run_type"] = '' #'parameter estimation' #'generate PEM evaluation data'
+    conditions_dictionary["data"] = 'slice drop high error' #'rep2 slice drop high error' #'PEM evaluation'
+    conditions_dictionary["run_type"] = ' ' #'parameter estimation' #'generate PEM evaluation data'
     conditions_dictionary["n_search"] = 5000 #5000
     conditions_dictionary["n_initial_guesses"] = 24 #24 #50
     conditions_dictionary['k_CV'] = 13 #starts at 1, not 0. Only relevant if data == 'cross-validation train' or data == 'cross-validation test'
