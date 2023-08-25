@@ -55,7 +55,7 @@ class Mechanism_Solver(object):
                     print(sol)
                     sol = sol[0]
             else:
-                result = solve_ivp(self.gradient, [self.t[0], self.t[-1]], actual_initial_condition, args = (self.actual_rates,), method = self.solver_alg, t_eval = self.t, jac = self.jacobian)
+                result = solve_ivp(self.gradient, [self.t[0], self.t[-1]], actual_initial_condition, args = (self.actual_rates,), method = self.solver_alg, t_eval = self.t, jac = self.jacobian) # atol = self.abs_tol, rtol = self.rel_tol,
                 sol = result.y.T
                 
                 #print(self.solver_alg)

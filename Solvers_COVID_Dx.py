@@ -119,7 +119,8 @@ def solveSingle(doses, p, model):
         k_RNaseoff = 2.4 #min-1
         the_rates = np.array([k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, k_T7off, k_FSS, a_RHA, b_RHA, c_RHA, k_SSS, k_txn, k_cas13, k_degRrep]).astype(float)
         solver.set_rates(the_rates)
-        solver.abs_tol = 1e-16
+        solver.abs_tol = 1e-13
+        solver.rel_tol = 1e-10
         solver.complete_output = 0
         solver.conservation_form = True
         solver.dist_type = 'expon'
@@ -184,7 +185,8 @@ def solveSingle(doses, p, model):
         k_RNaseoff = 2.4 #min-1
         the_rates = np.array([k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, k_T7off, k_FSS, k_RHA, k_SSS, k_txn, k_cas13, k_degRrep]).astype(float)
         solver.set_rates(the_rates)
-        solver.abs_tol = 1e-16
+        solver.abs_tol = 1e-13
+        solver.rel_tol = 1e-10
         solver.complete_output = 0
         solver.conservation_form = True
         solver.dist_type = 'expon'

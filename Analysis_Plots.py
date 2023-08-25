@@ -608,22 +608,22 @@ def plotLowCas13(df, data_type):
     
 def plot_all_states(
         df: pd.DataFrame, 
-        dose: str, 
+        dose: list, #str
         params: str,
         t_len: str
     ):
     
-    if dose == 'mid':
-        doses = [5.0, 2.5, 0.005, 1, 90]
+    # if dose == 'mid':
+    #     doses = [5.0, 2.5, 0.005, 1, 90]
 
-    elif dose == 'opt':
-        doses = [5.0, 10.0, 0.02, 1, 90]
+    # elif dose == 'opt':
+    #     doses = [5.0, 10.0, 0.02, 1, 90]
 
-    elif dose == 'high RNase H':
-        doses = [5.0, 2.5, 0.02, 1, 90]
+    # elif dose == 'high RNase H':
+    #     doses = [5.0, 2.5, 0.02, 1, 90]
 
-    elif dose == 'high RNase H 10fM':
-        doses = [5.0, 2.5, 0.02, 10, 90]
+    # elif dose == 'high RNase H 10fM':
+    #     doses = [5.0, 2.5, 0.02, 10, 90]
     
     time = np.linspace(0, 240, 61)
     t_points = 61
@@ -637,16 +637,16 @@ def plot_all_states(
     axs = axs.ravel()
 
     for i, state in enumerate(model_states):
-        axs[i].plot(time, df.at[state, str(doses)][:t_points])
+        axs[i].plot(time, df.at[state, str(dose)][:t_points])
         axs[i].set_xlabel('time (min)')
         axs[i].set_ylabel('simulation value')
         axs[i].set_title(state)
         axs[i].set_box_aspect(1)
     axs[-1].axis('off')
     axs[-2].axis('off')
-    fig.suptitle('All Model States '+params+' '+dose)
+    fig.suptitle('All Model States '+str(dose))
     # plt.show()
-    plt.savefig('notitle_All_model_states_'+params+'_'+dose+'.svg')
+    plt.savefig('All_model_states_'+str(dose)+'_'+'.svg')
 
 def plot_states_RHS(
         df: pd.DataFrame,

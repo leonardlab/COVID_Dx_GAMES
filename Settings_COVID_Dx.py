@@ -26,7 +26,7 @@ def init():
     # 1. Define and create folder for saving results
     # =============================================================================
     #This will be the name of the run-specific results folder. 
-    folder_name = '230822_ModelC_test_negative_opt'
+    folder_name = '230822_ModelC_test_my_negative_opt'
 
     #model B parameter estimation with par 5000 + 24'
     #fix with 0 for txn poisoning mechs'

@@ -226,6 +226,11 @@ def solveAll(p: list, exp_data: list, output: str) -> Tuple[list, list, float, p
     mse = check_filters(solutions, mse, doses, p)
    
     if output == 'all states':
+        for index, row in df_all_states.iterrows():
+            row_l = np.concatenate(row.values)
+            df_all_states.loc[index, 'is_negative'] = np.any(row_l < 0.0)
+            df_all_states.loc[index, 'min_val'] = min(row_l)
+
         return x, solutions_norm, mse, dfSimResults, df_all_states
     
     elif output == 'check negative':

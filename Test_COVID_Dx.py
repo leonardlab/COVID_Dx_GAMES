@@ -10,6 +10,7 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import datetime
       
 #GAMES imports
 import Settings_COVID_Dx
@@ -60,22 +61,38 @@ def testSingleSet(p):
     sub_folder_name = './TEST'
     createFolder('./' + sub_folder_name)
     os.chdir('./' + sub_folder_name)
-    
+    start_time = datetime.datetime.now()
     doses, solutions, chi2, df_sim, df_all_states = solveAll(p, exp_data, 'all states')
+    stop_time = datetime.datetime.now()
+    elapsed_time = stop_time - start_time
+    elapsed_time_total = round(elapsed_time.total_seconds(), 1)
+    print(round(elapsed_time_total, 3))
+    
+    # filename = 'All_states_solutions_check_negative'
+    # with pd.ExcelWriter(filename + '.xlsx') as writer:  # doctest: +SKIP
+    #     df_all_states.to_excel(writer, sheet_name=' ')
+    # df_all_states.to_pickle(filename + '.pkl')
+
     R_sq = calcRsq(solutions, exp_data)  
     is_negative, full_solutions = solveAll(p, exp_data, 'check negative')
     print(is_negative)
+    negative_vals = full_solutions[np.where(full_solutions < 0)]
+    print(negative_vals)
     # parityPlot(solutions, exp_data, data)
 
     #Plot modeling objectives
-    plotModelingObjectives123(solutions)
-    plotModelingObjectives456(df_sim)
+    # plotModelingObjectives123(solutions)
+    # plotModelingObjectives456(df_sim)
 
+    # for doses in x:
+    #     plot_all_states(df_all_states, doses, '', '')
+
+    ####no longer work due to updated Analysis_Plots.py
     #plot all model states for high RNase H dose (- kRHA)
-    plot_all_states(df_all_states, 'high RNase H', 'rep2 slice', '')
+    # plot_all_states(df_all_states, 'high RNase H', 'rep2 slice', '')
     
     #Plot all model states ('ensemble' or 'slice')
-    # plot_all_states(df_all_states, 'mid', 'slice', '2 hours')
+    # plot_all_states(df_all_states, 'mid', 'slice', ' ')
     # plot_all_states(df_all_states, 'opt', 'slice', '2 hours')
 
     #Plot all states ODE RHS
@@ -99,15 +116,15 @@ def testSingleSet(p):
 #p = [1.240549087,	36.1361859,	994.7190046,	0.013171187,	2.56898404,	89.54060729,	0,	0,	72.1529056]
 #p = [0.00063308,	2327.274696,	100,	0.059341649,	0.419926497,	67.13961241,	0,	0,	12.30863445]
 #p = [0.000391575,	17890.64388,	1392.991394,	0.088281649,	79.99260343,	2.113431759,	6.742071329]
-#p = [5.98681E-05,	721.1529526,	1360.727836,	0.385250686,	2.580973544,	58.85708085,	7.876468573]
-#p = [0.000168421,	47523.25047,	1555.791395,	0.177256736,	14.59213848,	1.196304863,	6.927381021]
+# p = [5.98681E-05,	721.1529526,	1360.727836,	0.385250686,	2.580973544,	58.85708085,	7.876468573]
+# p = [0.000168421,	47523.25047,	1555.791395,	0.177256736,	14.59213848,	1.196304863,	6.927381021]
 # p = [0.002600907,	7196.142726,	0.036236089,	0.770246558,	0.020866175, 0, 0]
 # p = [0.001186029,	10898.89966,	0.478019244,	0.050449563,	0.118303588,	35.14967272,	18.85547134]
 
 
 #ensemble model params
 ###THESE are used for supp fig sim/exp comparisons
-p = [0.00039, 17890.64388, 1392.99139, 0.08828, 79.9926, 2.11343, 6.74207] #use for CV       
+# p = [0.00039, 17890.64388, 1392.99139, 0.08828, 79.9926, 2.11343, 6.74207] #use for CV       
 
 #params from fitting to slice
 # p = [5.98681E-05,	721.1529526,	1360.727836,	0.385250686,	2.580973544,	58.85708085,	7.876468573]
@@ -122,9 +139,14 @@ p = [0.00039, 17890.64388, 1392.99139, 0.08828, 79.9926, 2.11343, 6.74207] #use 
 # p = [0.000122484, 6696.205042, 4.664269886, 1.219248218, 0.000175636, 0.006530844, 0.148145804, 103.9475542, 25.87761909]
 
 #test my best fit for model C params (230731_ModelC_PEM_rep1_slice_nofilter_redo_run2)
-# p = [0.00031178, 78.91898242, 1194.417613, 0.074241899, 0.0, 55.58341311, 6.745005326]
+p = [0.00031178, 78.91898242, 1194.417613, 0.074241899, 7.909074516, 55.58341311, 6.745005326]
 
+#test several model D params with decreased ode tolerances
 # p = [7.088e-05, 7651.74881243, 7.81430277, 519.26968343, 0.00067357, 0.03287263, 0.00780273, 105.82786447, 23.78349548]
+# p = [0.083549377, 56.5889528, 0.505340227, 8.302575333, 1.42779E-07, 0.002668042, 0.113275887, 1.187558594, 6.066350272]
+# p = [1.636828999, 1705.793035, 0.102055068, 0.003473358, 4.95491E-05, 0.033016337, 0.172066377, 5.480703564, 1.435260758]
+
+# p = [0.091238745, 80.6967855, 6.354465171, 0.00076478, 0.077141868, 11.47517456, 64.43172178]
 
 testSingleSet(p)   
 
