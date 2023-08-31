@@ -501,8 +501,8 @@ class ODE_solver_D(Mechanism_Solver):
             else:
                 k_txn = k_txn_p
 
-        #RNase H mechanism- negative parabolic relationship
-        k_RHA = -a_RHA*(self.conserved_amounts[3])**2 + b_RHA*self.conserved_amounts[3] + c_RHA
+        #RNase H mechanism- beta distribution
+        k_RHA = c_RHA * (self.conserved_amounts[3]/606)**(a_RHA-1) * (1 - (self.conserved_amounts[3]/606))**(b_RHA-1)
 
         #Rates
         C_scale =  10 ** 6
@@ -583,11 +583,9 @@ class ODE_solver_D(Mechanism_Solver):
             if self.mechanism_C == 'yes':
                 k_txn = k_txn/self.conserved_amounts[4]
 
-            #RNase H mechanism- negative parabolic relationship
-            k_RHA = -a_RHA*(self.conserved_amounts[3])**2 + b_RHA*self.conserved_amounts[3] + c_RHA
-            # if k_RHA < 0.0:
-            #     k_RHA = 0.0
-                        
+            #RNase H mechanism- beta distribution
+            k_RHA = c_RHA * (self.conserved_amounts[3]/606)**(a_RHA-1) * (1 - (self.conserved_amounts[3]/606))**(b_RHA-1)
+             
             #Conservation laws
             x_p1 =  self.conserved_amounts[0] - x_p1v - x_p1cv - x_RTp1v - x_RTp1cv - x_cDNA1v - x_RNasecDNA1v \
                     - x_cDNA1 - x_p2cDNA1 - x_p1cDNA2 - x_RTp2cDNA1 - x_RTp1cDNA2 - x_pro - x_T7pro

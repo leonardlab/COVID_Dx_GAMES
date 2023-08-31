@@ -348,10 +348,10 @@ def optPar(row: tuple) -> Tuple[list, list]:
     #Initialize list to keep track of CF at each function evaluation
     chi_sq_list = []
 
-    def solveForOpt(x, p1, p2, p3, p4, p5, p6, p7):
+    def solveForOpt(x, p1, p2, p3, p4, p5, p6, p7, p8, p9):
         #This is the function that is solved at each step in the optimization algorithm
         #Solve ODEs for all data_sets
-        p = [p1, p2, p3, p4, p5, p6, p7]
+        p = [p1, p2, p3, p4, p5, p6, p7, p8, p9]
         doses, norm_solutions, mse, df_sim = solveAll(p, exp_data, '')
         print('eval #: ' + str(len(chi_sq_list)))
         print(p)
@@ -425,8 +425,8 @@ def optPar(row: tuple) -> Tuple[list, list]:
         result_row_labels.append(item_labels[i])
 
     ### val = num params *2 + 8 (original code: val = num params *2 + 6)  #26 for modelD 
-    result_row = result_row[:22]
-    result_row_labels = result_row_labels[:22]
+    result_row = result_row[:26]
+    result_row_labels = result_row_labels[:26]
     return result_row, result_row_labels
 
 
@@ -482,11 +482,11 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
         label = 'chi_sq_' + str(k_PEM_evaluation)
         df_results[label] = mse_values_PEM_evaluation_data
 
-    elif data == 'slice drop high error' and model == 'model C':
-        df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230720_PEM_eval_rep1_slice_nofilter/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
+    # elif data == 'slice drop high error' and model == 'model C':
+    #     df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230731_ModelC_PEM_rep1_slice_nofilter_redo_run2/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
     
-    # elif data == 'rep2 slice drop high error' and model == 'model D':
-    #     df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230822_ModelD_PEM_rep2_slice/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
+    elif data == 'rep2 slice drop high error' and model == 'model D':
+        df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230828_ModelD_PEM_rep2_beta_new_bounds/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
 
         
     #run global seach
@@ -556,22 +556,22 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
     print('Starting optimization...')
     df = initial_guesses.copy(deep=True)
     df['exp_data'] = [exp_data] * len(df.index)
-    ig_df = initial_guesses.copy(deep=True)
+    # ig_df = initial_guesses.copy(deep=True)
 
-    is_negative_list = []
-    full_solutions_arr = []
-    for row in ig_df.itertuples(name = None):
-        ig_params = row[-2]
-        is_negative, full_solutions = solveAll(ig_params, exp_data, 'check negative')
-        is_negative_list.append(is_negative)
-        full_solutions_arr.append(full_solutions)
-    ig_df['negative vals?'] = is_negative_list
-    ig_df['full solutions'] = full_solutions_arr
+    # is_negative_list = []
+    # full_solutions_arr = []
+    # for row in ig_df.itertuples(name = None):
+    #     ig_params = row[-2]
+    #     is_negative, full_solutions = solveAll(ig_params, exp_data, 'check negative')
+    #     is_negative_list.append(is_negative)
+    #     full_solutions_arr.append(full_solutions)
+    # ig_df['negative vals?'] = is_negative_list
+    # ig_df['full solutions'] = full_solutions_arr
 
     #Save initial guesses df with negative vals check
-    filename = 'INITIAL GUESSES NEGATIVE CHECK'
-    with pd.ExcelWriter(filename + '.xlsx') as writer:  # doctest: +SKIP
-        ig_df.to_excel(writer, sheet_name='initial_guesses')
+    # filename = 'INITIAL GUESSES NEGATIVE CHECK'
+    # with pd.ExcelWriter(filename + '.xlsx') as writer:  # doctest: +SKIP
+    #     ig_df.to_excel(writer, sheet_name='initial_guesses')
 
     all_opt_results = []
     

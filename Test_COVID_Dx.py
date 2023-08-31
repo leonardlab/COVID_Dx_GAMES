@@ -83,6 +83,7 @@ def testSingleSet(p):
     #Plot modeling objectives
     # plotModelingObjectives123(solutions)
     # plotModelingObjectives456(df_sim)
+    plot_all_states(df_all_states, [5.0, 2.5, 0.005, 1, 90], '', '')
 
     # for doses in x:
     #     plot_all_states(df_all_states, doses, '', '')
@@ -147,6 +148,11 @@ p = [0.00031178, 78.91898242, 1194.417613, 0.074241899, 7.909074516, 55.58341311
 # p = [1.636828999, 1705.793035, 0.102055068, 0.003473358, 4.95491E-05, 0.033016337, 0.172066377, 5.480703564, 1.435260758]
 
 # p = [0.091238745, 80.6967855, 6.354465171, 0.00076478, 0.077141868, 11.47517456, 64.43172178]
+
+#low tol best fit run 2
+# p = [0.000384312, 75.38073202, 1145.888736, 0.062734604, 7.498278516, 55.47333899, 6.805959386]
+
+#high tol best fit run 2
 
 testSingleSet(p)   
 
