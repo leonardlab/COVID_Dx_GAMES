@@ -26,7 +26,7 @@ def init():
     # 1. Define and create folder for saving results
     # =============================================================================
     #This will be the name of the run-specific results folder. 
-    folder_name = '230828_ModelD_PEM_rep2_beta_new_bounds'
+    folder_name = '230910_ModelD_PEM_rep3_beta_new_kdegv_bound2'
 
     #model B parameter estimation with par 5000 + 24'
     #fix with 0 for txn poisoning mechs'
@@ -58,8 +58,7 @@ def init():
         # p_all = [0.00039, 17890.64388, 1392.99139, 0.08828, 79.9926, 2.11343, 6.74207] #use for CV
 
     elif modelID == 'model D':
-        p_all = [0.00198, 30.6, 36, 0.6, 1.0, 1.0, 1.0, 1, 1] #og a_RHA and b_RHA = 0.0001, 0.01
-        # p_all = [1.886e-05, 9751.42018555, 179.39804355, 0.29528222, 0.00519481, 0.23501669, 0.01246034, 95.92493115, 20.71715045]
+        p_all = [0.00198, 30.6, 36, 0.6, 1.0, 1.0, 1.0, 1, 1]
         real_param_labels_free = ['k_cas13', 'k_degv', 'k_txn', 'k_FSS', 'a_RHA', 'b_RHA', 'c_RHA', 'k_loc_deactivation', 'k_scale_deactivation']
         real_param_labels_all = real_param_labels_free
         p_labels_all = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9']
@@ -107,17 +106,21 @@ def init():
             bounds_log.append([minBound, maxBound])
 
         elif modelID == 'model D':
-            if i == 4: #a_RHA
+            if i == 1: #k_degv
+                minBound = log10(p_all[i]) - 1
+                maxBound = log10(p_all[i]) + 5
+            
+            elif i == 4: #a_RHA
                 minBound = 0
                 maxBound = 1
 
             elif i == 5: #b_RHA
                 minBound = 0
-                maxBound = 1.69897
+                maxBound = 2
 
-            elif i == 6: #c_RHA
-                minBound = 0
-                maxBound = 3
+            # elif i == 6: #c_RHA
+            #     minBound = 0
+            #     maxBound = 3
             
             elif i == 7: #k_loc_deactivation
                 minBound = 0
@@ -144,8 +147,8 @@ def init():
     #Initialize conditions dictionary
     conditions_dictionary = {}
     conditions_dictionary["model"] = modelID
-    conditions_dictionary["data"] = 'rep2 slice drop high error' #'slice drop high error' #'rep2 slice drop high error' #'PEM evaluation'
-    conditions_dictionary["run_type"] = 'parameter estimation' #'generate PEM evaluation data' 
+    conditions_dictionary["data"] = 'rep3 slice drop high error' #'slice drop high error' #'rep2 slice drop high error' #'PEM evaluation' #'rep3 slice drop high error'
+    conditions_dictionary["run_type"] = 'generate PEM evaluation data' #'parameter estimation' #'generate PEM evaluation data'
     conditions_dictionary["n_search"] = 5000 #5000
     conditions_dictionary["n_initial_guesses"] = 24 #24 #50
     conditions_dictionary['k_CV'] = 13 #starts at 1, not 0. Only relevant if data == 'cross-validation train' or data == 'cross-validation test'
@@ -163,7 +166,7 @@ def init():
     conditions_dictionary["directory"] = full_path
     conditions_dictionary["problem"] = problem
     conditions_dictionary["problem_all_params"] = problem_all_params
-    conditions_dictionary["parallelization"] = 'yes'
+    conditions_dictionary["parallelization"] = 'no'
     model_states = [
         'vRNA (input)',
         'ssDNA p1',

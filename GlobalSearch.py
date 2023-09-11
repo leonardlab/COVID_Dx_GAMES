@@ -73,7 +73,17 @@ def generateParams(problem, n_search, parameters, problem_all_params, model, dat
         for name in fit_params:
             if fit_params[item] == name:
                 df_params[name] = params_converted[:,item]
-       
+
+    # if model D, replace p5 (a_RHA) based on b vals so max occurs at 0.05 < x < 0.2
+    # if model == 'model D':
+    #     for index, row in df_params.iterrows():
+    #         np.random.seed(index)
+    #         b_val = df_params.at[index, 'p6']
+    #         lower_bound = -((b_val-2)*0.05 + 1)/(0.05-1)
+    #         upper_bound = -((b_val-2)*0.2 + 1)/(0.2-1)
+    #         a_bounded = np.random.uniform(low=lower_bound, high=upper_bound, size=1)
+    #         df_params.at[index, 'p5'] = a_bounded
+
     #add model, names, bounds to df
     m_ = np.full((1, n_search), model)
     m_array = m_.tolist()

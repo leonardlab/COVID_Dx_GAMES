@@ -440,8 +440,11 @@ def resultsPanel(dfSim, dfExp, dfErr, labels, varyCondition):
     sim10, exp10, err10 = grabData(labels)
     
     for i in range(0, len(sim1)):
-        if varyCondition == 'RT' and i == 0: #condition dropped due to high error
-            continue
+        if data == 'slice drop high error':
+            if varyCondition == 'RT' and i == 0: #condition dropped due to high error
+                continue
+            else:
+                ax4.plot(time, sim10[i],  marker = None, linestyle = 'dashed', color = colors[i])
         else:
             ax4.plot(time, sim10[i],  marker = None, linestyle = 'dashed', color = colors[i])
         
@@ -496,7 +499,7 @@ def resultsPanel(dfSim, dfExp, dfErr, labels, varyCondition):
             y_max_1 = 0.5
             y_max_10 = 1.0
         else:
-            y_max_1 = 0.65
+            y_max_1 = 0.7 #0.65
             y_max_10 = 1.0
         
         
