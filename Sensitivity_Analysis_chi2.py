@@ -31,16 +31,12 @@ plt.style.use('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/paper.mplstyle.py'
 
 def single_param_sweep_10pct(p, param_index):
     p_vals = deepcopy(p)
-    print('p_vals og: ', p_vals)
     p_low = p_vals[param_index] * 0.9
     p_high = p_vals[param_index] * 1.1
     p_vals[param_index] = p_low
-    print('p_vals new low: ', p_vals)
     _, _, mse_low, _ = solveAll(p_vals, exp_data, '')
 
     p_vals[param_index] = p_high
-    print('p_vals new high', p_vals)
-    print('p_all= ', p_all)
     _, _, mse_high, _ = solveAll(p_vals, exp_data, '')   
     
     return mse_low, mse_high
@@ -49,18 +45,20 @@ def calc_percent_change(mse_mid, mse_new):
     return 100 * (mse_new-mse_mid)/mse_mid
 
 def all_param_sweeps_10pct(p):
-    print('p_all: ', p)
     _, _, mse_mid, _ = solveAll(p, exp_data, '')
     print('mse original: ', mse_mid)
     
     pct_mse_low_list = []
     pct_mse_high_list = []
-    for param_index in range(0, 2):#(0, len(p)):
+    for param_index in range(0, len(p)):
         mse_low, mse_high = single_param_sweep_10pct(p, param_index)
+        # print(mse_low, mse_high)
         pct_mse_low = calc_percent_change(mse_mid, mse_low)
         pct_mse_low_list.append(pct_mse_low)
         pct_mse_high = calc_percent_change(mse_mid, mse_high)
         pct_mse_high_list.append(pct_mse_high)
+        print(mse_low, pct_mse_low)
+        print(mse_high, pct_mse_high)
 
     return pct_mse_low_list, pct_mse_high_list
 
@@ -92,7 +90,7 @@ def run_sensitivity_analysis(p, p_labels):
     os.chdir('./' + sub_folder_name)
 
     pct_mse_low_list, pct_mse_high_list = all_param_sweeps_10pct(p)
-    # tornado_plot(pct_mse_low_list, pct_mse_high_list, p_labels)
+    tornado_plot(pct_mse_low_list, pct_mse_high_list, p_labels)
 
 #need to set p_all = opt params from run
-# run_sensitivity_analysis(p_all, real_param_labels_all)
+run_sensitivity_analysis(p_all, real_param_labels_all)

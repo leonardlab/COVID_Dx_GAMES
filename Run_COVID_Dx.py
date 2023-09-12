@@ -488,8 +488,8 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
     # elif data == 'rep2 slice drop high error' and model == 'model D':
     #     df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230901_ModelD_PEM_rep2_beta_redo/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
 
-    # elif data == 'rep3 slice drop high error' and model == 'model D':
-    #     df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230908_ModelD_PEM_rep3_beta_new_kdegv_bound/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
+    elif data == 'rep3 slice drop high error' and model == 'model D':
+        df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230910_ModelD_PEM_rep3_beta_new_kdegv_bound2/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
 
     #run global seach
     else:

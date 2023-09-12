@@ -26,7 +26,7 @@ def init():
     # 1. Define and create folder for saving results
     # =============================================================================
     #This will be the name of the run-specific results folder. 
-    folder_name = '230910_ModelD_PEM_rep3_beta_new_kdegv_bound2'
+    folder_name = 'test_sens_analysis'
 
     #model B parameter estimation with par 5000 + 24'
     #fix with 0 for txn poisoning mechs'
@@ -59,6 +59,16 @@ def init():
 
     elif modelID == 'model D':
         p_all = [0.00198, 30.6, 36, 0.6, 1.0, 1.0, 1.0, 1, 1]
+
+        # p_all = [0.00063618, 239.9315589, 858.2136969, 0.027772651, 1.753931699, 10.64957523, 42.38269934, 61.82812743, 8.241330405] #rep1 best fit high tol
+        # p_all = [0.000224063, 136.0589787, 1151.286829, 0.09603252, 1.659857597, 12.48387036, 55.71209137, 56.73099109, 6.906538862] #rep1 best fit low tol
+
+        #p_all = [1.51719E-05, 12223.96888, 315.8195865, 0.381765754, 2.197307165, 29.34473237, 68.69366218, 101.5269246, 17.96639629] #rep2 best fit high tol
+        # p_all = [2.22994E-05, 8940.243435, 226.2897324, 232.9366873, 1.749944885, 22.66728787, 4.675577757, 97.309157, 19.21663556] #rep2 best fit low tol 
+
+        # p_all = [0.00012593, 30452.9863669, 41.57403523, 0.07926811, 1.07134915, 14.7113393, 0.62647773, 46.40684061, 18.541746] #rep3 best fit high tol (og bounds)
+        # p_all = [1.8422E-05, 127333.224, 1482.929578, 0.925646784, 1.823822944, 28.76159554, 215.3821376, 15.92455521, 13.90943536] #rep3 best fit high tol (new k_degv bounds)
+
         real_param_labels_free = ['k_cas13', 'k_degv', 'k_txn', 'k_FSS', 'a_RHA', 'b_RHA', 'c_RHA', 'k_loc_deactivation', 'k_scale_deactivation']
         real_param_labels_all = real_param_labels_free
         p_labels_all = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9']
@@ -147,8 +157,8 @@ def init():
     #Initialize conditions dictionary
     conditions_dictionary = {}
     conditions_dictionary["model"] = modelID
-    conditions_dictionary["data"] = 'rep3 slice drop high error' #'slice drop high error' #'rep2 slice drop high error' #'PEM evaluation' #'rep3 slice drop high error'
-    conditions_dictionary["run_type"] = 'generate PEM evaluation data' #'parameter estimation' #'generate PEM evaluation data'
+    conditions_dictionary["data"] = 'rep2 slice drop high error' #'slice drop high error' #'rep2 slice drop high error' #'PEM evaluation' #'rep3 slice drop high error'
+    conditions_dictionary["run_type"] = '' #'parameter estimation' #'generate PEM evaluation data'
     conditions_dictionary["n_search"] = 5000 #5000
     conditions_dictionary["n_initial_guesses"] = 24 #24 #50
     conditions_dictionary['k_CV'] = 13 #starts at 1, not 0. Only relevant if data == 'cross-validation train' or data == 'cross-validation test'
@@ -166,7 +176,7 @@ def init():
     conditions_dictionary["directory"] = full_path
     conditions_dictionary["problem"] = problem
     conditions_dictionary["problem_all_params"] = problem_all_params
-    conditions_dictionary["parallelization"] = 'no'
+    conditions_dictionary["parallelization"] = 'yes'
     model_states = [
         'vRNA (input)',
         'ssDNA p1',
