@@ -58,7 +58,7 @@ def init():
         # p_all = [0.00039, 17890.64388, 1392.99139, 0.08828, 79.9926, 2.11343, 6.74207] #use for CV
 
     elif modelID == 'model D':
-        p_all = [0.00198, 30.6, 36, 0.6, 1.0, 1.0, 1.0, 1, 1]
+        # p_all = [0.00198, 30.6, 36, 0.6, 1.0, 1.0, 1.0, 1, 1]
 
         # p_all = [0.00063618, 239.9315589, 858.2136969, 0.027772651, 1.753931699, 10.64957523, 42.38269934, 61.82812743, 8.241330405] #rep1 best fit high tol
         # p_all = [0.000224063, 136.0589787, 1151.286829, 0.09603252, 1.659857597, 12.48387036, 55.71209137, 56.73099109, 6.906538862] #rep1 best fit low tol
@@ -68,6 +68,7 @@ def init():
 
         # p_all = [0.00012593, 30452.9863669, 41.57403523, 0.07926811, 1.07134915, 14.7113393, 0.62647773, 46.40684061, 18.541746] #rep3 best fit high tol (og bounds)
         # p_all = [1.8422E-05, 127333.224, 1482.929578, 0.925646784, 1.823822944, 28.76159554, 215.3821376, 15.92455521, 13.90943536] #rep3 best fit high tol (new k_degv bounds)
+        p_all = [6.38185E-05, 28934.65508, 119.1874985, 0.077888022, 1.627413157, 23.55089534, 22.28442186, 50.03161646, 17.06654392]
 
         real_param_labels_free = ['k_cas13', 'k_degv', 'k_txn', 'k_FSS', 'a_RHA', 'b_RHA', 'c_RHA', 'k_loc_deactivation', 'k_scale_deactivation']
         real_param_labels_all = real_param_labels_free
@@ -116,11 +117,11 @@ def init():
             bounds_log.append([minBound, maxBound])
 
         elif modelID == 'model D':
-            if i == 1: #k_degv
-                minBound = log10(p_all[i]) - 1
-                maxBound = log10(p_all[i]) + 5
+            # if i == 1: #k_degv
+            #     minBound = log10(p_all[i]) - 1
+            #     maxBound = log10(p_all[i]) + 5
             
-            elif i == 4: #a_RHA
+            if i == 4: #a_RHA
                 minBound = 0
                 maxBound = 1
 
@@ -157,8 +158,8 @@ def init():
     #Initialize conditions dictionary
     conditions_dictionary = {}
     conditions_dictionary["model"] = modelID
-    conditions_dictionary["data"] = 'rep2 slice drop high error' #'slice drop high error' #'rep2 slice drop high error' #'PEM evaluation' #'rep3 slice drop high error'
-    conditions_dictionary["run_type"] = '' #'parameter estimation' #'generate PEM evaluation data'
+    conditions_dictionary["data"] = 'rep3 slice drop high error' #'slice drop high error' #'rep2 slice drop high error' #'PEM evaluation' #'rep3 slice drop high error'
+    conditions_dictionary["run_type"] = ' ' #'parameter estimation' #'generate PEM evaluation data'
     conditions_dictionary["n_search"] = 5000 #5000
     conditions_dictionary["n_initial_guesses"] = 24 #24 #50
     conditions_dictionary['k_CV'] = 13 #starts at 1, not 0. Only relevant if data == 'cross-validation train' or data == 'cross-validation test'
