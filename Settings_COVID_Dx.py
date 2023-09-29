@@ -26,7 +26,7 @@ def init():
     # 1. Define and create folder for saving results
     # =============================================================================
     #This will be the name of the run-specific results folder. 
-    folder_name = 'test_sens_analysis'
+    folder_name = 'test_negative'
 
     #model B parameter estimation with par 5000 + 24'
     #fix with 0 for txn poisoning mechs'
@@ -34,7 +34,7 @@ def init():
     # =============================================================================
     # 2. Define modelID, free parameters, and bounds
     # =============================================================================
-    modelID = 'model D'
+    modelID = 'model B'
     
     real_param_labels_all = ['k_cas13', 'k_degv', 'k_txn', 'k_FSS', 'k_RHA', 'k_loc_deactivation', 'k_scale_deactivation'] #real labels for p_all
     
@@ -49,10 +49,10 @@ def init():
         
     elif modelID == 'model C':
         real_param_labels_free = real_param_labels_all
-        # p_all = [0.00198, 30.6, 36, 0.6, 7.8, 1, 1] #use for 1st round
+        p_all = [0.00198, 30.6, 36, 0.6, 7.8, 1, 1] #use for 1st round
         # p_all = [0.00029327, 2166.29602428, 1444.80050995, 0.11209993, 28.40542336, 18.16050174, 6.74616475] #my best fit round 1 seed 3
         # p_all = [0.66817052, 4686.51020965, 13.84815167, 0.04248505, 0.24118273, 71.65494069, 16.24859821] #my best fit round 1 seed 2
-        p_all = [0.000900988, 3950.759594, 45.42883694, 0.039433974, 0.387098088, 60.51203729, 15.15736952] #my best fit round 1 og seed
+        # p_all = [0.000900988, 3950.759594, 45.42883694, 0.039433974, 0.387098088, 60.51203729, 15.15736952] #my best fit round 1 og seed
        
         #p_all = [0.00063308,	2327.274696,	48.42183504,	0.059341649,	0.419926497,	67.13961241,	12.30863445] #use for 2nd round
         # p_all = [0.00039, 17890.64388, 1392.99139, 0.08828, 79.9926, 2.11343, 6.74207] #use for CV
@@ -66,9 +66,8 @@ def init():
         #p_all = [1.51719E-05, 12223.96888, 315.8195865, 0.381765754, 2.197307165, 29.34473237, 68.69366218, 101.5269246, 17.96639629] #rep2 best fit high tol
         # p_all = [2.22994E-05, 8940.243435, 226.2897324, 232.9366873, 1.749944885, 22.66728787, 4.675577757, 97.309157, 19.21663556] #rep2 best fit low tol 
 
-        # p_all = [0.00012593, 30452.9863669, 41.57403523, 0.07926811, 1.07134915, 14.7113393, 0.62647773, 46.40684061, 18.541746] #rep3 best fit high tol (og bounds)
-        # p_all = [1.8422E-05, 127333.224, 1482.929578, 0.925646784, 1.823822944, 28.76159554, 215.3821376, 15.92455521, 13.90943536] #rep3 best fit high tol (new k_degv bounds)
-        p_all = [6.38185E-05, 28934.65508, 119.1874985, 0.077888022, 1.627413157, 23.55089534, 22.28442186, 50.03161646, 17.06654392]
+        # p_all = [0.00012593, 30452.9863669, 41.57403523, 0.07926811, 1.07134915, 14.7113393, 0.62647773, 46.40684061, 18.541746] #rep3 best fit high tol
+        p_all = [6.38185E-05, 28934.65508, 119.1874985, 0.077888022, 1.627413157, 23.55089534, 22.28442186, 50.03161646, 17.06654392] #rep3 best fit low tol
 
         real_param_labels_free = ['k_cas13', 'k_degv', 'k_txn', 'k_FSS', 'a_RHA', 'b_RHA', 'c_RHA', 'k_loc_deactivation', 'k_scale_deactivation']
         real_param_labels_all = real_param_labels_free
@@ -81,7 +80,7 @@ def init():
     #     p_labels_all = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9']
         
     #Change param labels to generalizable param labels
-    # p_labels_all = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7'] 
+    p_labels_all = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7'] 
     num_free_params = len(real_param_labels_free)
     initial_params_dictionary = {}
     params = []
@@ -117,10 +116,6 @@ def init():
             bounds_log.append([minBound, maxBound])
 
         elif modelID == 'model D':
-            # if i == 1: #k_degv
-            #     minBound = log10(p_all[i]) - 1
-            #     maxBound = log10(p_all[i]) + 5
-            
             if i == 4: #a_RHA
                 minBound = 0
                 maxBound = 1
@@ -128,11 +123,7 @@ def init():
             elif i == 5: #b_RHA
                 minBound = 0
                 maxBound = 2
-
-            # elif i == 6: #c_RHA
-            #     minBound = 0
-            #     maxBound = 3
-            
+                
             elif i == 7: #k_loc_deactivation
                 minBound = 0
                 maxBound = 2.38
@@ -158,7 +149,7 @@ def init():
     #Initialize conditions dictionary
     conditions_dictionary = {}
     conditions_dictionary["model"] = modelID
-    conditions_dictionary["data"] = 'rep3 slice drop high error' #'slice drop high error' #'rep2 slice drop high error' #'PEM evaluation' #'rep3 slice drop high error'
+    conditions_dictionary["data"] = 'rep2 slice drop high error' #'slice drop high error' #'rep2 slice drop high error' #'PEM evaluation' #'rep3 slice drop high error'
     conditions_dictionary["run_type"] = ' ' #'parameter estimation' #'generate PEM evaluation data'
     conditions_dictionary["n_search"] = 5000 #5000
     conditions_dictionary["n_initial_guesses"] = 24 #24 #50

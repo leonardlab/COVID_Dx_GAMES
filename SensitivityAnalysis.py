@@ -37,7 +37,7 @@ timecourses_err = data_dictionary["timecourses_err"]
 timecourses_exp = data_dictionary["timecourses"]
 problem_free = conditions_dictionary["problem"]
 bounds = problem_free['bounds']
-plt.style.use('/Users/kdreyer/Desktop/Github/COVID_Dx_GAMES/paper.mplstyle.py')
+plt.style.use('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/paper.mplstyle.py')
 
 def solveAll(p, exp_data):
     
@@ -113,16 +113,16 @@ def solveAll(p, exp_data):
         mse = 1
         
     #low iCas13 filter
-    else:
-        doses = [5.0, 0.5, 0.005, 1, 4.5]
-        t, solutions_all, reporter_timecourse = solveSingle(doses, p, p_fixed, model)
-        final_timepoint_iCas13 = reporter_timecourse[-1] #no norm
-        max_high_iCas13 = max(solutions) #no norm
-        ratio_2 = final_timepoint_iCas13/max_high_iCas13
-        if ratio_2 > 0.10:
-            print('Failed filter 2')
-            print('ratio2: The max lowiCas13/max high iCas13 ratio is: ' + str(ratio_2))
-            mse = 2
+    # else:
+    #     doses = [5.0, 0.5, 0.005, 1, 4.5]
+    #     t, solutions_all, reporter_timecourse = solveSingle(doses, p, p_fixed, model)
+    #     final_timepoint_iCas13 = reporter_timecourse[-1] #no norm
+    #     max_high_iCas13 = max(solutions) #no norm
+    #     ratio_2 = final_timepoint_iCas13/max_high_iCas13
+    #     if ratio_2 > 0.10:
+    #         print('Failed filter 2')
+    #         print('ratio2: The max lowiCas13/max high iCas13 ratio is: ' + str(ratio_2))
+    #         mse = 2
 
     return x, solutions_norm, mse, dfSimResults
 
@@ -143,7 +143,7 @@ def solveSingle(doses, p, p_fixed, model):
         solution: array containing the solutions for all model states
         timecourse_readout: list of floats containing the value of the readout at each time point'''
     
-    solver = ODE_solver()
+    solver = ODE_solver_D()
     x_init = np.zeros(33)
    
     
@@ -164,25 +164,28 @@ def solveSingle(doses, p, p_fixed, model):
 
     #Parameters
     k_cas13  = p[0] #nM-1 min-1
-    k_bds = p[1] #= k_cas13 #nM-1 min-1
-    k_degv = p[2] #nM-1 min-1
-    k_degRrep = p[3]  #= k_degv  #nM-1 min-1
-    k_txn = p[4] #min-1
-    k_FSS = p[5] #min-1
-    k_SSS = p[6] #= k_FSS #min-1
-    k_RHA = p[7] #min-1
+    k_degv = p[1] #nM-1 min-1
+    k_txn = p[2] #min-1
+    k_FSS = p[3] #min-1
+    a_RHA = p[4]
+    b_RHA = p[5]
+    c_RHA = p[6]
+    k_bds = k_cas13 #nM-1 min-1
 
     k_RTon = p_fixed[0] #nM-1 min-1
     k_RToff = p_fixed[1] #min-1
     k_T7on = p_fixed[2] #nM-1 min-1
     k_T7off = p_fixed[3] #min-1
-    
+    k_SSS = k_FSS #min-1
+    k_degRrep = k_degv  #nM-1 min-1
+     
     
     k_RNaseon = p_fixed[4] #nM-1 min-1
     k_RNaseoff = p_fixed[5] #min-1
-    the_rates = np.array([k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, k_T7off, k_FSS, k_RHA, k_SSS, k_txn, k_cas13, k_degRrep]).astype(float)
+    the_rates = np.array([k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, k_T7off, k_FSS, a_RHA, b_RHA, c_RHA, k_SSS, k_txn, k_cas13, k_degRrep]).astype(float)
     solver.set_rates(the_rates)
-    solver.abs_tol = 1e-16
+    solver.abs_tol = 1e-13
+    solver.rel_tol = 1e-10
     solver.complete_output = 0
     solver.conservation_form = True
     solver.dist_type = 'expon'
@@ -195,34 +198,14 @@ def solveSingle(doses, p, p_fixed, model):
     #Set solver type and algorithm
     solver.solver_type = 'solve_ivp'
     solver.solver_alg = 'LSODA'
-    solver.k_loc_deactivation = p[8]
-    solver.k_scale_deactivation = p[9]
+    # solver.k_loc_deactivation = p[8]
+    # solver.k_scale_deactivation = p[9]
+    solver.k_loc_deactivation = p[7]
+    solver.k_scale_deactivation = p[8]
     
-    if model == 'model A':
-        solver.mechanism_B = 'no'
-        solver.mechanism_C = 'no'
-       
-    elif model == 'model B':
-        solver.mechanism_B = 'yes'
-        solver.mechanism_C = 'no'
-      
-    elif model == 'model C' or model == 'model D':
-        solver.mechanism_B = 'yes'
-        solver.mechanism_C = 'yes'
-        solver.txn_poisoning = 'no'
-        
-    # elif model == 'w/txn poisoning':
-        
-    #     solver.mechanism_B = 'yes'
-    #     solver.mechanism_C = 'yes'
-    #     solver.txn_poisoning = 'yes'
-    
-    #     solver.k_loc_deactivation = p[5]
-    #     solver.k_Mg = p[6]
-    #     solver.n_Mg = p[7]
-    #     solver.k_scale_deactivation = p[8]
-        
-    
+    solver.mechanism_B = 'yes'
+    solver.mechanism_C = 'yes'
+    solver.txn_poisoning = 'no'
     
     #Solve equations
     solution, t = solver.solve(tspace)
@@ -361,8 +344,8 @@ def singleParamSweep(param_index):
     
     
 def singleParamSweep_10percent(param_index, p_type, data_type):
-    p = [5.98681E-05, 5.98681E-05, 721.1529526, 721.1529526, 1360.727836, 0.385250686, 0.385250686, 2.580973544, 58.85708085, 7.876468573]
-    # p = [5.98681E-05,	721.1529526,	1360.727836,	0.385250686,	2.580973544,	58.85708085,	7.876468573]
+    p = [0.000224063, 136.0589787, 1151.286829, 0.09603252, 1.659857597, 12.48387036, 55.71209137, 56.73099109, 6.906538862]
+
     p_fixed = [.024, 2.4, 3.36, 12, .024, 2.4]
     
     if p_type == 'free':
@@ -377,8 +360,8 @@ def singleParamSweep_10percent(param_index, p_type, data_type):
         
     if data_type == 'training':
         
-        t, solution, timecourse_readout = solveSingle(doses, p, p_fixed, 'model C')
-        t, solution, timecourse_readout_norm_condition = solveSingle(doses_norm, p, p_fixed, 'model C')
+        t, solution, timecourse_readout = solveSingle(doses, p, p_fixed, 'model D')
+        t, solution, timecourse_readout_norm_condition = solveSingle(doses_norm, p, p_fixed, 'model D')
         timecourse_readout_norm = [i/max(timecourse_readout_norm_condition) for i in timecourse_readout]
         f0_low, fmax_low, km_low, n_low, R_sq_low = fitHill(timecourse_readout_norm)
         
@@ -388,8 +371,8 @@ def singleParamSweep_10percent(param_index, p_type, data_type):
         elif p_type == 'fixed':
             p_fixed[param_index] = p_fixed_high
             
-        t, solution, timecourse_readout = solveSingle(doses, p, p_fixed, 'model C')
-        t, solution, timecourse_readout_norm_condition = solveSingle(doses_norm, p, p_fixed, 'model C')
+        t, solution, timecourse_readout = solveSingle(doses, p, p_fixed, 'model D')
+        t, solution, timecourse_readout_norm_condition = solveSingle(doses_norm, p, p_fixed, 'model D')
         timecourse_readout_norm = [i/max(timecourse_readout_norm_condition) for i in timecourse_readout]
         f0_high, fmax_high, km_high, n_high, R_sq_high = fitHill(timecourse_readout_norm)
         
@@ -425,7 +408,7 @@ def singleParamSweep_10percent(param_index, p_type, data_type):
     return fmax_low, km_low, fmax_high, km_high
     
    
-def tornadoPlot(metric, low_vals, high_vals, p_type):
+def tornadoPlot(metric, low_vals, high_vals, p_type, rep):
      
     if p_type == 'free':
         num_params = len(p_labels)
@@ -438,15 +421,18 @@ def tornadoPlot(metric, low_vals, high_vals, p_type):
     fig, (ax_left, ax_right) = plt.subplots(ncols=2)
     ax_left.set_title('Change in metric from mid to low', fontsize = 8)
     ax_right.set_title('Change in metric from mid to high', fontsize = 8)
-    ax_left.barh(pos, low_vals, align='center', facecolor='lightcoral')
+    bars_left = ax_left.barh(pos, low_vals, align='center', facecolor='dimgrey')
+    ax_left.bar_label(bars_left)
     ax_right.set_yticks([])
     ax_left.set_xlabel('% change in metric')
-    ax_right.barh(pos, high_vals, align='center', facecolor='mediumaquamarine')
+    bars_right = ax_right.barh(pos, high_vals, align='center', facecolor='dimgrey')
     ax_left.set_yticks(pos)
+    ax_right.bar_label(bars_right)
     ax_left.set_yticklabels(labels, ha='center', x=-.1)
     ax_right.set_xlabel('% change in metric')
     # plt.show()
-    plt.savefig('./tornado plot ' + metric + ' ' + p_type + ' ' + data_type + '.svg', dpi = 600)
+    os.chdir(full_path)
+    plt.savefig('./tornado plot ' + metric + ' ' + p_type + ' ' + data_type + ' ' + rep + '.svg', dpi = 600)
    
 def plot_tradeoff(x, fmax, t_half, k_CV, fmax_sd_list, t_half_sd_list):
     fig, axes = plt.subplots(ncols=3,nrows=1, sharex=True, sharey=True, figsize = (9,3))
@@ -542,7 +528,7 @@ p = [0.000467243,	23034.47396,	1174.784961,	0.006634409,	1.083733895,	25.3765324
 #Define doses on which to perform sensitivity analysis 
 doses_norm = [1.0, 2.5, 0.005, 10, 90] #(condition for norm- highest readout)
 doses_optimal = [5.0, 10.0, 0.02, 1, 90] #(optimal conditions?)
-
+doses_mid =  [5.0, 2.5, 0.005, 1, 90]
 
 p_fixed_labels = ['k_RTon', 'k_RToff', 'k_T7on', 'k_T7off', 'k_RNaseon', 'k_RNaseoff']
 p_fixed = [.024, 2.4, 3.36, 12, .024, 2.4]
@@ -551,15 +537,32 @@ p_fixed = [.024, 2.4, 3.36, 12, .024, 2.4]
 input_RNA_doses = np.logspace(-5, 1, 10) #100 aM (.1fM) to 10 fM (10000 aM)
 
 #use parameters from fitting to slice
-p = [5.98681E-05, 5.98681E-05, 721.1529526, 721.1529526, 1360.727836, 0.385250686, 0.385250686, 2.580973544, 58.85708085, 7.876468573]
-p_labels = ['k_cas13', 'k_bds', 'k_degv', 'k_degRrep', 'k_txn', 'k_FSS', 'k_SSS', 'k_RHA', 'k_loc', 'k_scale']
+#model D rep 1 best fit high tol
+# p = [0.00063618, 239.9315589, 858.2136969, 0.027772651, 1.753931699, 10.64957523, 42.38269934, 61.82812743, 8.241330405]
+
+#model D rep 1 best fit low tol
+p = [0.000224063, 136.0589787, 1151.286829, 0.09603252, 1.659857597, 12.48387036, 55.71209137, 56.73099109, 6.906538862]
+
+#model D rep 2 best fit high tol
+# p = [1.51719E-05, 12223.96888, 315.8195865, 0.381765754, 2.197307165, 29.34473237, 68.69366218, 101.5269246, 17.96639629]
+
+#model D rep 2 best fit low tol
+# p = [2.22994E-05, 8940.243435, 226.2897324, 232.9366873, 1.749944885, 22.66728787, 4.675577757, 97.309157, 19.21663556]
+
+#model D rep 3 best fit high tol
+# p = [0.00012593, 30452.9863669, 41.57403523, 0.07926811, 1.07134915, 14.7113393, 0.62647773, 46.40684061, 18.541746]
+
+#model D rep 3 best fit low tol
+# p = [6.38185E-05, 28934.65508, 119.187498, 0.077888022, 1.627413157, 23.55089534, 22.28442186, 50.03161646, 17.06654392]
+
+p_labels = ['k_cas13', 'k_degv', 'k_txn', 'k_FSS', 'a_RHA', 'b_RHA', 'c_RHA', 'k_loc_deactivation', 'k_scale_deactivation']
 
 data_type = 'training'
 
 if data_type == 'training':
-    doses = doses_optimal
-    t, solution, timecourse_readout = solveSingle(doses, p, p_fixed, 'model C')
-    t, solution, timecourse_readout_norm_condition = solveSingle(doses_norm, p, p_fixed, 'model C')
+    doses = doses_mid
+    t, solution, timecourse_readout = solveSingle(doses, p, p_fixed, 'model D')
+    t, solution, timecourse_readout_norm_condition = solveSingle(doses_norm, p, p_fixed, 'model D')
     timecourse_readout_norm = [i/max(timecourse_readout_norm_condition) for i in timecourse_readout]
     f0_mid, fmax_mid, km_mid, n_mid, R_sq_mid = fitHill(timecourse_readout_norm)
 
@@ -605,24 +608,24 @@ for param_index in range(0, len(p_labels)):
     fmax_high_list.append(percent_fmax_high)
     thalf_high_list.append(percent_km_high)
     
-tornadoPlot('fmax', fmax_low_list, fmax_high_list, 'free')
-tornadoPlot('thalf', thalf_low_list, thalf_high_list, 'free')
+tornadoPlot('fmax', fmax_low_list, fmax_high_list, 'free', 'rep1 low')
+tornadoPlot('thalf', thalf_low_list, thalf_high_list, 'free', 'rep1 low')
 
-fmax_low_list = []
-thalf_low_list = []
-fmax_high_list = []
-thalf_high_list = []
-for param_index in range(0, len(p_fixed_labels)):
-    fmax_low, km_low, fmax_high, km_high = singleParamSweep_10percent(param_index, 'fixed', data_type)
-    percent_fmax_low = -100 * (fmax_mid - fmax_low)/fmax_mid
-    percent_fmax_high= -100 * (fmax_mid - fmax_high)/fmax_mid
-    percent_km_low = -100 * (km_mid - km_low)/km_mid
-    percent_km_high= -100 * (km_mid - km_high)/km_mid
+# fmax_low_list = []
+# thalf_low_list = []
+# fmax_high_list = []
+# thalf_high_list = []
+# for param_index in range(0, len(p_fixed_labels)):
+#     fmax_low, km_low, fmax_high, km_high = singleParamSweep_10percent(param_index, 'fixed', data_type)
+#     percent_fmax_low = -100 * (fmax_mid - fmax_low)/fmax_mid
+#     percent_fmax_high= -100 * (fmax_mid - fmax_high)/fmax_mid
+#     percent_km_low = -100 * (km_mid - km_low)/km_mid
+#     percent_km_high= -100 * (km_mid - km_high)/km_mid
     
-    fmax_low_list.append(percent_fmax_low)
-    thalf_low_list.append(percent_km_low)
-    fmax_high_list.append(percent_fmax_high)
-    thalf_high_list.append(percent_km_high)
+#     fmax_low_list.append(percent_fmax_low)
+#     thalf_low_list.append(percent_km_low)
+#     fmax_high_list.append(percent_fmax_high)
+#     thalf_high_list.append(percent_km_high)
     
-tornadoPlot('fmax', fmax_low_list, fmax_high_list, 'fixed')
-tornadoPlot('thalf', thalf_low_list, thalf_high_list, 'fixed')
+# tornadoPlot('fmax', fmax_low_list, fmax_high_list, 'fixed')
+# tornadoPlot('thalf', thalf_low_list, thalf_high_list, 'fixed')

@@ -63,7 +63,7 @@ def all_param_sweeps_10pct(p):
     return pct_mse_low_list, pct_mse_high_list
 
 
-def tornado_plot(low_vals, high_vals, param_labels):
+def tornado_plot(low_vals, high_vals, param_labels, tolerance):
      
     num_params = len(param_labels)
 
@@ -72,25 +72,27 @@ def tornado_plot(low_vals, high_vals, param_labels):
     fig, (ax_left, ax_right) = plt.subplots(ncols=2)
     ax_left.set_title('Change in chi2 from mid to low', fontsize = 8)
     ax_right.set_title('Change in chi2 from mid to high', fontsize = 8)
-    ax_left.barh(pos, low_vals, align='center', facecolor='lightcoral')
+    bars_left = ax_left.barh(pos, low_vals, align='center', facecolor='dimgrey')
     ax_right.set_yticks([])
+    ax_left.bar_label(bars_left)
     ax_left.set_xlabel('% change in chi2')
-    ax_right.barh(pos, high_vals, align='center', facecolor='mediumaquamarine')
+    bars_right = ax_right.barh(pos, high_vals, align='center', facecolor='dimgrey')
     ax_left.set_yticks(pos)
+    ax_right.bar_label(bars_right)
     ax_left.set_yticklabels(param_labels, ha='center', x=-.1)
     ax_right.set_xlabel('% change in chi2')
     # plt.show()
-    plt.savefig('./tornado plot_' + model + '_' + data + '.svg', dpi = 600)
+    plt.savefig('./tornado plot_' + model + '_' + data + tolerance + '.svg', dpi = 600)
 
 
-def run_sensitivity_analysis(p, p_labels):
+def run_sensitivity_analysis(p, p_labels, tolerance):
     os.chdir(full_path)
     sub_folder_name = './Sensitivity_analysis_chi2'
     createFolder('./' + sub_folder_name)
     os.chdir('./' + sub_folder_name)
 
     pct_mse_low_list, pct_mse_high_list = all_param_sweeps_10pct(p)
-    tornado_plot(pct_mse_low_list, pct_mse_high_list, p_labels)
+    tornado_plot(pct_mse_low_list, pct_mse_high_list, p_labels, tolerance)
 
 #need to set p_all = opt params from run
-run_sensitivity_analysis(p_all, real_param_labels_all)
+run_sensitivity_analysis(p_all, real_param_labels_all, 'low_tol')

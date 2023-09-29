@@ -348,10 +348,10 @@ def optPar(row: tuple) -> Tuple[list, list]:
     #Initialize list to keep track of CF at each function evaluation
     chi_sq_list = []
 
-    def solveForOpt(x, p1, p2, p3, p4, p5, p6, p7, p8, p9):
+    def solveForOpt(x, p1, p2, p3, p4, p5, p6, p7):
         #This is the function that is solved at each step in the optimization algorithm
         #Solve ODEs for all data_sets
-        p = [p1, p2, p3, p4, p5, p6, p7, p8, p9]
+        p = [p1, p2, p3, p4, p5, p6, p7]
         doses, norm_solutions, mse, df_sim = solveAll(p, exp_data, '')
         print('eval #: ' + str(len(chi_sq_list)))
         print(p)
@@ -425,8 +425,8 @@ def optPar(row: tuple) -> Tuple[list, list]:
         result_row_labels.append(item_labels[i])
 
     ### val = num params *2 + 8 (original code: val = num params *2 + 6)  #26 for modelD 
-    result_row = result_row[:26]
-    result_row_labels = result_row_labels[:26]
+    result_row = result_row[:22]
+    result_row_labels = result_row_labels[:22]
     return result_row, result_row_labels
 
 
@@ -477,19 +477,19 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
     '''1. Global search'''   
     #use results from previous global search used to generate PEM evaluation data
     if data == 'PEM evaluation': 
-        df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230818_ModelD_PEM_rep2_slice_new_ig_run2/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
+        df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230924_ModelA_PEM_rep3/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
         mse_values_PEM_evaluation_data = calculate_mse_k_PEM_evaluation(k_PEM_evaluation, df_results)
         label = 'chi_sq_' + str(k_PEM_evaluation)
         df_results[label] = mse_values_PEM_evaluation_data
 
-    # elif data == 'slice drop high error' and model == 'model D':
-    #     df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230906_ModelD_PEM_rep1_beta/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
+    # elif data == 'slice drop high error' and model == 'model A':
+    #     df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230922_ModelA_PEM_rep1/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
     
-    # elif data == 'rep2 slice drop high error' and model == 'model D':
-    #     df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230901_ModelD_PEM_rep2_beta_redo/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
+    # elif data == 'rep2 slice drop high error' and model == 'model A':
+    #     df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230923_ModelA_PEM_rep2/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
 
-    elif data == 'rep3 slice drop high error' and model == 'model D':
-        df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230904_ModelD_PEM_rep3_beta/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
+    elif data == 'rep3 slice drop high error' and model == 'model A':
+        df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230924_ModelA_PEM_rep3/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
 
     #run global seach
     else:
@@ -579,15 +579,16 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
     
     if parallelization == 'no':  ###without multiprocessing###
         for row in df.itertuples(name = None):
-            signal.alarm(1000)
+            signal.alarm(2000)
             try:
                 result_row, result_row_labels = optPar(row)
+                all_opt_results.append(result_row)
             except Exception:
                 print('timed out')
-                result_row = [0] * 16
+                # result_row = [0] * 26
             finally:
                 signal.alarm(0)
-            all_opt_results.append(result_row)
+            # all_opt_results.append(result_row)
 
     elif parallelization == 'yes':  ###with multiprocessing###
         with mp.Pool(num_cores) as pool:

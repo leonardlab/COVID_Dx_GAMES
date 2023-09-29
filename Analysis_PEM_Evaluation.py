@@ -26,6 +26,8 @@ exp_data = data_dictionary["exp_data"]
 x = data_dictionary["x_vals"]
 real_param_labels_all = conditions_dictionary['real_param_labels_all']
 param_labels = real_param_labels_all 
+model = conditions_dictionary["model"] 
+data = conditions_dictionary["data"]
 df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA EXP.pkl')
 df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA ERR.pkl')
 
@@ -120,61 +122,80 @@ def plotPemEvaluation(files, folder_name):
     plt.savefig('PEM EVALUATION CRITERION R2 >= 0.90.svg', dpi = dpi_)
  
 
-model = 'model C'
-#Note that filenames may have been changed and paths may need to be updated before running
+#Note that paths need to be updated before running
+
+#'slice drop high error' #'rep2 slice drop high error' #'rep3 slice drop high error'
 if model == 'model A':
-    path1 = '../2022-06-08 model A PEM evaluation data 1 5000 + 24/PARAMETER ESTIMATION PEM evaluation 1/OPT RESULTS.xlsx'
-    path2 = '../2022-06-08 model A PEM evaluation data 2 5000 + 24/PARAMETER ESTIMATION PEM evaluation 2/OPT RESULTS.xlsx'
-    path3 = '../2022-06-08 model A PEM evaluation data 3 5000 + 24/PARAMETER ESTIMATION PEM evaluation 3/OPT RESULTS.xlsx'
-    folder_name = '2022-06-17 PEM evaluation analysis model A'
-    
-if model == 'model B':
-    path1 = '../2022-06-08 model B PEM evaluation data 1 5000 + 24/PARAMETER ESTIMATION PEM evaluation 1/OPT RESULTS.xlsx'
-    path2 = '../2022-06-08 model B PEM evaluation data 2 5000 + 24/PARAMETER ESTIMATION PEM evaluation 2/OPT RESULTS.xlsx'
-    path3 = '../2022-06-08 model B PEM evaluation data 3 5000 + 24/PARAMETER ESTIMATION PEM evaluation 3/OPT RESULTS.xlsx'
-    folder_name = '2022-06-17 PEM evaluation analysis model B'
-    
-if model == 'model C':
-    path1 = '../2022-06-08 model B PEM evaluation data 1 5000 + 24/PARAMETER ESTIMATION PEM evaluation 1/OPT RESULTS.xlsx'
-    path2 = '../2022-06-08 model B PEM evaluation data 2 5000 + 24/PARAMETER ESTIMATION PEM evaluation 2/OPT RESULTS.xlsx'
-    path3 = '../2022-06-08 model B PEM evaluation data 3 5000 + 24/PARAMETER ESTIMATION PEM evaluation 3/OPT RESULTS.xlsx'
-    folder_name = '2022-06-17 PEM evaluation analysis model C'
+    if data == 'slice drop high error':
+        path1 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230922_ModelA_PEM_rep1/PARAMETER ESTIMATION PEM evaluation 1/OPT RESULTS.xlsx'
+        path2 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230922_ModelA_PEM_rep1/PARAMETER ESTIMATION PEM evaluation 2/OPT RESULTS.xlsx'
+        path3 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230922_ModelA_PEM_rep1/PARAMETER ESTIMATION PEM evaluation 3/OPT RESULTS.xlsx'
+        folder_name = '230922_ModelA_PEM_rep1'
+    elif data == 'rep2 slice drop high error':
+        path1 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230923_ModelA_PEM_rep2/PARAMETER ESTIMATION PEM evaluation 1/OPT RESULTS.xlsx'
+        path2 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230923_ModelA_PEM_rep2/PARAMETER ESTIMATION PEM evaluation 2/OPT RESULTS.xlsx'
+        path3 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230923_ModelA_PEM_rep2/PARAMETER ESTIMATION PEM evaluation 3/OPT RESULTS.xlsx'
+        folder_name = '230923_ModelA_PEM_rep2'
+    elif data == 'rep3 slice drop high error':
+        path1 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230924_ModelA_PEM_rep3/PARAMETER ESTIMATION PEM evaluation 1/OPT RESULTS.xlsx'
+        path2 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230924_ModelA_PEM_rep3/PARAMETER ESTIMATION PEM evaluation 2/OPT RESULTS.xlsx'
+        path3 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230924_ModelA_PEM_rep3/PARAMETER ESTIMATION PEM evaluation 3/OPT RESULTS.xlsx'
+        folder_name = '230924_ModelA_PEM_rep3'
+
+elif model == 'model B':
+    if data == 'slice drop high error':
+        path1 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230920_ModelB_PEM_rep1/PARAMETER ESTIMATION PEM evaluation 1/OPT RESULTS.xlsx'
+        path2 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230920_ModelB_PEM_rep1/PARAMETER ESTIMATION PEM evaluation 2/OPT RESULTS.xlsx'
+        path3 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230920_ModelB_PEM_rep1/PARAMETER ESTIMATION PEM evaluation 3/OPT RESULTS.xlsx'
+        folder_name = '230920_ModelB_PEM_rep1'
+    elif data == 'rep2 slice drop high error':
+        path1 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230920_ModelB_PEM_rep2/PARAMETER ESTIMATION PEM evaluation 1/OPT RESULTS.xlsx'
+        path2 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230920_ModelB_PEM_rep2/PARAMETER ESTIMATION PEM evaluation 2/OPT RESULTS.xlsx'
+        path3 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230920_ModelB_PEM_rep2/PARAMETER ESTIMATION PEM evaluation 3/OPT RESULTS.xlsx'
+        folder_name = '230920_ModelB_PEM_rep2'
+    elif data == 'rep3 slice drop high error':
+        path1 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230920_ModelB_PEM_rep3/PARAMETER ESTIMATION PEM evaluation 1/OPT RESULTS.xlsx'
+        path2 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230920_ModelB_PEM_rep3/PARAMETER ESTIMATION PEM evaluation 2/OPT RESULTS.xlsx'
+        path3 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230920_ModelB_PEM_rep3/PARAMETER ESTIMATION PEM evaluation 3/OPT RESULTS.xlsx'
+        folder_name = '230920_ModelB_PEM_rep3'  
+
+elif model == 'model C':
+    if data == 'slice drop high error':
+        path1 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230731_ModelC_PEM_rep1_slice_nofilter_redo/PARAMETER ESTIMATION PEM evaluation 1/OPT RESULTS.xlsx'
+        path2 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230731_ModelC_PEM_rep1_slice_nofilter_redo/PARAMETER ESTIMATION PEM evaluation 2/OPT RESULTS.xlsx'
+        path3 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230731_ModelC_PEM_rep1_slice_nofilter_redo/PARAMETER ESTIMATION PEM evaluation 3/OPT RESULTS.xlsx'
+        folder_name = '230731_ModelC_PEM_rep1_slice_nofilter_redo'
+    elif data == 'rep2 slice drop high error':
+        path1 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230917_ModelC_PEM_rep2/PARAMETER ESTIMATION PEM evaluation 1/OPT RESULTS.xlsx'
+        path2 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230917_ModelC_PEM_rep2/PARAMETER ESTIMATION PEM evaluation 2/OPT RESULTS.xlsx'
+        path3 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230917_ModelC_PEM_rep2/PARAMETER ESTIMATION PEM evaluation 3/OPT RESULTS.xlsx'
+        folder_name = '230917_ModelC_PEM_rep2'
+    elif data == 'rep3 slice drop high error':
+        path1 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230917_ModelC_PEM_rep3/PARAMETER ESTIMATION PEM evaluation 1/OPT RESULTS.xlsx'
+        path2 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230917_ModelC_PEM_rep3/PARAMETER ESTIMATION PEM evaluation 2/OPT RESULTS.xlsx'
+        path3 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230917_ModelC_PEM_rep3/PARAMETER ESTIMATION PEM evaluation 3/OPT RESULTS.xlsx'
+        folder_name = '230917_ModelC_PEM_rep3'
+
+elif model == 'model D':
+    if data == 'slice drop high error':
+        path1 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230906_ModelD_PEM_rep1_beta/PARAMETER ESTIMATION PEM evaluation 1/OPT RESULTS.xlsx'
+        path2 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230906_ModelD_PEM_rep1_beta/PARAMETER ESTIMATION PEM evaluation 2/OPT RESULTS.xlsx'
+        path3 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230906_ModelD_PEM_rep1_beta/PARAMETER ESTIMATION PEM evaluation 3/OPT RESULTS.xlsx'
+        folder_name = '230906_ModelD_PEM_rep1_beta'
+    elif data == 'rep2 slice drop high error':
+        path1 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230901_ModelD_PEM_rep2_beta_redo/PARAMETER ESTIMATION PEM evaluation 1/OPT RESULTS.xlsx'
+        path2 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230901_ModelD_PEM_rep2_beta_redo/PARAMETER ESTIMATION PEM evaluation 2/OPT RESULTS.xlsx'
+        path3 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230901_ModelD_PEM_rep2_beta_redo/PARAMETER ESTIMATION PEM evaluation 3/OPT RESULTS.xlsx'
+        folder_name = '230901_ModelD_PEM_rep2_beta_redo'
+    elif data == 'rep3 slice drop high error':
+        path1 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230904_ModelD_PEM_rep3_beta/PARAMETER ESTIMATION PEM evaluation 1/OPT RESULTS.xlsx'
+        path2 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230904_ModelD_PEM_rep3_beta/PARAMETER ESTIMATION PEM evaluation 2/OPT RESULTS.xlsx'
+        path3 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230904_ModelD_PEM_rep3_beta/PARAMETER ESTIMATION PEM evaluation 3/OPT RESULTS.xlsx'
+        folder_name = '230904_ModelD_PEM_rep3_beta'
+
 
 files = [path1, path2, path3]
 plotPemEvaluation(files, folder_name)
-
-
-
-
-
-# =============================================================================
-# outdated
-# =============================================================================
-#calculate chi_sq_PEM_eval
-# filename = '/Users/kate/Documents/GitHub/GAMES_COVID_Dx/PEM evaluation data/GLOBAL SEARCH RESULTS model B TEST.pkl'
-# df = pd.read_pickle(filename)
-# df = df.sort_values(by=['chi_sq'])
-# df = df.reset_index(drop=True)
-# chi_sq_list = []
-# R2_list = []
-# for i in range(0, 1):
-#     sim = df['normalized solutions'][i]
-#     _, noise_solutions, _, _, _ = defineExp('PEM evaluation', 'model B','', i + 1)
-#     #print(noise_solutions)
-#     chi_sq = calcchi_sq(sim, noise_solutions)
-#     mse = chi_sq/len(sim)
-#     chi_sq_list.append(mse)
-#     R2 = calcRsq(sim, noise_solutions)
-#     R2_list.append(R2)
-   
-# mean_chi_sq = np.round(np.mean(chi_sq_list), 4)
-# max_chi_sq = np.round(max(chi_sq_list), 4)
-# print('Mean chi_sq between PEM evaluation data with and without noise: ' + str(mean_chi_sq))
-# print('Max chi_sq between PEM evaluation data with and without noise: ' + str(max_chi_sq))
-
-# with open("PEM evaluation criterion chi_sq.json", 'w') as f:
-#     json.dump(chi_sq_list, f, indent=2) 
-    
 
    
     

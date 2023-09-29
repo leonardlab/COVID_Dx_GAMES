@@ -66,7 +66,7 @@ def defineExp(data, model, k_CV, k_PEM_evaluation):
 
     if data == 'PEM evaluation':
         #Import df for appropriate model and k_PEM_evaluation
-        filename = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230818_ModelD_PEM_rep2_slice_new_ig_run2/GENERATE PEM EVALUATION DATA/PEM EVALUATION DATA NOISE model D.xlsx'
+        filename = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230924_ModelA_PEM_rep3/GENERATE PEM EVALUATION DATA/PEM EVALUATION DATA NOISE model A.xlsx'
         df = pd.read_excel(filename, sheet_name = str(k_PEM_evaluation), engine='openpyxl')
         
         exp_data = []
@@ -439,7 +439,7 @@ def defineExp(data, model, k_CV, k_PEM_evaluation):
                 err = [i/maxVal for i in err]
                 timecourses_err.append(err)
                 error = error + err 
-                
+           
    
     elif data == 'slice drop high error add optimal':
         labels1 = [[1.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.005, 1, 90], [20.0, 2.5, 0.005, 1, 90]]
@@ -505,7 +505,43 @@ def defineExp(data, model, k_CV, k_PEM_evaluation):
                 err = [i/maxVal for i in err]
                 timecourses_err.append(err)
                 error = error + err 
-                
+
+    elif data == 'rep2 all echo drop high error':
+        drop_labels = [[20.0, 2.5, 0.02, 10, 90]]        
+        x = []
+        exp_data = []
+        error = []
+        timecourses = []
+        timecourses_err = []
+        maxVal = 2.94995531724754
+        
+        for (columnName, columnData) in df_data.iteritems():
+            label = list(columnData.iloc[0])
+            
+            if label in drop_labels:
+                continue
+            else:
+               
+                x.append(label)
+            
+                timecourse = list(columnData.iloc[1:])
+                timecourse = [i/maxVal for i in timecourse]
+                timecourses.append(timecourse)
+                exp_data = exp_data + timecourse
+        
+        for (columnName, columnData) in df_error.iteritems():
+            label = list(columnData.iloc[0])
+            
+            if label in drop_labels:
+                continue
+            
+            else:
+                err = list(columnData.iloc[1:])
+                err = [i/maxVal for i in err]
+                timecourses_err.append(err)
+                error = error + err    
+
+
     elif data == 'rep2 slice drop high error':
         labels1 = [[1.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.005, 1, 90], [20.0, 2.5, 0.005, 1, 90]]
         labels10 = [[1.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.005, 10, 90], [20.0, 2.5, 0.005, 10, 90]]
@@ -560,6 +596,42 @@ def defineExp(data, model, k_CV, k_PEM_evaluation):
                 err = [i/maxVal for i in err]
                 timecourses_err.append(err)
                 error = error + err 
+
+    elif data == 'rep3 all echo drop high error':
+        drop_labels = [[5.0, 10.0, 0.02, 10, 90]]        
+        x = []
+        exp_data = []
+        error = []
+        timecourses = []
+        timecourses_err = []
+        maxVal = 1.12314566577301
+        
+        for (columnName, columnData) in df_data.iteritems():
+            label = list(columnData.iloc[0])
+            
+            if label in drop_labels:
+                continue
+            else:
+               
+                x.append(label)
+            
+                timecourse = list(columnData.iloc[1:])
+                timecourse = [i/maxVal for i in timecourse]
+                timecourses.append(timecourse)
+                exp_data = exp_data + timecourse
+        
+        for (columnName, columnData) in df_error.iteritems():
+            label = list(columnData.iloc[0])
+            
+            if label in drop_labels:
+                continue
+            
+            else:
+                err = list(columnData.iloc[1:])
+                err = [i/maxVal for i in err]
+                timecourses_err.append(err)
+                error = error + err    
+
 
     elif data == 'rep3 slice drop high error':
         labels1 = [[1.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.005, 1, 90], [20.0, 2.5, 0.005, 1, 90]]

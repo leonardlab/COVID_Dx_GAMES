@@ -10,21 +10,17 @@ lines.linewidth : 2
 lines.markersize : 6
 
 #fonts, labels, and titles
-font.sans-serif: Arial
-axes.titlesize : 11
-#font.weight:  bold
-#axes.labelweight : bold
-axes.labelsize : 9
-xtick.labelsize : 9
-ytick.labelsize : 9
+axes.titlesize : 16
+font.weight:  normal
+axes.labelweight : normal
+axes.labelsize : 12
+xtick.labelsize : 10
+ytick.labelsize : 10
 
 #Saving
 savefig.dpi:       600
 savefig.format:    svg
 figure.autolayout: True
-
-#Legend
-legend.fontsize : x-small
 
 # x-axis
 #xtick.major.size: 7

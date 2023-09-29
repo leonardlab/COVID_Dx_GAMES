@@ -471,24 +471,24 @@ def resultsPanel(dfSim, dfExp, dfErr, labels, varyCondition):
             y_max_1 = 0.15
             y_max_10 = 0.85
         elif 'rep3' in data:
-            y_max_1 = 0.4
-            y_max_10 = 0.7
+            y_max_1 = 0.7 #0.4
+            y_max_10 = 1.0 #0.7
         else:
-            y_max_1 = 0.35
-            y_max_10 = 0.85
+            y_max_1 = 0.4 #0.35
+            y_max_10 = 1.0 #0.85
      
         
     elif varyCondition == 'RNAse':
         objective = 4
         if 'rep2' in data:
-            y_max_1 = 0.15
-            y_max_10 = 0.5
+            y_max_1 = 0.3
+            y_max_10 = 1.0 #0.5
         elif 'rep3' in data:
-            y_max_1 = 0.35
-            y_max_10 = 0.5  
+            y_max_1 = 0.4
+            y_max_10 = 1.0 #0.5
         else:
-            y_max_1 = 0.25
-            y_max_10 = 0.85 #1.0
+            y_max_1 = 0.7 #0.25
+            y_max_10 = 1.0 #0.85
     
     elif varyCondition == 'T7':
         objective = 6
@@ -499,7 +499,7 @@ def resultsPanel(dfSim, dfExp, dfErr, labels, varyCondition):
             y_max_1 = 0.5
             y_max_10 = 1.0
         else:
-            y_max_1 = 0.7 #0.65
+            y_max_1 = 0.7 #0.7, 0.65
             y_max_10 = 1.0
         
         
@@ -536,7 +536,7 @@ def plotModelingObjectives456(df_sim):
     resultsPanel(df_sim, df_data, df_error, labels, varyCondition) 
     print('RNAse done')
     
-def plotLowCas13(df, data_type):
+def plotLowCas13(df, data_type, rep):
     '''Purpose: Plot Fmax distributions (box plot) for low and high Cas13a-gRNA conditions
     
         Input: 
@@ -556,12 +556,13 @@ def plotLowCas13(df, data_type):
 
     if data_type == 'exp':
         
-        if 'rep2' in data:
-            maxVal = 2.94995531724754
-        elif 'rep3' in data:
-            maxVal = 1.12314566577301
-        else:        
+        if rep == 'rep1':
             maxVal = 0.6599948235700113
+        elif rep == 'rep2':
+            maxVal = 2.94995531724754
+        elif rep == 'rep3':
+            maxVal = 1.12314566577301      
+            
         for (columnName, columnData) in df.iteritems():
             label = list(columnData.iloc[0])
 
@@ -607,7 +608,7 @@ def plotLowCas13(df, data_type):
     fig = plt.figure(figsize = (3,3.5))
     sns.boxplot(x="label", y="Readout at final timepoint", data=df, color = 'lightgrey')
     sns.swarmplot(x="label", y="Readout at final timepoint", data=df, color = 'dimgrey')
-    plt.savefig('./LOW VS HIGH CAS13A-GRNA COMPARISON.svg')
+    plt.savefig('./' + rep + 'LOW VS HIGH CAS13A-GRNA COMPARISON.svg')
     
 def plot_all_states(
         df: pd.DataFrame, 
