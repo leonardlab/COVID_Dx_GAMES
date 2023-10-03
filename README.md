@@ -1,7 +1,7 @@
 # COVID_Dx_GAMES
 
 This repository contains supporting code for the unpublished article: Jung, JK et al. Model-driven characterization of CRISPR-based point-of-use pathogen diagnostics. This work utilizes the [Dray, et al. GAMES conceptual workflow](https://pubs.acs.org/doi/10.1021/acssynbio.1c00528), and is currently using the [GAMES v1.0.1 framework](https://github.com/leonardlab/GAMES). 
-See details below regarding how to setup the code and conduct a test run with Model D to produce plots of the modeling objectives with the calibrated parameters for data set 2 (Figure 4 in the article). <br />
+See details [below](#4. update the required paths in the code files to make them executable on your machine:) regarding how to setup the code and conduct a test run with Model D to produce plots of the modeling objectives with the calibrated parameters for data set 2 (Figure 4 in the article). <br />
 
 ## Overview of main executable files
 - Test_COVID_Dx.py solves the ODEs for a single parameter set
