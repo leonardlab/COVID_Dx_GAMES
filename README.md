@@ -9,7 +9,7 @@ See details below regarding how to setup the code and conduct a test run with Mo
 - Analysis_PEM_Evaluation.py generates plots of the PEM evaluation for each dataset, to compare to the PEM evaluation criterion <br />
 - SensitivityAnalysis.py runs a sensitivity analysis based on the F_max and t_1/2 values and plots the results
 - Sensitivity_Analysis_chi2.py runs a sensitivity analysis based on the chi2 value and plots the results <br />
-See required updates [below]((#4-update-the-required-paths-in-the-code-files-to-make-them-executable-on-your-machine) to make these files executable on your machine. <br />
+See required updates [below](#4-update-the-required-paths-in-the-code-files-to-make-them-executable-on-your-machine) to make these files executable on your machine. <br />
 
 ## Notes on other files
 - Settings_COVID_Dx.py contains the main settings for each run of the code, including folder name, definition of free parameters, choice of model, choice of training data, run type, and parameter estimation method hyperparameters. Each time the code is run, this file needs to be updated with the appropriate settings. <br />
