@@ -7,6 +7,7 @@ Created on Tue Sep 29 08:39:09 2020
 """
 
 #Package imports
+from typing import Tuple
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from gen_mechanism import *
@@ -14,15 +15,20 @@ from gen_mechanism import *
 # =============================================================================
 # CODE TO CALCULATE COST FUNCTIONS
 # ============================================================================= 
-def calcRsq(data_x, data_y):
-    ''' 
-    Purpose: Calculate correlation coefficient, Rsq, between 2 datasets
-        
-    Inputs: 2 lists of floats (of the same length), dataX and dataY 
-           
-    Output: Rsq value (float) 
+def calcRsq(data_x: list, data_y: list) -> float:
     
+    ''' 
+    Calculates the correlation coefficient, Rsq, between 2 datasets
+        
+    Args:
+        dataX: a list of floats defining the first data set
+        dataY: a list of floats defining the second data set (must
+            be the same length as dataX)
+           
+    Returns: 
+        Rsq: a float defining the R squared value 
     '''
+
     #Restructure the data
     x = np.array(data_x)
     y = np.array(data_y)
@@ -37,18 +43,19 @@ def calcRsq(data_x, data_y):
    
     return Rsq
 
-def calc_chi_sq(exp, sim):
-    ''' 
-    Purpose: 
-        Calculate chi2 between 2 datasets 
-        
-    Inputs: 
-        exp: experimental data (list of floats, length = # datapoints)
-        sim: simulated data (list of floats, length = # datapoints)\
-           
-    Output: 
-        chi2: chi2 value (float) 
+def calc_chi_sq(exp: list, sim: list) -> float:
     
+    '''  
+    Calculates chi2 (sum of squared error) between 2 datasets 
+        
+    Args: 
+        exp: a list of floats defining the experimental data 
+            (length = # datapoints)
+        sim: a list of floats defining the simulated data
+            (length = # datapoints)
+           
+    Returns: 
+        chi2: a float defining the chi2 value
     '''
    
     #Initialize chi2
@@ -61,22 +68,31 @@ def calc_chi_sq(exp, sim):
         
     return chi2
 
-# =============================================================================
-# CODE TO SOLVE MODEL FOR A SINGLE CONDITION
-# ============================================================================= 
-def solveSingle(doses, p, model): 
-    '''Purpose: 
-        Solve equations for a single set of conditions (component doses)
+
+def solveSingle(
+        doses: list, p: list, model: str
+) -> Tuple[list, np.ndarray, list]:
+    
+    '''
+    Solves model equations for a single set of conditions
+        (component doses)
         
-    Inputs: 
-        doses: list of floats containing the component doses 
-        p: list of floats containing parameter values
+    Args: 
+        doses: a list of floats defining the component doses
+
+        p: a list of floats defining parameter values
+
         model: string defining the model identity
            
-    Output: 
-        t: list of floats containing the time points
-        solution: array containing the solutions for all model states
-        timecourse_readout: list of floats containing the value of the readout at each time point'''
+    Returns: 
+        t: a list of floats containing the time points
+
+        solution: a numpy array containing the solutions for all model states
+
+        timecourse_readout: a list of floats containing the value of the fluorescence
+        readout at each time point
+    '''
+
     if model == 'model D':
 
         solver = ODE_solver_D()
@@ -88,7 +104,7 @@ def solveSingle(doses, p, model):
         x_init[1] = 250 # x_p1
         x_init[2] = 250 # x_p2
         x_init[7] = doses[1] * 139.1 # x_RT
-        x_init[8] = doses[2] * 6060 # x_RNase (doses = 0.001, 0.005, 0.02), RNase_0 = 6.06, 30.3, 121.2, RNase_0**2 = 36.7236, 918.09, 14689.44
+        x_init[8] = doses[2] * 6060 # x_RNase
         x_init[23] = doses[0] * 16.16 # x_T7
         x_init[27] = doses[4]/2 # x_iCas13
         x_init[30] = 2500 # x_qRf
@@ -113,7 +129,9 @@ def solveSingle(doses, p, model):
         k_degRrep = k_degv  #nM-1 min-1
         k_RNaseon = .024 #nM-1 min-1
         k_RNaseoff = 2.4 #min-1
-        the_rates = np.array([k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, k_T7off, k_FSS, a_RHA, b_RHA, c_RHA, k_SSS, k_txn, k_cas13, k_degRrep]).astype(float)
+        the_rates = np.array([k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, 
+                              k_T7on, k_T7off, k_FSS, a_RHA, b_RHA, c_RHA, k_SSS, 
+                              k_txn, k_cas13, k_degRrep]).astype(float)
         solver.set_rates(the_rates)
         solver.abs_tol = 1e-13
         solver.rel_tol = 1e-10
@@ -170,7 +188,9 @@ def solveSingle(doses, p, model):
         k_degRrep = k_degv  #nM-1 min-1
         k_RNaseon = .024 #nM-1 min-1
         k_RNaseoff = 2.4 #min-1
-        the_rates = np.array([k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, k_T7off, k_FSS, k_RHA, k_SSS, k_txn, k_cas13, k_degRrep]).astype(float)
+        the_rates = np.array([k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff,
+                              k_T7on, k_T7off, k_FSS, k_RHA, k_SSS, k_txn, k_cas13,
+                              k_degRrep]).astype(float)
         solver.set_rates(the_rates)
         solver.abs_tol = 1e-13
         solver.rel_tol = 1e-10
@@ -204,20 +224,7 @@ def solveSingle(doses, p, model):
             solver.mechanism_B = 'yes'
             solver.mechanism_C = 'yes'
             solver.txn_poisoning = 'no'
-            
-        # elif model == 'w/txn poisoning':
-            
-        #     solver.mechanism_B = 'yes'
-        #     solver.mechanism_C = 'yes'
-        #     solver.txn_poisoning = 'yes'
-        
-        #     solver.k_loc_deactivation = p[5]
-        #     solver.k_Mg = p[6]
-        #     solver.n_Mg = p[7]
-        #     solver.k_scale_deactivation = p[8]
-        
-    
-    
+
     #Solve equations
     solution, t = solver.solve(tspace)
     

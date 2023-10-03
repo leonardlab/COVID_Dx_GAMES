@@ -12,7 +12,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-import json
 
 #GAMES imports
 from Saving_COVID_Dx import createFolder
@@ -32,35 +31,26 @@ df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESS
 df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA ERR.pkl')
 
 #Import custom style file for plotting
+#Note that this path needs to be updated before running
 plt.style.use('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/paper.mplstyle.py')
-    
-
 dpi_ = 600
-colors = ['teal', 'deeppink' ,'rebeccapurple', 'darkseagreen', 'darkorange', 'dimgrey', 
-          'crimson', 'cornflowerblue', 'springgreen', 'sandybrown', 'lightseagreen', 'blue', 
-          'palegreen', 'lightcoral', 'lightpink', 'lightsteelblue', 'indigo', 'darkolivegreen',
-          'maroon', 'lightblue', 'gold', 'olive', 'silver', 'darkmagenta'] * 5 
 
-
-def analyzeSingleRun(df_opt, count):
+def analyzeSingleRun(df_opt: pd.DataFrame) -> None:
     
     '''
-    Purpose: Analyze the results of a single PEM run and plot the CF trajectory for each 
-             initial guess
+    Generates a list of chi_sq and Rsq values for a single PEM evalution run
     
-    Inputs: 
+    Args: 
         df_opt: a dataframe containing the optimization results
-        count: an integer containing the number of the run
    
-    Outputs: 
-        list(df['chi_sq']): list of final, optimized chi_sq values across initial guesses 
-        list(df['Rsq']): list of final, optimized Rsq values across initial guesses 
-    
-    Figures:
-        'CF TRAJECTORY PLOTS RUN ' + str(count) + '.svg' 
-            (plot of CF vs function evaluations for each initial guess, count = run #)
-        
+    Returns: 
+        list(df['chi_sq']): a list of final, optimized chi_sq values across 
+            initial guesses 
+
+        list(df['Rsq']): a list of final, optimized Rsq values across initial
+            guesses 
     '''
+
     for i in range(0, df_opt.shape[0]):
         holder = list(df_opt['chi_sq_list'])
         chi_sq_list = holder[i]
@@ -69,22 +59,29 @@ def analyzeSingleRun(df_opt, count):
 
     return list(df_opt['chi_sq']),list(df_opt['Rsq'])
 
-def plotPemEvaluation(files, folder_name):
+def plotPemEvaluation(files: list[str, str, str], folder_name: str) -> None:
     
     '''
-    Purpose: Evaluate and plot PEM evaluation criterion
+    Generates df of chi_2 and Rsq values for each PEM evaluation run and 
+    plots as box plot
    
-    Inputs: 
-        files: a list of dataframes containing the results for comparison
-        folder_name: a string containing the name of the folder to save the results to
+    Args: 
+        files: a list of strings containing the file paths of the results
+            dataframes for comparison
+
+        folder_name: a string containing the name of the folder to save the
+            results to
    
     Outputs: 
         None
     
     Figures: 
-        'PEM EVALUATION CRITERION.svg' 
-            (plot of optimized Rsq values for each PEM evaluation dataset, 
-             shows PEM evaluation criterion)
+        'PEM EVALUATION CRITERION.svg':
+            a plot of optimized Rsq values for each PEM evaluation dataset
+
+        'PEM EVALUATION CRITERION R2 >= 0.90.svg':
+            a plot of optimized Rsq values >= 0.90 for each PEM evalution
+                dataset  
     '''
     
     createFolder('./Results/' + folder_name)
@@ -123,8 +120,6 @@ def plotPemEvaluation(files, folder_name):
  
 
 #Note that paths need to be updated before running
-
-#'slice drop high error' #'rep2 slice drop high error' #'rep3 slice drop high error'
 if model == 'model A':
     if data == 'slice drop high error':
         path1 = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230922_ModelA_PEM_rep1/PARAMETER ESTIMATION PEM evaluation 1/OPT RESULTS.xlsx'

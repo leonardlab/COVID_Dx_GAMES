@@ -55,22 +55,17 @@ all_param_labels = problem_all_params['names']
 param_labels = list(initial_params_dictionary.keys())
 init_params = list(initial_params_dictionary.values())
 real_param_labels_free = conditions_dictionary["real_param_labels_free"]
-k_CV = conditions_dictionary['k_CV']
 k_PEM_evaluation = conditions_dictionary['k_PEM_evaluation']
 x = data_dictionary["x_vals"]
 exp_data = data_dictionary["exp_data"]
 error = data_dictionary["error"]
 parallelization = conditions_dictionary["parallelization"]
 model_states = conditions_dictionary["model states"]
-save_internal_states_flag = False
 data_type = 'experimental'
 
 #COVID-DX specific
 timecourses_err = data_dictionary["timecourses_err"]
 timecourses =  data_dictionary["timecourses"] 
-# df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA EXP.pkl')
-# df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA ERR.pkl')
-
 
 #Set style file
 plt.style.use('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/paper.mplstyle.py')
@@ -80,92 +75,74 @@ warnings.filterwarnings("ignore")
 
 
 # =============================================================================
-# General parameter estimation/solver code (modules 1, 2, 3)
+# General parameter estimation/solver code (modules 1 and 2)
 # =============================================================================    
-save_internal_states_flag == False
 
-def check_filters(solutions: list, mse: float , doses: list, p: str) -> float:
+def check_filters(solutions: list, mse: float) -> float:
+    
     """
-    Checks whether simulation results associated with a given parameter set pass the cost function filters
+    Checks whether simulation results associated with a given parameter set pass
+    the cost function filter
         
-    Parameters
-    ----------
-    solutions
-        a list of floats containing the solutions associated with parameter set p 
+    Args:
+        solutions: a list of floats containing the solutions associated with 
+            parameter set p 
        
         
-    mse
-        a float or int defining the original mse value before filtering 
-        
-    doses
-        list of lists containing the conditions
-    
-    p
-         a list of floats containing the parameter set (order of parameter defined in 
-            Settings.py and in the ODE defintion function in Solvers.py)
-         labels for p = ['k_cas13', 'k_degv', 'k_txn', 'k_FSS', 'k_RHA', 'k_loc_deactivation', 'k_scale_deactivation']
+        mse: a float or integer defining the original mse value before filtering 
 
-
-    Returns
-    -------
-    mse
-        a float or int defining the  mse value after filtering  """
-        
+    Returns:
+        mse: a float or integer defining the  mse value after filtering 
+    """
+            
     filter_code = 0
-    #max val filter
+    #max val filter for fluorophore output
     if max(solutions) < 2000:
         filter_code = 1
-        
-    # low iCas13 filter
-    # else:
-    #     doses = [5.0, 0.5, 0.005, 1, 4.5]
-    #     t, solutions_all, reporter_timecourse = solveSingle(doses, p, model)
-    #     final_timepoint_iCas13 = reporter_timecourse[-1] #no norm
-    #     max_high_iCas13 = max(solutions) #no norm
-    #     ratio_2 = final_timepoint_iCas13/max_high_iCas13
-    #     if ratio_2 > 0.10:
-    #         filter_code = 2
             
     mse = max(mse, filter_code)
             
     return float(mse)
 
 
-def solveAll(p: list, exp_data: list, output: str) -> Tuple[list, list, float, pd.DataFrame]:
+def solveAll(
+        p: list, exp_data: list, output: str
+) -> Tuple[list, list, float, pd.DataFrame]:
+   
     """
     Solves ODEs for the entire dataset using parameters defined in p 
         
-     
-    Parameters
-    ----------
-    p
-         a list of floats containing the parameter set (order of parameter defined in 
-            Settings.py and in the ODE defintion function in Solvers.py)
-         labels for p = ['k_cas13', 'k_degv', 'k_txn', 'k_FSS', 'k_RHA', 'k_loc_deactivation', 'k_scale_deactivation']
+    Args:
+        p: a list of floats containing the parameter set (order of parameters defined in 
+            Settings_COVID_Dx.py conditions_dictionary["real_param_labels_all"]
+            labels for p = ['k_cas13', 'k_degv', 'k_txn', 'k_FSS', 'k_RHA', 
+            'k_loc_deactivation', 'k_scale_deactivation']
         
-    exp_data
-        a list of floats containing the experimental data (length = # data points)
+        exp_data: a list of floats containing the experimental data (length = # data 
+            points, for all doses at all timepoints)
 
-    output
-        a string defining the desired output: '' or 'all states'
+        output: a string defining the desired output: '' for florophore only or
+            'all states' for all model states
 
-    Returns
-    -------
-    x
-        list of lists containing the conditions
+    Returns:
+        x: a list of lists containing the conditions (each set of doses)
         
-    solutions_norm
-        list of floats containing the normalized simulation values
-        
-    mse
-        float or int defining the chi_sq/number of data points
-        
-    dfSimResults
-        df containing the normalized simulation values
-        
-    if output == 'all states': 
-    df_all_states
-        df containing all model states simulation values"""
+        solutions_norm: a list of floats containing the normalized simulation values
+            
+        mse: a float or integer defining the chi_sq/number of data points (mean squared error)
+            
+        dfSimResults: a dataframe containing the normalized simulation values
+            
+        if output == 'all states': 
+            df_all_states: a dataframe containing simulation values for all model states
+
+        if output == 'check negative:
+            is_negative: a boolean indicating whether there are any negative simulation values
+                for any of the model states
+            
+            full_solutions_all_arr: a 1D array of all simluation values for all model states
+                (used for checking for negative values)
+    """
 
     df_all_states = pd.DataFrame(
         index=model_states,
@@ -179,10 +156,10 @@ def solveAll(p: list, exp_data: list, output: str) -> Tuple[list, list, float, p
     for doses in x: #For each condition (dose combination) in x 
 
         t, solutions_all, reporter_timecourse = solveSingle(doses, p, model)
-        solutions_all_arr = np.concatenate(solutions_all) #save solutions for all states as a 1D array
-        # print(np.shape(solutions_all))
-        # print(np.shape(solutions_all_arr))
-        full_solutions_all.append(solutions_all_arr) #add to list of all state solutions for full dose set
+        #save solutions for all states as a 1D array
+        solutions_all_arr = np.concatenate(solutions_all) 
+        #add to list of all state solutions for full dose set
+        full_solutions_all.append(solutions_all_arr)
 
         if len(reporter_timecourse) == len(t):
             reporter_timecourse = reporter_timecourse
@@ -223,7 +200,7 @@ def solveAll(p: list, exp_data: list, output: str) -> Tuple[list, list, float, p
     #Calculate cost function 
     chi_sq = calc_chi_sq(exp_data, solutions_norm)
     mse = chi_sq/len(solutions_norm)
-    mse = check_filters(solutions, mse, doses, p)
+    mse = check_filters(solutions, mse)
    
     if output == 'all states':
         for index, row in df_all_states.iterrows():
@@ -234,32 +211,28 @@ def solveAll(p: list, exp_data: list, output: str) -> Tuple[list, list, float, p
         return x, solutions_norm, mse, dfSimResults, df_all_states
     
     elif output == 'check negative':
-        full_solutions_all_arr = np.concatenate(full_solutions_all) #save solutions for all states/ full dose set as a 1D array
-        is_negative = np.any(full_solutions_all_arr < 0.0) #for full simulation all states, check if any vals are negative
-        # print(is_negative)
-        # print(np.shape(full_solutions_all))
-        # print(np.shape(full_solutions_all_arr))
+        #save solutions for all states/ full dose set as a 1D array
+        full_solutions_all_arr = np.concatenate(full_solutions_all)
+        #for full simulation all states, check if any vals are negative
+        is_negative = np.any(full_solutions_all_arr < 0.0) 
         return is_negative, full_solutions_all_arr
         
     else:
         return x, solutions_norm, mse, dfSimResults
 
     
-def calculate_mse_k_PEM_evaluation(k_PEM_evaluation: int, df: pd.DataFrame) -> list:
-    """Calculates the mse with respect to the given PEM evaluation dataset
-     
-    Parameters
-    ----------
-    k_PEM_evaluation
-        an integer defining the identity of the PEM evaluation data set
+def calculate_mse_k_PEM_evaluation(df: pd.DataFrame) -> list:
+    
+    """
+    Calculates the mse with respect to the given PEM evaluation dataset
         
-    df
-        a data frame containing the parameter sets and simulated results from a global search
+    Args:
+        df: a dataframe containing the parameter sets and simulated results
+            from a global search for a PEM evaluation dataset
 
-    Returns
-    -------
-    mse_list_PEM_evaluation
-         a list of floats containing the mse values for each parameter set in df
+    Returns:
+        mse_list_PEM_evaluation: a list of floats containing the mse values
+            for each parameter set in df
     """
     
     mse_list_PEM_evaluation = []
@@ -281,23 +254,19 @@ def calculate_mse_k_PEM_evaluation(k_PEM_evaluation: int, df: pd.DataFrame) -> l
     return mse_list_PEM_evaluation
 
 
-def solvePar(row: tuple):
-    """Solve sODEs for the parameters defined in row 
-    (can be called directly by multiprocessing function)
-     
-    Parameters
-    ----------
-    row
-        a tuple containing the row of the dataframe containing the parameters
-
-    Returns
-    -------
-    mse
-        a float containing the mean squared error for the given parameter set
+def solvePar(row: tuple) -> float:
     
-    norm_solutions
-        a list of floats containing the normalized simulated solutions
-       
+    """
+    Solves ODEs for the parameters defined in row; structured so it can be
+        called directly by multiprocessing function
+     
+    Args:
+        row: a tuple containing the row of the dataframe containing the parameters
+
+    Returns:
+        mse: a float containing the mean squared error for the given parameter set
+    
+        norm_solutions: a list of floats containing the normalized simulation values
     """
    
     #Define parameters and solve ODEs
@@ -318,22 +287,22 @@ def solvePar(row: tuple):
 
 
 def optPar(row: tuple) -> Tuple[list, list]: 
-    """Performs optimization with initial guesses as defined in row 
-     (can be called directly by multiprocessing function)
-     
-    Parameters
-    ----------
-    row
-        a tuple containing the row of the dataframe containing the optimization conditions
-
-    Returns
-    -------
-    results_row
-        a list of floats, strings, and lists containing the optimization results
     
-    results_row_labels
-        a list of stringe containing the labels to go along with resultsRow
-       
+    """
+    Performs optimization with initial guesses as defined in row;
+        structured so it can be called directly by multiprocessing
+        function
+     
+    Args:
+        row: a tuple containing the row of the dataframe containing the
+            optimization conditions
+
+    Returns:
+        results_row: a list of floats, strings, and lists containing the 
+            optimization results
+    
+        results_row_labels: a list of strings containing the labels to go
+            along with results_row
     """
  
     #Unpack row
@@ -348,8 +317,30 @@ def optPar(row: tuple) -> Tuple[list, list]:
     #Initialize list to keep track of CF at each function evaluation
     chi_sq_list = []
 
-    def solveForOpt(x, p1, p2, p3, p4, p5, p6, p7):
-        #This is the function that is solved at each step in the optimization algorithm
+    def solveForOpt(
+            x: list, p1: float, p2: float, p3: float,
+            p4: float, p5: float, p6: float, p7: float
+    ) -> np.ndarray:
+        """
+        Structures solveAll to be compatible with optimization
+            code. This functioin is solved at each step in the
+            lmfit optimization.
+
+        Args:
+            x: a list of lists defining the component doses for
+                each condition
+
+            p1-p7: the parameters at the specific step in the
+            lmfit optimization (each parameter is a float)
+
+        Returns:
+            np.array(norm_solutions): a numpy array of the normalized
+                simulation values for all conditions (1D to be
+                compatible with lmfit optimization)
+        
+        """
+        #This is the function that is solved at each step in the optimization 
+        #algorithm
         #Solve ODEs for all data_sets
         p = [p1, p2, p3, p4, p5, p6, p7]
         doses, norm_solutions, mse, df_sim = solveAll(p, exp_data, '')
@@ -364,10 +355,11 @@ def optPar(row: tuple) -> Tuple[list, list]:
     bound_min_list = [0] * (len(all_param_labels))
     bound_max_list = [np.inf] * (len(all_param_labels))
     vary_list = [False] * (len(all_param_labels))
-   
-    for param_index in range(0, len(all_param_labels)): #for each param in p_all
-        for fit_param_index in range(0, len(fit_param_labels)): #for each fit param
-        
+    
+    #for each param in p_all
+    for param_index in range(0, len(all_param_labels)):
+        #for each fit param
+        for fit_param_index in range(0, len(fit_param_labels)):
             #if param is fit param, change vary to True and update bounds
             if all_param_labels[param_index] == fit_param_labels[fit_param_index]: 
                 vary_list[param_index] = True
@@ -416,15 +408,12 @@ def optPar(row: tuple) -> Tuple[list, list]:
     item_labels = ['method', 'success', 'integer flag',
                    'lmdif message', 'model', 'chi_sq_list', 
                    'Simulation results']
-   
-    # print('integer flag: ', results.ier)
-    # print('lmdif message: ', results.lmdif_message)
 
     for i in range(0, len(items)):
         result_row.append(items[i])
         result_row_labels.append(item_labels[i])
 
-    ### val = num params *2 + 8 (original code: val = num params *2 + 6)  #26 for modelD 
+    #index value = num params *2 + 8; 26 for modelD 
     result_row = result_row[:22]
     result_row_labels = result_row_labels[:22]
     return result_row, result_row_labels
@@ -439,61 +428,57 @@ signal.signal(signal.SIGALRM, handler)
 #  Module 2 - code for parameter estimation using training data
 # =============================================================================  
 def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
-    """Runs PEM (global search, filter, and optimization)
-    Parameters
-    ----------
-    None
+    
+    """
+    Runs PEM (global search, filter, and optimization)
+    
+    Args: none
 
-    Returns
-    -------
-    df
-        df containing results of the optimization simulations
+    Returns:
+        df: a dataframe containing results of the optimization simulations
         
-    best_case_params
-        list of floats defining the best parameter values following optimization
+        best_case_params: a list of floats defining the best parameter values
+            following optimization (calibrated parameters)
         
-    norm_solutions_best_case
-        list of floats containing the normalized simulated data generated with the best parameter values
+        norm_solutions_best_case: a list of floats containing the normalized
+            simulation values generated with the best parameter values
         
-    df_sim_best_case
-        df containing the normalized simulated data generated with the best parameter values
+        df_sim_best_case: a dataframe containing the normalized simulated 
+            data generated with the best parameter values
         
-    Files
-    -------  
-    'PARAM SWEEP.xlsx'
-        dataframe containing the parameters used in the parameter sweep
+    Files:  
+        'PARAM SWEEP.xlsx':
+            a dataframe containing the parameters used in the parameter sweep
         
-    'GLOBAL SEARCH RESULTS.xlsx'
-        dataframe containing results of the global search
-        
-    'INITIAL GUESSES.xlsx'
-        dataframe containing the filtered results of the global search
-        
-    'OPT RESULTS.xlsx'
-        dataframe containing results of the optimization algorithm'''
-        
+        'GLOBAL SEARCH RESULTS.xlsx':
+            a dataframe containing results of the global search
+            
+        'INITIAL GUESSES.xlsx':
+            a dataframe containing the filtered results of the global search
+
+        'OPT RESULTS BEFORE.xlsx':
+            a dataframe containing results of the optimization algorithm before
+            calculating the R2 values
+            
+        'OPT RESULTS.xlsx':
+            a dataframe containing results of the optimization algorithm  
     """
      
     '''1. Global search'''   
     #use results from previous global search used to generate PEM evaluation data
+    #Note that this path will need to be updated before running parameter estimation
+    #with the PEM evaluation data
     if data == 'PEM evaluation': 
-        df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230924_ModelA_PEM_rep3/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
-        mse_values_PEM_evaluation_data = calculate_mse_k_PEM_evaluation(k_PEM_evaluation, df_results)
+        df_results = pd.read_pickle(('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/'
+                                     '230924_ModelA_PEM_rep3/GENERATE PEM EVALUATION DATA/' 
+                                     + 'GLOBAL SEARCH RESULTS ' + model + '.pkl'))
+        mse_values_PEM_evaluation_data = calculate_mse_k_PEM_evaluation(df_results)
         label = 'chi_sq_' + str(k_PEM_evaluation)
         df_results[label] = mse_values_PEM_evaluation_data
 
-    # elif data == 'slice drop high error' and model == 'model A':
-    #     df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230922_ModelA_PEM_rep1/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
-    
-    # elif data == 'rep2 slice drop high error' and model == 'model A':
-    #     df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230923_ModelA_PEM_rep2/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
-
-    elif data == 'rep3 slice drop high error' and model == 'model A':
-        df_results = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230924_ModelA_PEM_rep3/GENERATE PEM EVALUATION DATA/' + 'GLOBAL SEARCH RESULTS ' + model + '.pkl')
-
     #run global seach
     else:
-        df_params = generateParams(problem_free, n_search, p_all, problem_all_params, model, data)
+        df_params = generateParams(problem_free, n_search, p_all, problem_all_params, model)
         
         print('Starting global search...')
         #set parallelization condition for GS
@@ -520,9 +505,8 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
          
                 output.append(result)
    
-        
         #perform GS with parallelization
-        elif parallelization_GS == 'yes':  ###with multiprocessing###
+        elif parallelization_GS == 'yes':
             with mp.Pool(conditions_dictionary["num_cores"]) as pool:
               result = pool.imap(solvePar, df_params.itertuples(name = None))
               pool.close()
@@ -541,7 +525,6 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
             df_results.to_excel(writer, sheet_name='GS results')
         print('Global search complete.')
         
-
     '''2. Filter'''
     #set column to sort by
     if data == 'PEM evaluation':
@@ -558,26 +541,11 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
     print('Starting optimization...')
     df = initial_guesses.copy(deep=True)
     df['exp_data'] = [exp_data] * len(df.index)
-    # ig_df = initial_guesses.copy(deep=True)
-
-    # is_negative_list = []
-    # full_solutions_arr = []
-    # for row in ig_df.itertuples(name = None):
-    #     ig_params = row[-2]
-    #     is_negative, full_solutions = solveAll(ig_params, exp_data, 'check negative')
-    #     is_negative_list.append(is_negative)
-    #     full_solutions_arr.append(full_solutions)
-    # ig_df['negative vals?'] = is_negative_list
-    # ig_df['full solutions'] = full_solutions_arr
-
-    #Save initial guesses df with negative vals check
-    # filename = 'INITIAL GUESSES NEGATIVE CHECK'
-    # with pd.ExcelWriter(filename + '.xlsx') as writer:  # doctest: +SKIP
-    #     ig_df.to_excel(writer, sheet_name='initial_guesses')
 
     all_opt_results = []
     
-    if parallelization == 'no':  ###without multiprocessing###
+    #perform optimization without parallelization
+    if parallelization == 'no': 
         for row in df.itertuples(name = None):
             signal.alarm(2000)
             try:
@@ -590,7 +558,8 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
                 signal.alarm(0)
             # all_opt_results.append(result_row)
 
-    elif parallelization == 'yes':  ###with multiprocessing###
+    #perform optimization with parallelization
+    elif parallelization == 'yes':
         with mp.Pool(num_cores) as pool:
             result = pool.imap(optPar, df.itertuples(name=None))
             pool.close()
@@ -610,7 +579,7 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
     df = df_opt.sort_values(by=['chi_sq'], ascending = True)
     
     #Save results of the opt before calculating R2 values
-    with pd.ExcelWriter('OPT RESULTS BEFORE.xlsx') as writer:  # doctest: +SKIP
+    with pd.ExcelWriter('OPT RESULTS BEFORE.xlsx') as writer:
         df.to_excel(writer, sheet_name='OPT Results')
     
     #Save best case calibrated params (lowest chi_sq)
@@ -656,16 +625,16 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
     return df, best_case_params, norm_solutions_best_case, df_sim_best_case
 
 def simLowCas13(p: list) -> None:
-    """Generates data for plotting low vs high Cas13a-gRNA conditions
-    Parameters
-    ----------
-    p
-        a list of floats containing the parameter set
-
-    Returns
-    -------
-    None
+    
     """
+    Generates data for plotting low vs high Cas13a-gRNA conditions
+
+    Args:
+        p: a list of floats containing the parameter set
+
+    Returns: none
+    """
+
     data = 'all echo drop high error'
     conditions_dictionary["data"] = data
     x, exp_data, error, timecourses, timecourses_err = defineExp(conditions_dictionary["data"], conditions_dictionary["model"])
@@ -677,27 +646,27 @@ def simLowCas13(p: list) -> None:
 # =============================================================================
 #  Module 1 - code to generate and simulate PEM EVALUATION data
 # =============================================================================
-def savePemEvalData(df_PEM_evaluation: pd.DataFrame, filename: str, count: int) -> None:
-    """Saves PEM evaluation data in format usable by downstream code
-
-    Parameters
-    ----------
-    df_PEM_evaluation
-        a df containing the normalized reporter expression values for each datapoint 
-            
-    filename
-        a string defining the filename to save the results to
-        
-    count
-        an integer defining the data set number that is being saved 
-  
-    Returns
-    -------
-    None
+def savePemEvalData(
+        df_PEM_evaluation: pd.DataFrame, filename: str, count: int
+) -> None:
     
-    Files
-    ----------
-    filename + data_type + '.xlsx' (df_PEM_evaluation)  
+    """
+    Saves PEM evaluation data in format usable by downstream code
+
+    Args:
+        df_PEM_evaluation: a dataframe containing the normalized fluorophore
+            output values for each datapoint 
+            
+        filename: a string defining the filename for saving the results
+        
+        count: an integer defining the PEM evaluation data set number that
+            is being saved 
+  
+    Returns: none
+    
+    Files:
+        'filename + data_type + '.xlsx'':
+            df_PEM_evaluation
     """
     
     filename = filename + ' ' + model + '.xlsx'
@@ -717,24 +686,22 @@ def savePemEvalData(df_PEM_evaluation: pd.DataFrame, filename: str, count: int) 
 
  
 def defineMeasurementErrorModel_PEM_Eval() -> Tuple[list, list]:
-    """Calculates the mean and standard deviation of the measurement error 
+    
+    """
+    Calculates the mean and standard deviation of the measurement error 
     (standard error) for each condition (set of component doses)
 
-    Parameters
-    ----------
-    None 
-  
-    Returns
-    -------
-    mean_list
-        a list of floats containing the means of the measurement error associated with each condition
-        for example, the 0th index contains the mean measurement error for all time points in the 0th condition
+    Args: none
+
+    Returns:
+        mean_list: a list of floats containing the means of the measurement error
+            associated with each condition, e.g. the 0th index contains the mean
+            measurement error for all time points in the 0th condition
         
-    mean_list
-        a list of floats containing the standard deviation of the measurement error associated with each condition
-        
+        sd_list: a list of floats containing the standard deviation of the
+            measurement error associated with each condition
     """
-    
+
     standard_error = [i/math.sqrt(3) for i in error]
     error_lists = list(chunks(standard_error, 61))
     error_lists = [list_ for list_ in error_lists] 
@@ -742,29 +709,27 @@ def defineMeasurementErrorModel_PEM_Eval() -> Tuple[list, list]:
     mean_list = []
     sd_list = []
     for list_ in error_lists:
-        mean_list.append(np.mean(list_[10:])) #remove first 10 data points
-        sd_list.append(np.std(list_[10:])) #remove first 10 data points
+        #remove first 10 data points
+        mean_list.append(np.mean(list_[10:]))
+        sd_list.append(np.std(list_[10:]))
         
     return mean_list, sd_list
         
 def generatePemEvalData(df_global_search: pd.DataFrame) -> list:
-    """Generates PEM evaluation data based on results of a global search
-
-    Parameters
-    ----------
-    df_global_search
-        a dataframe containing global search results
-
-    Returns
-    -------
-    df_list
-        a list of dataframes containing the PEM evaluation data
     
-    Files
-    ----------
-    "PEM evaluation criterion.json"
-        contains PEM evaluation criterion using both chi_sq and R_sq
+    """
+    Generates PEM evaluation data based on results of a global search
+
+    Args:
+        df_global_search: a dataframe containing global search results
+
+    Returns:
+        df_list: a list of dataframes containing the PEM evaluation data
     
+    Files:
+        'PEM evaluation criterion.json':
+            contains list of chi_sq and R_sq values between PEM evaluation
+            data with and without noise for each PEM evaluation data set
     """
     
     saveConditions(conditions_dictionary, initial_params_dictionary, data_dictionary)
@@ -838,31 +803,27 @@ def generatePemEvalData(df_global_search: pd.DataFrame) -> list:
     return df_list
 
 def addNoise(raw_vals: list, mu: float, sigma: float) -> list:
-    """Adds technical error to a dataset, according to a normal distribution 
-        (defined by a mean and standard deviation)
-
-    Parameters
-    ----------
-    raw_vals
-        a list of floats defining the values before technical error is added 
-         (length = # datapoints)
-         
-     mu
-         a float defining the mean of measurement error distribution for the given condition
-         
-     sigma
-         a float defining the standard deviation of measurement error distribution for the given condition
-
-
-    Returns
-    -------
-    noise_vals
-        a list of floats defining the values (raw_vals) after technical error is added 
-        (length = # datapoints)
     
     """
+    Adds technical error to a dataset, according to a normal distribution 
+        (defined by a mean and standard deviation)
 
-   
+    Args:
+        raw_vals: a list of floats defining the values before technical error
+            is added (length = # datapoints)
+         
+        mu: a float defining the mean of measurement error distribution for the
+            given condition
+         
+        sigma: a float defining the standard deviation of measurement error
+            distribution for the given condition
+
+
+    Returns:
+        noise_vals: a list of floats defining the values (raw_vals) after technical
+            error is added (length = # datapoints)
+    """
+
     noise_vals = []
     count_val = 0
 
@@ -901,26 +862,25 @@ def addNoise(raw_vals: list, mu: float, sigma: float) -> list:
 
 
 def runGlobalSearchPemEval() -> pd.DataFrame:
-    """Runs global search to generate and define PEM evaluation data
-
-    Parameters
-    ----------
-    None
-
-
-    Returns
-    -------
-    df_results
-        a dataframe containing the results of the global search
-    
-    Files
-    -------
-        './GLOBAL SEARCH RESULTS.xlsx' (df_results in Excel form)
-        './GLOBAL SEARCH RESULTS.pkl' (df_results in pickle form)
     
     """
+    Runs global search to generate and define PEM evaluation data
+
+    Args: none
+
+    Returns:
+        df_results: a dataframe containing the results of the global
+            search
+    
+    Files:
+        './GLOBAL SEARCH RESULTS.xlsx':
+            df_results in Excel form
+        './GLOBAL SEARCH RESULTS.pkl':
+            df_results in pickle form
+    """
+
     #Perform global search
-    df_params = generateParams(problem_free, n_search, p_all, problem_all_params, model, data)
+    df_params = generateParams(problem_free, n_search, p_all, problem_all_params, model)
     chi_sq_list = []
     norm_solutions_list = []
     if parallelization == 'yes':
@@ -935,7 +895,6 @@ def runGlobalSearchPemEval() -> pd.DataFrame:
             chi_sq_list.append(output[pset][0])
             norm_solutions_list.append(output[pset][1])
        
-            
     elif parallelization == 'no':
         for row in df_params.itertuples(name = None):
             signal.alarm(100)
@@ -963,334 +922,22 @@ def runGlobalSearchPemEval() -> pd.DataFrame:
     
     return df_results
 
-
-# =============================================================================
-# Code for k-fold cross validation
-# =============================================================================
 def chunks(lst: list, n: int) -> list:
-    """Yield successive n-sized chunks from lst
-    Parameters
-    ----------
-    lst
-        a list of values
-        
-    n
-        an integer defining the size of each chunk
-
-    Returns
-    -------
-    lst[i:i + n]
-        a list of lists containing the values from lst structured as n-sized chunks
-    
     """
+    Yield successive n-sized chunks from lst
+    
+    Args:
+        lst: a list of values
+        
+        n: an integer defining the size of each chunk
+
+    Returns:
+        lst[i:i + n]: a list of lists containing the values
+        from lst structured as n-sized chunks
+    """
+
     for i in range(0, len(lst), n):
         yield lst[i:i + n]
-            
-def defineExpData_CV(data_lists: list, n_indicies: int, n_sets: int) -> Tuple[list, list, list, list]:
-    """Partitions data for cross-validation
-    Parameters
-    ----------
-    data_list
-        a list of lists containing the experimental data to choose from 
-        
-    n_indicies
-        an integer defining the number of conditions used to define the training data for each set
-        
-    n_sets
-        an integer defining the number of sets to generate
-
-    Returns
-    -------
-    x_CV_train
-        a list of lists containing the conditions used to define each set of training data (total length = n_sets)
-    
-    exp_data_CV_train
-        a list of lists containing the experimental data used to define each set of training data (total length = n_sets)
-    
-    x_CV_test
-        a list of lists containing the conditions used to define each set of test data 
-    
-    exp_data_CV_test
-        a list of lists containing the experimental data used to define each set of test data 
-        
-    Files
-    -------
-    CV INDICIES.svg
-        scatter plot showing the indices used to define the training data for each k_CV
-        
-    'x_CV_train.json'
-        .json file containing the data from x_CV_train
-        
-    'x_CV_test.json'
-        .json file containing the data from x_CV_test
-    
-    """
-
-    def stratifyData(n_indicies: int, n_attempt: int, seed_: int) -> Tuple[list, list, list, list, list, list, list, list, list, list]:
-        """Attempts to stratify training data for cross validation 
-        Parameters
-        ----------
-     
-        n_indicies
-            an integer defining the number of conditions used to define the training data for each set
-            
-        n_attempt
-            an integer defining attempt number 
-            
-        seed_
-            an integer defining the seed for the random number generator 
-    
-        Returns
-        -------
-        indicies_train
-            a list of integers defining the indices that were stratified into training data
-        
-        indicies_test
-            a list of integers defining the indices that were stratified into test data
-        
-        labels_train
-            a list of strings defining the enzyme conditions that were stratified into training data
-        
-        labels_test
-            a list of strings defining the enzyme conditions that were stratified into test data
-        
-        T7_doses_train_1
-            a list of floats defining T7 RNAP doses that were included in the training data at 1fM input RNA
-        
-        RT_doses_train_1
-            a list of floats defining RT doses that were included in the training data at 1fM input RNA
-        
-        RNAse_doses_train_1
-            a list of floats defining RNAse doses that were included in the training data at 1fM input RNA
-        
-        T7_doses_train_10
-            a list of floats defining T7 RNAP doses that were included in the training data at 10fM input RNA
-        
-        RT_doses_train_10
-             a list of floats defining RT doses that were included in the training data at 10fM input RNA
-        
-        RNAse_doses_train_10
-            a list of floats defining RNAse doses that were included in the training data at 10fM input RNA
-        """
-        #randomly stratify data
-        print('*************')
-        random.seed(seed_) 
-        indicies_train = random.sample(range(0, len(x)), n_indicies)
-        
-        indicies_test = []
-        for i in range(0, len(data_lists)):
-            if i not in indicies_train:
-                indicies_test.append(i)
-   
-        #restructure labels
-        labels_1 = []
-        labels_10 = []
-        labels_test = []
-        labels_train = []
-        
-        for index in indicies_test:
-            label = x[index]
-            labels_test.append(label)
-            
-        for index in indicies_train:
-            label = x[index]
-            labels_train.append(label)
-            if label[3] == 1.0:
-                labels_1.append(label)
-            elif label[3] == 10.0:
-                labels_10.append(label)
-       
-        T7_doses_train_1 = [list_[0] for list_ in labels_1]
-        RT_doses_train_1 = [list_[1] for list_ in labels_1]
-        RNAse_doses_train_1 = [list_[2] for list_ in labels_1]
-
-        T7_doses_train_10 = [list_[0] for list_ in labels_10]
-        RT_doses_train_10 = [list_[1] for list_ in labels_10]
-        RNAse_doses_train_10 = [list_[2] for list_ in labels_10]
-    
-        return indicies_train, indicies_test, labels_train, labels_test, T7_doses_train_1, RT_doses_train_1, RNAse_doses_train_1, T7_doses_train_10, RT_doses_train_10, RNAse_doses_train_10
-
-    def checkStratifiedData(labels_train: list, T7_doses_train_1: list, RT_doses_train_1: list, RNAse_doses_train_1: list, T7_doses_train_10: list, RT_doses_train_10: list, RNAse_doses_train_10: list) -> bool:
-        """Checks whether the stratified data meets the requirements  
-        Parameters
-        ----------
-        labels_train
-            a list of strings defining the enzyme conditions that were stratified into training data
-        
-        T7_doses_train_1
-            a list of floats defining T7 RNAP doses that were included in the training data at 1fM input RNA
-        
-        RT_doses_train_1
-            a list of floats defining RT doses that were included in the training data at 1fM input RNA
-        
-        RNAse_doses_train_1
-            a list of floats defining RNAse doses that were included in the training data at 1fM input RNA
-        
-        T7_doses_train_10
-            a list of floats defining T7 RNAP doses that were included in the training data at 10fM input RNA
-        
-        RT_doses_train_10
-             a list of floats defining RT doses that were included in the training data at 10fM input RNA
-        
-        RNAse_doses_train_10
-            a list of floats defining RNAse doses that were included in the training data at 10fM input RNA
-     
-    
-        Returns
-        -------
-        flag
-            a boolean representing whether there is a problem with this attempt (True) or not (False)
-        
-        """
-        flag = False
-        
-        #max readout condition
-        max_readout_label = [1.0, 2.5, 0.005, 10, 90]
-        if max_readout_label not in labels_train:
-            flag = True
-            print('max readout flag')
-            
-        #vrna = 1
-        T7_vals = [1.0, 5.0, 20.0]
-        for item in T7_vals:
-            if item in T7_doses_train_1:
-                continue
-            else:
-                flag = True
-                print('T7 flag')
-
-        RT_vals = [0.5, 2.5, 10.0]
-        for item in RT_vals:
-            if item in RT_doses_train_1:
-                continue
-            else:
-                flag = True
-                print('RT flag')
-
-        RNAse_vals = [0.001, 0.005, 0.02]
-        for item in RNAse_vals:
-            if item in RNAse_doses_train_1:
-                continue
-            else:
-                flag = True
-                print('RNAse flag')
-
-        #vrna = 10
-        T7_vals = [1.0, 5.0, 20.0]
-        for item in T7_vals:
-            if item in T7_doses_train_10:
-                continue
-            else:
-                flag = True
-                print('T7 flag')
-
-        RT_vals = [0.5, 2.5, 10.0]
-        for item in RT_vals:
-            if item in RT_doses_train_10:
-                continue
-            else:
-                flag = True
-                print('RT flag')
-
-        RNAse_vals = [0.001, 0.005, 0.02]
-        for item in RNAse_vals:
-            if item in RNAse_doses_train_10:
-                continue
-            else:
-                flag = True
-                print('RNAse flag')
-
-        return flag
-
-    def flatten(big_list: list) -> list:
-        """flattens a list of lists into a single list
-        Parameters
-        ----------
-        big_list
-            a list of lists to be flattened
-     
-    
-        Returns
-        -------
-        flattened_list
-            the flattened list
-        
-        """
-        flattened_list = [item for sublist in big_list for item in sublist]
-        return flattened_list
-    
-    #main code for defineExpData_CV
-    #initialize lists
-    x_CV_train = []
-    x_CV_test = []
-    indicies_CV_train = []
-    indicies_CV_test = []
-    exp_data_CV_train = []
-    exp_data_CV_test = []
-    num_complete = 0
-    
-    #set list of seeds
-    random.seed(16834)
-    seeds = random.sample(range(10000), k=1000)
-    
-    #try each seed and check whether requirements are met
-    for n_attempt in range(1, 1000):
-        seed_ = seeds[n_attempt-1]
-    
-        indicies_train, indicies_test, labels_train, labels_test, T7_doses_train_1, RT_doses_train_1, RNAse_doses_train_1, T7_doses_train_10, RT_doses_train_10, RNAse_doses_train_10 = stratifyData(n_indicies, n_attempt, seed_)
-        flag = checkStratifiedData(labels_train, T7_doses_train_1, RT_doses_train_1, RNAse_doses_train_1, T7_doses_train_10, RT_doses_train_10, RNAse_doses_train_10)
-        
-        #if no flag detected, accept attempt and re-structure 
-        if flag == False:
-            print('Attempt #: ' + str(n_attempt))
-            print('Number complete: ' + str(num_complete))
-            print('Complete.')
-            x_CV_train.append(labels_train)
-            indicies_CV_train.append(indicies_train)
-        
-            x_CV_test.append(labels_test)
-            indicies_CV_test.append(indicies_test)
-        
-            data_train = []
-            data_test = []
-
-            for value in indicies_train:
-                list_ = data_lists[value]
-                data_train.append(list_)
-                
-            for value in indicies_test:
-                list_ = data_lists[value]
-                data_test.append(list_)
-            
-            data_train = flatten(data_train)
-            exp_data_CV_train.append(data_train)
-    
-            data_test = flatten(data_test)
-            exp_data_CV_test.append(data_test)
-           
-            num_complete += 1
-            if num_complete >= n_sets:
-                break
-                
-        #Plot training indicies
-        fig = plt.figure(figsize = (4,4))
-        for k, list_ in enumerate(indicies_CV_train):
-            list_ = [i + 1 for i in list_]
-            x_ = [k+1] * len(list_)
-            plt.plot(x_, list_, color = 'dimgrey', marker = 'o', linestyle = 'None')
-        plt.xticks(range(1, 11))
-        plt.yticks([1, 10, 20, 30, 40])
-        plt.ylabel('Index in full data set')
-        plt.savefig('./SF14b CV INDICIES.svg', dpi = 600)
-    
-        #save results
-        with open("x_CV_train2.json", 'w') as f:
-            json.dump(x_CV_train, f, indent=2) 
-            
-        with open("x_CV_test2.json", 'w') as f:
-            json.dump(x_CV_test, f, indent=2) 
-         
-    return x_CV_train, exp_data_CV_train, x_CV_test, exp_data_CV_test
 
 # =============================================================================
 # Code to RUN the workflow
@@ -1298,7 +945,7 @@ def defineExpData_CV(data_lists: list, n_indicies: int, n_sets: int) -> Tuple[li
 if __name__ == '__main__':
     if run_type == 'generate PEM evaluation data':
         #Record start time
-        startTime_1 = datetime.datetime.now()
+        start_time_1 = datetime.datetime.now()
             
         #Set up file structure
         os.chdir(full_path)
@@ -1312,6 +959,18 @@ if __name__ == '__main__':
         
         #Generate PEM evaluation data (add noise and save)
         df_pem_eval = generatePemEvalData(df_results)
+
+        #Print stop time
+        stop_time_1 = datetime.datetime.now()
+        elapsed_time1 = stop_time_1 - start_time_1
+        elapsed_time_total1 = round(elapsed_time1.total_seconds(), 1)
+        elapsed_time_total1 = elapsed_time_total1/60
+        print('')
+        print('********************************************')
+        print('PARAMETER ESTIMATION METHOD EVALUATION')
+        print('Total run time (min): ' + str(round(elapsed_time_total1, 3)))
+        print('Total run time (hours): ' + str(round(elapsed_time_total1/60, 3))) 
+        print('********************************************')
     
         
     if run_type == 'parameter estimation':
@@ -1335,7 +994,7 @@ if __name__ == '__main__':
         #Run parameter estimation method and analysis
         df_opt, calibrated_params, solutions_best_case, df_sim_best_case = runParameterEstimation()
         
-        if data != 'cross-validation train' and data != 'PEM evaluation':
+        if data != 'PEM evaluation':
             #Plot parameter distributions 
             plotParamDistributions(df_opt)
             plotParamBounds(calibrated_params, bounds)
@@ -1357,27 +1016,3 @@ if __name__ == '__main__':
         print('Total run time (min): ' + str(round(elapsed_time_total, 3)))
         print('Total run time (hours): ' + str(round(elapsed_time_total/60, 3))) 
         print('********************************************')
-
-    if run_type == 'generate cross-validation data':
-        #Set up file structure and save conditions
-        os.chdir(full_path)
-        sub_folder_name = 'CROSS VALIDATION'
-        createFolder('./' + sub_folder_name)
-        os.chdir('./' + sub_folder_name)
-        saveConditions(conditions_dictionary, initial_params_dictionary, data_dictionary)
-        
-        #Subsection data for 
-        data_lists = list(chunks(exp_data, 61))
-        n_indicies = 14
-        n_sets = 10
-        run_type = ''
-        x_CV_train, exp_data_CV_train, x_CV_test, exp_data_CV_test = defineExpData_CV(data_lists, n_indicies, n_sets)
-        
-
-    
-        
-        
-
-
-
-        

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from typing import Tuple
+
 """
 Created on Mon Sep 28 11:13:10 2020
 
@@ -8,15 +10,17 @@ Created on Mon Sep 28 11:13:10 2020
 
 import os
 
-def makeMainDir(folder_name):    
+def makeMainDir(folder_name: str) -> str:    
+    
     ''' 
-    Purpose: Create the main directory to hold simulation results 
+    Creates the main directory to hold simulation results 
         
-    Inputs: 
+    Args: 
         folder_name: a string defining the name of the folder
    
-    Output: 
-        results_folder_path + folder_name: a string defining the location of the new folder
+    Returns: 
+        results_folder_path + folder_name: a string defining the location of
+            the new folder
     '''
 
     results_folder_path = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/'
@@ -32,34 +36,47 @@ def makeMainDir(folder_name):
 
     return results_folder_path + folder_name
 
-def createFolder(directory):
+def createFolder(directory: str) -> None:
+    
     ''' 
-    Purpose: Create a new folder.
+    Creates a new folder.
         
-    Inputs: 
+    Args: 
         directory: a string defining the name of the folder to make
        
-    Output: None
+    Returns: None
     '''
-    
+
     try:
         if not os.path.exists('./' + directory):
             os.makedirs('./' + directory)
     except OSError:
         print ('Error: Creating directory. ' +  './' + directory)
 
-def saveConditions(conditions_dictionary, initial_params_dictionary, data_dictionary):  
+def saveConditions(
+        conditions_dictionary: dict, initial_params_dictionary: dict, 
+        data_dictionary: dict
+) -> None: 
+    
     ''' 
-    Purpose: Save conditions, initial params, and data dictionaries
+    Saves conditions, initial params, and data dictionaries as defined
+        in Settings_COVID_Dx.py
         
-    Inputs: 
-        conditions_dictionary, initial_params_dictionary, data_dictionary: dictionaries holding
-        the simulation conditions
-       
-    Output: None
+    Args: 
+        conditions_dictionary: a dictionary holding simulation conditions
+            (defined in Settings_COVID_Dx.py)
+
+        initial_params_dictionary: a dictionary holding initial parameters
+            and related information (defined in Settings_COVID_Dx.py)
+
+        data_dictionary: a dictionary holding experimental data and related
+            information (defined in Settings_COVID_Dx.py)
+
+    Returns: none
     
     Files:
-        CONDITIONS.txt (holds the conditions defined in the dictionaries)
+        CONDITIONS.txt:
+            holds the conditions defined in the dictionaries
     '''
 
     filename = 'CONDITIONS' 

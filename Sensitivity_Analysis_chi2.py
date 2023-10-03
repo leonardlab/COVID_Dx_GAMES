@@ -1,12 +1,9 @@
 import os
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 from math import log10
-import math
-import seaborn as sns
-import itertools
 from copy import deepcopy
+from typing import Tuple
 from gen_mechanism import *
       
 #GAMES imports
@@ -29,7 +26,29 @@ problem_free = conditions_dictionary["problem"]
 bounds = problem_free['bounds']
 plt.style.use('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/paper.mplstyle.py')
 
-def single_param_sweep_10pct(p, param_index):
+def single_param_sweep_10pct(p: list, param_index: int
+) -> Tuple[float, float]:
+
+    """
+    Solves model ODEs for all conditions (component doses) for two 
+        cases of changing parameter at param_index: increase by 10%
+        and decrease by 10%
+
+    Args:
+        p: a list of floats defining the parameter values for all 
+            potentially free parameters (Settings_COVID_Dx.py
+            conditions_dictionary["p_all"])
+
+        param_index: an integer defining the index of the parameter for the sweep
+
+    Returns:
+        mse_low: a float defining the mse resulting from the 10% decrease in
+            the parameter
+
+        mse_high: a float defining the mse resulting from the 10% increase in
+            the parameter
+    """
+
     p_vals = deepcopy(p)
     p_low = p_vals[param_index] * 0.9
     p_high = p_vals[param_index] * 1.1
@@ -41,10 +60,41 @@ def single_param_sweep_10pct(p, param_index):
     
     return mse_low, mse_high
 
-def calc_percent_change(mse_mid, mse_new):
+def calc_percent_change(mse_mid: float, mse_new: float) -> float:
+    """
+    Calculates the percent change between mse_mid and mse_new
+
+    Args:
+        mse_mid: a float defining the mse for the original parameter set
+
+        mse_new: a float defining the mse for the parameter set with increased
+            or decreased parameter value
+
+    Returns:
+        100 * (mse_new-mse_mid)/mse_mid: a float defining percent change
+    """
+
     return 100 * (mse_new-mse_mid)/mse_mid
 
-def all_param_sweeps_10pct(p):
+def all_param_sweeps_10pct(p: list) -> Tuple[list, list]:
+
+    """
+    Performs all parameter sweeps for increasing or decreasing 
+        each parameter value by 10%
+
+    Args:
+        p: a list of floats defining the parameter values for all 
+            potentially free parameters (Settings_COVID_Dx.py
+            conditions_dictionary["p_all"])
+    
+    Returns:
+        pct_mse_low_list: a list of floats defining the percent changes 
+            for decreasing each parameter by 10%
+
+        pct_mse_high_list: a list of floats defining the percent changes 
+            for increasing each parameter by 10%
+    """
+
     _, _, mse_mid, _ = solveAll(p, exp_data, '')
     print('mse original: ', mse_mid)
     
@@ -63,7 +113,35 @@ def all_param_sweeps_10pct(p):
     return pct_mse_low_list, pct_mse_high_list
 
 
-def tornado_plot(low_vals, high_vals, param_labels, tolerance):
+def tornado_plot(
+        low_vals: list, high_vals: list, 
+        param_labels: list, tolerance: str
+) -> None:
+
+    """
+    Creates a tornado plot for the sensitivity analysis
+
+    Args:
+        low_vals: a list of floats defining the percent changes 
+            for decreasing each parameter by 10%
+
+        high_vals: a list of floats defining the percent changes 
+            for increasing each parameter by 10% 
+        
+        param_labels: a list of strings defining the parameter
+            labels for the plot (Settings_COVID_Dx.py
+            conditions_dictionary["real_param_labels_all"])
+
+        tolerance: a string defining whether the low or high error
+            tolerances were used in the ode solver for the file name
+            for saving the figure
+    
+    Returns: none
+
+    Figures:
+        './tornado plot_' + model + '_' + data + tolerance + '.svg':
+            tornado plot for the sensitivity analysis
+    """
      
     num_params = len(param_labels)
 
@@ -85,7 +163,26 @@ def tornado_plot(low_vals, high_vals, param_labels, tolerance):
     plt.savefig('./tornado plot_' + model + '_' + data + tolerance + '.svg', dpi = 600)
 
 
-def run_sensitivity_analysis(p, p_labels, tolerance):
+def run_sensitivity_analysis(p: list, p_labels: list, tolerance: str) -> None:
+
+    """
+    Runs the sensitivity analysis by calling the above functions
+
+    Args:
+        p: a list of floats defining the parameter values for all 
+            potentially free parameters (Settings_COVID_Dx.py
+            conditions_dictionary["p_all"])
+
+        p_labels: a list of strings defining the parameter
+            labels for the tornado plot (Settings_COVID_Dx.py
+            conditions_dictionary["real_param_labels_all"])
+
+        tolerance: a string defining whether the low or high error
+            tolerances were used in the ode solver for the file name
+            for saving the figure in tornado_plot()
+    Returns: none
+    """
+
     os.chdir(full_path)
     sub_folder_name = './Sensitivity_analysis_chi2'
     createFolder('./' + sub_folder_name)
@@ -94,5 +191,7 @@ def run_sensitivity_analysis(p, p_labels, tolerance):
     pct_mse_low_list, pct_mse_high_list = all_param_sweeps_10pct(p)
     tornado_plot(pct_mse_low_list, pct_mse_high_list, p_labels, tolerance)
 
-#need to set p_all = opt params from run
+#need to set p_all = best case params from parameter estimation run
+#and model to model used for parameter estimation run in
+#Settings_COVID_Dx.py
 run_sensitivity_analysis(p_all, real_param_labels_all, 'low_tol')

@@ -9,35 +9,46 @@
 import numpy as np
 import pandas as pd
 from SALib.sample import latin
+from typing import Tuple
 
-def generateParams(problem, n_search, parameters, problem_all_params, model, data):
+
+def generateParams(
+        problem: dict, n_search: int, parameters: list,
+        problem_all_params: dict, model: str
+) -> pd.DataFrame:
+    
     ''' 
-    Purpose: Generate parameter sets for global search 
+    Generates parameter sets for global search 
         
-    Inputs: 
-        problem: a dictionary including the number, labels, and bounds for the free parameters 
-            (defined in Settings.py)
+    Args: 
+        problem: a dictionary including the number, labels, and bounds for the
+            free parameters 
+            (Settings_COVID_Dx.py conditions_dictionary["problem"]) 
             
-        n_Search: the total number of parameter sets in the global search
+        n_Search: an integer defining the total number of parameter sets in the
+            global search 
+            (Settings_COVID_Dx.py conditions_dictionary["n_search"])
+
+        parameters: a list of floats defining the initial guesses for each 
+            parameter- all potentially free parameters
+            (Settings_COVID_Dx.py conditions_dictionary["p_all"])
         
-        parameters: a list of initial guesses  for each parameter (length equal to number of 
-            free parameters, labels based on thse defined in Settings.py)
-        
-        problem_all_params: a dictionary including the number, labels, and bounds for all 
-            potentially free parameters (defined in Settings.py), even if the parameter is not free 
+        problem_all_params: a dictionary including the number, labels, and bounds
+            for all potentially free parameters, even if the parameter is not free 
             in this specific simulation
+            (Settings_COVID_Dx.py conditions_dictionary["problem_all_params"])
        
         model: a string that defines the model identity
-        
-        data: a string that defines the data identity
+            (Settings_COVID_Dx.py conditions_dictionary["model"])
            
-    Outputs:
+    Returns:
         df_params: a dataframe with columns corresponding to parameter identities 
             (# columns = # parameters) and rows corresponding to parameter values 
             (# rows = # parameter sets)
           
     Files: 
-        PARAM SWEEP.xlsx (dataframe df_params from output)
+        PARAM SWEEP.xlsx:
+            dataframe df_params from returns
     '''
   
     #Define specific conditions from the dictionaries
@@ -56,7 +67,7 @@ def generateParams(problem, n_search, parameters, problem_all_params, model, dat
         df_params[param] = param_array[0]
 
     #Perform LHS
-    param_values = latin.sample(problem, n_search, seed=456767) #og seed= 456767, seed2 = 123, seed3 = 654, seed4 = 8352
+    param_values = latin.sample(problem, n_search, seed=456767)
 
     #To sample parameters over a log scale, we sample the exponent space and then 
     #transform the values following LHS.
@@ -73,16 +84,6 @@ def generateParams(problem, n_search, parameters, problem_all_params, model, dat
         for name in fit_params:
             if fit_params[item] == name:
                 df_params[name] = params_converted[:,item]
-
-    # if model D, replace p5 (a_RHA) based on b vals so max occurs at 0.05 < x < 0.2
-    # if model == 'model D':
-    #     for index, row in df_params.iterrows():
-    #         np.random.seed(index)
-    #         b_val = df_params.at[index, 'p6']
-    #         lower_bound = -((b_val-2)*0.05 + 1)/(0.05-1)
-    #         upper_bound = -((b_val-2)*0.2 + 1)/(0.2-1)
-    #         a_bounded = np.random.uniform(low=lower_bound, high=upper_bound, size=1)
-    #         df_params.at[index, 'p5'] = a_bounded
 
     #add model, names, bounds to df
     m_ = np.full((1, n_search), model)
@@ -102,25 +103,36 @@ def generateParams(problem, n_search, parameters, problem_all_params, model, dat
     
     return df_params        
 
-def filterGlobalSearch(df_results, num_ig, all_param_labels, sort_col):
+def filterGlobalSearch(
+        df_results: pd.DataFrame, num_ig: int, 
+        all_param_labels: list, sort_col: str
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    
     '''
-    Purpose: Filter results of global search   
+    Filter results of global search to keep only the parameter sets that yield
+    the lowest cost function value   
     
-    Inputs: 
+    Args: 
         data: a dataframe containing the results of the global search
-        num_ig: the number of initial guesses to choose (this defines the size of the filtered df)
-        runID: the runID, which is used for saving purposes
-        all_param_labels: a list of labels for all parameters involved in the run 
-            (defined in Settings.py)
+
+        num_ig: an integer defining the number of initial guesses to 
+            choose (this defines the size of the filtered df)
+
+        runID: a string defining the the runID, which is used for saving purposes
+
+        all_param_labels: a list of strings defining the labels for all parameters 
+            involved in the run 
+            (Settings_COVID_Dx.py conditions_dictionary["real_param_labels_all"])
+
         sort_col: a string defining the column name that parameter sets should be 
-            filtered by (usually 'chi2')
+            filtered by, i.e. the sort column for the dataframe (usually 'chi_sq')
     
-    Outputs:
+    Returns:
         df_filtered: a dataframe containing the filtered parameter sets, along with all metrics and 
-                     condition identities saved in the global search df
+            condition identities saved in the global search df
                      
         initial_guesses: a dataframe containing only the filtered paramter sets - this is fed 
-                     directly into the optimization module
+            directly into the optimization module
         
     Files:
         'INITIAL GUESSES.xlsx' (dataframe initial_guesses from output)

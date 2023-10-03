@@ -14,6 +14,7 @@ from math import log10
 import math
 import seaborn as sns
 import itertools
+from copy import deepcopy
 from lmfit import Parameters, minimize
 from gen_mechanism import *
       
@@ -21,10 +22,7 @@ from gen_mechanism import *
 import Settings_COVID_Dx
 from Solvers_COVID_Dx import calcRsq, calc_chi_sq
 from DefineExpData_COVID_Dx import defineExp
-# from Run_COVID_Dx import solveAll
-# from Saving_COVID_Dx import createFolder
-# from Analysis_Plots import plotModelingObjectives123, plotModelingObjectives456, parityPlot
-# from Test import solveSingleSet
+
 
 #Define settings
 conditions_dictionary, initial_params_dictionary, data_dictionary = Settings_COVID_Dx.init()
@@ -37,116 +35,36 @@ timecourses_err = data_dictionary["timecourses_err"]
 timecourses_exp = data_dictionary["timecourses"]
 problem_free = conditions_dictionary["problem"]
 bounds = problem_free['bounds']
+p_all = conditions_dictionary["p_all"] 
+real_param_labels_all = conditions_dictionary["real_param_labels_all"] 
 plt.style.use('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/paper.mplstyle.py')
 
-def solveAll(p, exp_data):
-    
-    ''''
-    Purpose: Solve ODEs for the entire dataset using parameters defined in p 
-        p = ['k_cas13', 'k_degv', 'k_txn', 'k_FSS', 'k_RHA', 'k_loc_deactivation', 'k_scale_deactivation']
-    
-    Inputs: 
-        p: a list of floats containing the parameter set (order of parameter defined in 
-            Settings.py and in the ODE defintion function in Solvers.py)
-        exp_data: a list of floats containing the experimental data (length = # data points)
-        x:  a list of lists containing the component dose conditions
-            
-    Outputs: 
-        x: list of lists containing the conditions
-        solutions_norm: list of floats containing the normalized simulation values
-        mse: float defining the chi2/number of data points
-        dfSimResults: df containing the normalized simulation values'''
-   
-    dfSimResults = pd.DataFrame()
-    solutions = []
-   
-    for doses in x: #For each condition (dose combination) in x 
+def solveSingle(
+        doses: list, p: list, p_fixed: list
+ ) -> Tuple[list, list, list]: 
+    '''
+    Solves equations for a single set of conditions (component doses)
 
-        t, solutions_all, reporter_timecourse = solveSingle(doses, p, p_fixed, model)
-     
-        if len(reporter_timecourse) == len(t):
-            reporter_timecourse = reporter_timecourse
-            
-        else:
-            reporter_timecourse = [0] * len(t)
-        
-        for i in reporter_timecourse:
-            solutions.append(float(i))
-            
-        dfSimResults[str(doses)] = reporter_timecourse
-        
-   
-    #Normalize solutions
-    if max(solutions) == 0:
-        solutions_norm = [0] * len(solutions)
-    else:    
-        solutions_norm = [i/max(solutions) for i in solutions]  
+    Args:
+        doses: a list of floats containing the component doses 
+        p: a list of floats defining the parameter values for all 
+            potentially free parameters (Settings_COVID_Dx.py
+            conditions_dictionary["p_all"])
 
-    #Normalize df solutions
-    for column in dfSimResults:
-        vals = list(dfSimResults[column])
-        if max(solutions) == 0:
-            dfSimResults[column] = vals
-        else:
-            dfSimResults[column] = [i/max(solutions) for i in vals]
-   
-    #dfSimResults.to_excel('./SIMULATION RESULTS.xlsx')
-    
-    #Check for Nan
-    i = 0
-    for item in solutions_norm:
-       
-        if math.isnan(item) == True:
-     
-            print('Nan in solutions')
-            chi2 = 1e10
-            return x, solutions_norm, chi2, dfSimResults
-
-    chi2 = calc_chi_sq(exp_data, solutions_norm)
-    mse = chi2/len(solutions_norm)
-    print('mse: ' + str(np.round(mse, 4)))
-    
-    #max val filter
-    if max(solutions) < 2000:
-        print('Failed filter 1')
-        print('The maximum value of x_f is: ' + str(max(solutions)))
-        mse = 1
-        
-    #low iCas13 filter
-    # else:
-    #     doses = [5.0, 0.5, 0.005, 1, 4.5]
-    #     t, solutions_all, reporter_timecourse = solveSingle(doses, p, p_fixed, model)
-    #     final_timepoint_iCas13 = reporter_timecourse[-1] #no norm
-    #     max_high_iCas13 = max(solutions) #no norm
-    #     ratio_2 = final_timepoint_iCas13/max_high_iCas13
-    #     if ratio_2 > 0.10:
-    #         print('Failed filter 2')
-    #         print('ratio2: The max lowiCas13/max high iCas13 ratio is: ' + str(ratio_2))
-    #         mse = 2
-
-    return x, solutions_norm, mse, dfSimResults
-
-### update p list -> add k_bds, k_degRrep, k_sss (set = to corresponding params
-### iniially, then vary individually)
-
-def solveSingle(doses, p, p_fixed, model): 
-    '''Purpose: 
-        Solve equations for a single set of conditions (component doses)
-        
-    Inputs: 
-        doses: list of floats containing the component doses 
-        p: list of floats containing parameter values
-        model: string defining the model identity
+        p_fixed: a list of floats defining the fixed parameters
            
-    Output: 
-        t: list of floats containing the time points
-        solution: array containing the solutions for all model states
-        timecourse_readout: list of floats containing the value of the readout at each time point'''
+    Returns: 
+        t: a list of floats containing the time points
+
+        solution: a numpy array containing the solutions for all model states
+
+        timecourse_readout: a list of floats containing the value of the 
+            readout at each time point
+    '''
     
     solver = ODE_solver_D()
     x_init = np.zeros(33)
    
-    
     C_scale = 10 ** 6
     x_init[0] = doses[3] * .000001  # x_v
     x_init[0] = x_init[0] * C_scale #x_v' sent into ODEs (x_v' = x_v * 10^6)   
@@ -159,9 +77,6 @@ def solveSingle(doses, p, p_fixed, model):
     x_init[30] = 2500 # x_qRf
     solver.set_initial_condition(np.array(x_init))
   
-# p = [5.98681E-05, 5.98681E-05, 721.1529526, 721.1529526, 1360.727836, 0.385250686, 0.385250686, 2.580973544, 58.85708085, 7.876468573]
-# p_labels = ['k_cas13', 'k_bds', 'k_degv', 'k_degRrep', 'k_txn', 'k_FSS', 'k_SSS', 'k_RHA', 'k_loc', 'k_scale']
-
     #Parameters
     k_cas13  = p[0] #nM-1 min-1
     k_degv = p[1] #nM-1 min-1
@@ -182,7 +97,9 @@ def solveSingle(doses, p, p_fixed, model):
     
     k_RNaseon = p_fixed[4] #nM-1 min-1
     k_RNaseoff = p_fixed[5] #min-1
-    the_rates = np.array([k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, k_T7off, k_FSS, a_RHA, b_RHA, c_RHA, k_SSS, k_txn, k_cas13, k_degRrep]).astype(float)
+    the_rates = np.array([k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, 
+                          k_T7on, k_T7off, k_FSS, a_RHA, b_RHA, c_RHA, k_SSS, 
+                          k_txn, k_cas13, k_degRrep]).astype(float)
     solver.set_rates(the_rates)
     solver.abs_tol = 1e-13
     solver.rel_tol = 1e-10
@@ -198,8 +115,6 @@ def solveSingle(doses, p, p_fixed, model):
     #Set solver type and algorithm
     solver.solver_type = 'solve_ivp'
     solver.solver_alg = 'LSODA'
-    # solver.k_loc_deactivation = p[8]
-    # solver.k_scale_deactivation = p[9]
     solver.k_loc_deactivation = p[7]
     solver.k_scale_deactivation = p[8]
     
@@ -225,38 +140,34 @@ def solveSingle(doses, p, p_fixed, model):
     timecourse_readout = timecourse_readout[::400]
     
     return t, solution, timecourse_readout
-         
 
-def plotPrediction():
-    p = [5.98681E-05,	721.1529526,	1360.727836,	0.385250686,	2.580973544,	58.85708085,	7.876468573]
-    t, solution, timecourse_readout = solveSingle(doses, p, p_fixed, 'model C')
-    f, (ax1, ax2) = plt.subplots(1, 2, sharey=True, figsize = (6.5, 3))
-    ax1.plot(t, timecourse_readout, marker = 'None', linestyle= 'dotted', color='dimgrey')
-    ax1.set_title('Timecourse', fontsize = 8)
-    ax1.set_xlabel('Time (min)')
-    ax1.set_ylabel('Readout (au)')  
-    ax1.set_ylim([0, 2500])
-    
-   
-    input_RNA_dose_response_readouts = []
-    for i, input_RNA_dose in enumerate(input_RNA_doses):
-        doses[3] = input_RNA_dose
-        t, solution, timecourse_readout = solveSingle(doses, p, p_fixed, 'model C')
-        input_RNA_dose_response_readouts.append(timecourse_readout[-1])
-    
-    ax2.plot(input_RNA_doses, input_RNA_dose_response_readouts,  marker = 'None', linestyle= 'dashed', color='dimgrey')
-    ax2.set_title('Prediction: input RNA dose response', fontsize = 8)
-    ax2.set_xlabel('input RNA (fM)')
-    ax2.set_ylabel('Readout (au) at 240 min.')    
-    ax2.set_xscale('log')
-    ax2.set_yscale('log')
-    plt.savefig('./input RNA dose response prediction for optimal conditions.svg', dpi = 600)
 
-def fitHill(y_exp):
-    if data_type == 'training':
-        x = list(np.linspace(0, 240, 61)) #time (min)
-    elif data_type == 'prediction':
-        x = input_RNA_doses
+def fitHill(y_exp: list) -> Tuple[float, float, float, float, float]:
+
+    """
+    Fits data to a hill function for a single set of
+        conditions (component doses).
+
+    Args: 
+        y_exp: a list floats defining the normalized simulation 
+            values for a single set of conditions
+
+    Returns:
+        f0: a float defining the initial value in the dataset
+
+        fmax: a float defining the final value in the dataset
+
+        km: a float defining the optimized parameter for t1/2
+
+        n: a float defining the optimized parameter for the 
+            Hill coefficient
+
+        R_sq: a float defining the R squared value between the 
+            data and the Hill fit
+    """
+
+    x = list(np.linspace(0, 240, 61)) #time (min)
+
     #Set v max to the final value of the time course
     fmax = y_exp[-1]
    
@@ -264,7 +175,30 @@ def fitHill(y_exp):
     f0 = y_exp[0]
 
     #Define a function to calculate the residual between the input simulation value (sim) and the Hill fit (model)
-    def residual(p, x, y_exp):
+    def residual(p: list, x: list, y_exp: list) -> float:
+
+        """
+        Calculates the residual between the input simulation
+            values and the Hill fit. Used in the minimization
+            function as the cost function to be minimized
+            between the simulation and the Hill fit.
+
+        Args:
+            p: a list of floats defining the parameters for
+                the hill function
+
+            x: a list of floats defining the time values for
+                the simulation
+
+            y_exp: a list of floats defining the simulation
+                values
+
+        Returns: 
+            (y_exp - model): a float defining the residual 
+            between the input simulation values and the Hill 
+            fit
+        """
+
         km = p['km'].value
         n = p['n'].value
         model = (((fmax - f0) * (x ** n)) / (km ** n + x ** n)) + f0
@@ -296,126 +230,207 @@ def fitHill(y_exp):
     #Calculate the R2 between the data and the Hill fit
     R_sq = calcRsq(y_exp, y_Hill)
 
-    
     return f0, fmax, km, n, R_sq
     
-def singleParamSweep(param_index):
-    p = [5.98681E-05,	721.1529526,	1360.727836,	0.385250686,	2.580973544,	58.85708085,	7.876468573]
-    
-    param_log = log10(p[param_index])
-    min_bound_log = param_log - 1
-    max_bound_log = param_log + 1
-    params_for_sweep = np.logspace(min_bound_log, max_bound_log, 10)
-    
-    #Plot timecourse for each parameter value
-    f, (ax1, ax2) = plt.subplots(1, 2, sharey=True, figsize = (6.5, 3))
-    palette = itertools.cycle(sns.color_palette("Blues", 10))
-    for i, param_value in enumerate(params_for_sweep):
-        p = [5.98681E-05,	721.1529526,	1360.727836,	0.385250686,	2.580973544,	58.85708085,	7.876468573]
-        p[param_index] = param_value
-        t, solution, timecourse_readout = solveSingle(doses, p, 'model C')
-        ax1.plot(t, timecourse_readout, marker = 'None', linestyle= 'dotted', color=next(palette), label = str(np.round(log10(params_for_sweep[i]), 2)))
-    #ax1.legend(title = 'log(' + p_labels[param_index] + ')', loc='center left', bbox_to_anchor=(1, 0.5))
-    ax1.set_title('Timecourse', fontsize = 8)
-    ax1.set_xlabel('Time (min)')
-    ax1.set_ylabel('Readout (au)')    
-    ax1.set_ylim([0, 2500])
-        
-    #Plot input RNA dose response for each parameter value
-   
-    palette = itertools.cycle(sns.color_palette("Blues", 10))
-    for j, param_value in enumerate(params_for_sweep):
-        p = [5.98681E-05,	721.1529526,	1360.727836,	0.385250686,	2.580973544,	58.85708085,	7.876468573]
-        p[param_index] = param_value
-        input_RNA_dose_response_readouts = []
-        for i, input_RNA_dose in enumerate(input_RNA_doses):
-           doses[3] = input_RNA_dose
-           t, solution, timecourse_readout = solveSingle(doses, p, 'model C')
-           input_RNA_dose_response_readouts.append(timecourse_readout[-1])
-       
-        ax2.plot(input_RNA_doses, input_RNA_dose_response_readouts,  marker = 'None', linestyle= 'dashed', color=next(palette), label = str(np.round(log10(params_for_sweep[j]), 2)))
-    ax2.legend(title = 'log(' + p_labels[param_index] + ')', loc='center left', bbox_to_anchor=(1, 0.5))
-    ax2.set_title('Prediction: input RNA dose response', fontsize = 8)
-    ax2.set_xlabel('input RNA (fM)')
-    ax2.set_ylabel('Readout (au) at 240 min.')    
-    ax2.set_xscale('log')
-    
-    plt.savefig('./sensitivity analysis ' + p_labels[param_index] + '.svg', dpi = 600)
-    
-    
-def singleParamSweep_10percent(param_index, p_type, data_type):
-    p = [0.000224063, 136.0589787, 1151.286829, 0.09603252, 1.659857597, 12.48387036, 55.71209137, 56.73099109, 6.906538862]
 
-    p_fixed = [.024, 2.4, 3.36, 12, .024, 2.4]
-    
+def singleParamSweep_10percent(
+        doses: list, p: list , p_fixed: list,
+        param_index: int, p_type: str
+) -> Tuple[float, float, float, float]:
+
+    """
+    Solves model ODEs for a given set of component doses for two 
+        cases of changing parameter at param_index: increase by 10%
+        and decrease by 10%
+
+    Args:
+        doses: a list of floats defining the component doses for 
+            which the ODEs are solved
+
+        p: a list of floats defining the parameter values for all 
+            potentially free parameters (Settings_COVID_Dx.py
+            conditions_dictionary["p_all"])
+
+        p_fixed: a list of floats defining the fixed parameters
+
+        param_index: an integer defining the index of the parameter
+            for the sweep
+
+        p_type: a string defining the parameter type for the
+            sweep- 'free' or 'fixed'
+
+    Returns:
+        fmax_low: a float defining the maximum value for the 
+            time course resulting from the 10% decrease in
+            the parameter
+
+        km_low: a float defining the optimal t1/2 from the Hill
+            fit resulting from the 10% decrease in the parameter
+
+        fmax_high: a float defining the maximum value for the 
+            time course resulting from the 10% increase in
+            the parameter
+        
+        km_high: a float defining the optimal t1/2 from the Hill
+            fit resulting from the 10% increase in the parameter
+    """
+
+    p_vals = deepcopy(p)
+    p_vals_fixed = deepcopy(p_fixed)
+
     if p_type == 'free':
-        p_low = p[param_index] * .9
-        p_high = p[param_index] * 1.1
-        p[param_index] = p_low
+        p_low = p_vals[param_index] * .9
+        p_high = p_vals[param_index] * 1.1
+        p_vals[param_index] = p_low
      
     elif p_type == 'fixed':
-        p_fixed_low = p_fixed[param_index] * .9
-        p_fixed_high = p_fixed[param_index] * 1.1
-        p_fixed[param_index] = p_fixed_low
-        
-    if data_type == 'training':
-        
-        t, solution, timecourse_readout = solveSingle(doses, p, p_fixed, 'model D')
-        t, solution, timecourse_readout_norm_condition = solveSingle(doses_norm, p, p_fixed, 'model D')
-        timecourse_readout_norm = [i/max(timecourse_readout_norm_condition) for i in timecourse_readout]
-        f0_low, fmax_low, km_low, n_low, R_sq_low = fitHill(timecourse_readout_norm)
-        
-        if p_type == 'free':
-            p[param_index] = p_high
-         
-        elif p_type == 'fixed':
-            p_fixed[param_index] = p_fixed_high
-            
-        t, solution, timecourse_readout = solveSingle(doses, p, p_fixed, 'model D')
-        t, solution, timecourse_readout_norm_condition = solveSingle(doses_norm, p, p_fixed, 'model D')
-        timecourse_readout_norm = [i/max(timecourse_readout_norm_condition) for i in timecourse_readout]
-        f0_high, fmax_high, km_high, n_high, R_sq_high = fitHill(timecourse_readout_norm)
-        
-    elif data_type == 'prediction':
-        
-        #low
-        
-        input_RNA_dose_response_readouts = []
-        for i, input_RNA_dose in enumerate(input_RNA_doses):
-            doses[3] = input_RNA_dose
-            print(doses)
-            t, solution, timecourse_readout = solveSingle(doses, p, p_fixed, 'model C')
-            input_RNA_dose_response_readouts.append(timecourse_readout[-1])
-        f0_low, fmax_low, km_low, n_low, R_sq_low = fitHill(input_RNA_dose_response_readouts)
+        p_fixed_low = p_vals_fixed[param_index] * .9
+        p_fixed_high = p_vals_fixed[param_index] * 1.1
+        p_vals_fixed[param_index] = p_fixed_low
         
         
-        #high
-        if p_type == 'free':
-            p[param_index] = p_high
-         
-        elif p_type == 'fixed':
-            p_fixed[param_index] = p_fixed_high
-            
-       
-        input_RNA_dose_response_readouts = []
-        for i, input_RNA_dose in enumerate(input_RNA_doses):
-            doses[3] = input_RNA_dose
-            t, solution, timecourse_readout = solveSingle(doses, p, p_fixed, 'model C')
-            input_RNA_dose_response_readouts.append(timecourse_readout[-1])
-        f0_high, fmax_high, km_high, n_high, R_sq_high = fitHill(input_RNA_dose_response_readouts)
-        
+    t, solution, timecourse_readout = solveSingle(doses, p_vals, p_vals_fixed)
+    t, solution, timecourse_readout_norm_condition = solveSingle(doses_norm, p_vals, p_vals_fixed)
+    timecourse_readout_norm = [i/max(timecourse_readout_norm_condition) for i in timecourse_readout]
+    f0_low, fmax_low, km_low, n_low, R_sq_low = fitHill(timecourse_readout_norm)
     
+    if p_type == 'free':
+        p_vals[param_index] = p_high
+        
+    elif p_type == 'fixed':
+        p_vals_fixed[param_index] = p_fixed_high
+        
+    t, solution, timecourse_readout = solveSingle(doses, p_vals, p_vals_fixed)
+    t, solution, timecourse_readout_norm_condition = solveSingle(doses_norm, p_vals, p_vals_fixed)
+    timecourse_readout_norm = [i/max(timecourse_readout_norm_condition) for i in timecourse_readout]
+    f0_high, fmax_high, km_high, n_high, R_sq_high = fitHill(timecourse_readout_norm)
+
     return fmax_low, km_low, fmax_high, km_high
     
+def calc_percent_change(metric_mid: float, metric_new: float) -> float:
+    """
+    Calculates the percent change between the given metric at original
+        and new value
+
+    Args:
+        metric_mid: a float defining the mse for the original parameter set
+
+        metric_new: a float defining the mse for the parameter set with increased
+            or decreased parameter value
+
+    Returns:
+        100 * (mse_new-mse_mid)/mse_mid: a float defining percent change
+    """
+
+    return 100 * (metric_new-metric_mid)/metric_mid
+
+def all_param_sweeps_10pct(
+        doses: list, doses_norm: list, p: list,
+        p_fixed: list, p_type: str, p_labels: list
+) -> Tuple[list, list, list, list]:
+
+    """
+    Performs all parameter sweeps for increasing or decreasing 
+        each parameter value by 10%
+
+    Args:
+        doses: a list of floats defining the component doses for 
+            which the ODEs are solved
+
+        doses_norm: a list of floats defining the component doses
+            for which the ODEs are solved for the normalization
+
+        p: a list of floats defining the parameter values for all 
+            potentially free parameters (Settings_COVID_Dx.py
+            conditions_dictionary["p_all"])
+
+        p_fixed: a list of floats defining the fixed parameters
+
+        p_type: a string defining the parameter type for the
+            sweep- 'free' or 'fixed'
+
+        p_labels: a list of strings defining the parameter labels
+            corresponding to the type of sweep
+
+    Returns:
+        fmax_low_list: a list of floats defining the percent change
+            in fmax for each decrease in parameter by 10%
+        
+        fmax_high_list: a list of floats defining the percent change
+            in fmax for each increase in parameter by 10%
+        
+        thalf_low_list: a list of floats defining the percent change
+            in t_1/2 for each decrease in parameter by 10%
+        
+        thalf_high_list: a list of floats defining the percent change
+            in t_1/2 for each increase in parameter by 10%
+    """
+
+    t, solution, timecourse_readout = solveSingle(doses, p, p_fixed)
+    t, solution, timecourse_readout_norm_condition = solveSingle(doses_norm, p, p_fixed)
+    timecourse_readout_norm = [i/max(timecourse_readout_norm_condition) for i in timecourse_readout]
+    f0_mid, fmax_mid, km_mid, n_mid, R_sq_mid = fitHill(timecourse_readout_norm)
+
+    fmax_low_list = []
+    thalf_low_list = []
+    fmax_high_list = []
+    thalf_high_list = []
+
+    for param_index in range(0, len(p_labels)):
+        (fmax_low,
+         km_low, 
+         fmax_high, 
+         km_high) = singleParamSweep_10percent(doses, p, p_fixed, param_index, p_type)
+        percent_fmax_low = calc_percent_change(fmax_mid, fmax_low)
+        percent_fmax_high= calc_percent_change(fmax_mid, fmax_high)
+        percent_km_low = calc_percent_change(km_mid, km_low)
+        percent_km_high= calc_percent_change(km_mid, km_high)
+        
+        fmax_low_list.append(percent_fmax_low)
+        thalf_low_list.append(percent_km_low)
+        fmax_high_list.append(percent_fmax_high)
+        thalf_high_list.append(percent_km_high)
+    
+    return fmax_low_list, fmax_high_list, thalf_low_list, thalf_high_list
+
    
-def tornadoPlot(metric, low_vals, high_vals, p_type, rep):
-     
-    if p_type == 'free':
-        num_params = len(p_labels)
-        labels = p_labels
-    elif p_type == 'fixed':
-        num_params = len(p_fixed_labels)
-        labels = p_fixed_labels
+def tornado_plot(
+        metric: str, low_vals: list, high_vals: list,
+        p_labels: list, p_type: str, rep: str
+) -> None:
+
+    """
+    Creates a tornado plot for the sensitivity analysis
+
+    Args:
+        metric: a string defining the metric to be plotted
+
+        low_vals: a list of floats defining the percent changes 
+            for decreasing each parameter by 10%
+
+        high_vals: a list of floats defining the percent changes 
+            for increasing each parameter by 10% 
+        
+        p_labels: a list of strings defining the parameter
+            labels for the plot (Settings_COVID_Dx.py
+            conditions_dictionary["real_param_labels_all"]) for
+            free parameters or given list for fixed parameters
+
+        p_type: a string defining the parameter type for the
+            sweep- 'free' or 'fixed'
+
+        rep: a string defining the data set used in the
+            sensitivity analysis
+    
+    Returns: none
+
+    Figures:
+        './tornado plot ' + metric + ' ' + p_type + ' ' + rep + '.svg':
+            tornado plot for the sensitivity analysis
+    """
+
+    num_params = len(p_labels)
+
     pos = np.arange(num_params) + .5 # bars centered on the y axis
     
     fig, (ax_left, ax_right) = plt.subplots(ncols=2)
@@ -428,98 +443,55 @@ def tornadoPlot(metric, low_vals, high_vals, p_type, rep):
     bars_right = ax_right.barh(pos, high_vals, align='center', facecolor='dimgrey')
     ax_left.set_yticks(pos)
     ax_right.bar_label(bars_right)
-    ax_left.set_yticklabels(labels, ha='center', x=-.1)
+    ax_left.set_yticklabels(p_labels, ha='center', x=-.1)
     ax_right.set_xlabel('% change in metric')
     # plt.show()
     os.chdir(full_path)
-    plt.savefig('./tornado plot ' + metric + ' ' + p_type + ' ' + data_type + ' ' + rep + '.svg', dpi = 600)
-   
-def plot_tradeoff(x, fmax, t_half, k_CV, fmax_sd_list, t_half_sd_list):
-    fig, axes = plt.subplots(ncols=3,nrows=1, sharex=True, sharey=True, figsize = (9,3))
-    
-    for color_by, ax in zip(['T7', 'RT', 'RNAse'], axes.flat):
-        
-        if color_by == 'T7':
-            vals = [1.0, 5.0, 20.0]
-            colors = ['lightgreen', 'mediumseagreen', 'darkgreen']    
-            varyIndex = 0
-        elif color_by == 'RT':
-            vals = [0.5, 2.5, 10.0]
-            colors = ['lightsteelblue', 'royalblue', 'midnightblue']
-            varyIndex = 1
-        elif color_by == 'RNAse':
-            vals = [0.001, 0.005, 0.02]
-            colors = ['lightcoral', 'red', 'maroon']
-            varyIndex = 2
-            
-        for i, enzyme_condition in enumerate(x):
-            if enzyme_condition[varyIndex] == vals[0]:
-                color_ = colors[0]
-            elif enzyme_condition[varyIndex] == vals[1]:
-                color_ = colors[1]
-            elif enzyme_condition[varyIndex] == vals[2]:
-                color_ = colors[2]     
+    plt.savefig('./tornado plot ' + metric + ' ' + p_type + ' ' + rep + '.svg', dpi = 600)
 
-            if enzyme_condition[3] == 1 and enzyme_condition[4] == 90:
-                ax.errorbar(t_half[i], fmax[i],  marker = 'o', xerr = t_half_sd_list[i], yerr = fmax_sd_list[i], linestyle = 'None', color = color_)
 
-            if enzyme_condition == [5.0, 2.5, 0.005, 1, 90]:
-                ax.errorbar(t_half[i], fmax[i],  marker = 'o', xerr = t_half_sd_list[i], yerr = fmax_sd_list[i], linestyle = 'None', color = 'dimgrey')
-                
-            if enzyme_condition == [5.0, 10.0, 0.02, 1, 90]:
-                ax.errorbar(t_half[i], fmax[i],  marker = 'o', xerr = t_half_sd_list[i], yerr = fmax_sd_list[i], linestyle = 'None', color = 'black')
-                
-                
-            if color_by == 'RT':
-                ax.set_xlabel('t 1/2 (min.)')
-            if color_by == 'T7':
-                ax.set_ylabel('f max (normalized)')
-            ax.set_ylim([0, 1])
-            #ax.set_xlim([60, 150])
-        
-    # plt.savefig('./Results/Results tuning/experimental performance metric tradeoff test' + '.svg')
-    
-def chunks(lst, n):
-    """Yield successive n-sized chunks from lst."""
-    for i in range(0, len(lst), n):
-        yield lst[i:i + n]
-        
-def plotPerformanceMetricTradeoffs(solutions_norm, k_CV):
-    chunked_data = list(chunks(solutions_norm, 61))
+def run_sensitivity_analysis(
+        doses: list, doses_norm: list, p:list, p_fixed: list,
+        p_type: str, p_labels: list, rep: str
+) -> None:
 
-    
-    fmax_list = []
-    t_half_list = []
- 
-    for data_list in chunked_data:
-        f0, fmax, km, n, R_sq = fitHill(data_list)
-        fmax_list.append(fmax)
-        t_half_list.append(km)
-    
-    fmax_sd_list = [0] * len(fmax_list)
-    t_half_sd_list = [0] * len(fmax_list)
-    plot_tradeoff(x, fmax_list, t_half_list, k_CV, fmax_sd_list, t_half_sd_list)
-    
-    return fmax_list, t_half_list
-     
-   
-# =============================================================================
-# manual parameter tuning - fitting on entire dataset
-# =============================================================================
-data_ = 'all echo without low iCas13 or 0 vRNA and drop high error'
-x, exp_data, error, timecourses, timecourses_err = defineExp(data_,'', '','')    
-k_CV = 'na'
-data_type = 'training'
+    """
+    Runs the sensitivity analysis by calling the above functions
 
-p_fixed_labels = ['k_RTon', 'k_RToff', 'k_T7on', 'k_T7off', 'k_RNaseon', 'k_RNaseoff']
-p_fixed = [.024, 2.4, 3.36, 12, .024, 2.4]
-p = [0.000467243,	23034.47396,	1174.784961,	0.006634409,	1.083733895,	25.37653242,	16.83162789]
+    Args:
+        doses: a list of floats defining the component doses for 
+            which the ODEs are solved
 
-# x, solutions_norm, mse, dfSimResults = solveAll(p, exp_data)
-# plotPerformanceMetricTradeoffs(solutions_norm, k_CV)
-                         
+        doses_norm: a list of floats defining the component doses
+            for which the ODEs are solved for the normalization
+
+        p: a list of floats defining the parameter values for all 
+            potentially free parameters (Settings_COVID_Dx.py
+            conditions_dictionary["p_all"])
+
+        p_fixed: a list of floats defining the fixed parameters
+
+        p_type: a string defining the parameter type for the
+            sweep- 'free' or 'fixed'
+
+        p_labels: a list of strings defining the parameter labels
+            corresponding to the type of sweep
+
+        rep: a string defining the data set used in the
+            sensitivity analysis
+
+    Returns: none
+    """
+
+    os.chdir(full_path)
+
+    (fmax_low_list, 
+     fmax_high_list, 
+     thalf_low_list, 
+     thalf_high_list) = all_param_sweeps_10pct(doses, doses_norm, p, p_fixed, p_type, p_labels)
     
-  
+    tornado_plot('f_max', fmax_low_list, fmax_high_list, p_labels, p_type, rep)
+    tornado_plot('t_half', thalf_low_list, thalf_high_list, p_labels, p_type, rep)
    
 # =============================================================================
 # sens. anaylsis
@@ -527,105 +499,9 @@ p = [0.000467243,	23034.47396,	1174.784961,	0.006634409,	1.083733895,	25.3765324
  
 #Define doses on which to perform sensitivity analysis 
 doses_norm = [1.0, 2.5, 0.005, 10, 90] #(condition for norm- highest readout)
-doses_optimal = [5.0, 10.0, 0.02, 1, 90] #(optimal conditions?)
 doses_mid =  [5.0, 2.5, 0.005, 1, 90]
 
 p_fixed_labels = ['k_RTon', 'k_RToff', 'k_T7on', 'k_T7off', 'k_RNaseon', 'k_RNaseoff']
-p_fixed = [.024, 2.4, 3.36, 12, .024, 2.4]
+p_fixed = [0.024, 2.4, 3.36, 12, 0.024, 2.4]
 
-
-input_RNA_doses = np.logspace(-5, 1, 10) #100 aM (.1fM) to 10 fM (10000 aM)
-
-#use parameters from fitting to slice
-#model D rep 1 best fit high tol
-# p = [0.00063618, 239.9315589, 858.2136969, 0.027772651, 1.753931699, 10.64957523, 42.38269934, 61.82812743, 8.241330405]
-
-#model D rep 1 best fit low tol
-p = [0.000224063, 136.0589787, 1151.286829, 0.09603252, 1.659857597, 12.48387036, 55.71209137, 56.73099109, 6.906538862]
-
-#model D rep 2 best fit high tol
-# p = [1.51719E-05, 12223.96888, 315.8195865, 0.381765754, 2.197307165, 29.34473237, 68.69366218, 101.5269246, 17.96639629]
-
-#model D rep 2 best fit low tol
-# p = [2.22994E-05, 8940.243435, 226.2897324, 232.9366873, 1.749944885, 22.66728787, 4.675577757, 97.309157, 19.21663556]
-
-#model D rep 3 best fit high tol
-# p = [0.00012593, 30452.9863669, 41.57403523, 0.07926811, 1.07134915, 14.7113393, 0.62647773, 46.40684061, 18.541746]
-
-#model D rep 3 best fit low tol
-# p = [6.38185E-05, 28934.65508, 119.187498, 0.077888022, 1.627413157, 23.55089534, 22.28442186, 50.03161646, 17.06654392]
-
-p_labels = ['k_cas13', 'k_degv', 'k_txn', 'k_FSS', 'a_RHA', 'b_RHA', 'c_RHA', 'k_loc_deactivation', 'k_scale_deactivation']
-
-data_type = 'training'
-
-if data_type == 'training':
-    doses = doses_mid
-    t, solution, timecourse_readout = solveSingle(doses, p, p_fixed, 'model D')
-    t, solution, timecourse_readout_norm_condition = solveSingle(doses_norm, p, p_fixed, 'model D')
-    timecourse_readout_norm = [i/max(timecourse_readout_norm_condition) for i in timecourse_readout]
-    f0_mid, fmax_mid, km_mid, n_mid, R_sq_mid = fitHill(timecourse_readout_norm)
-
-
-elif data_type == 'prediction':
-    doses_optimal = [5.0, 10.0, 0.02, 1, 90] #(optimal conditions?)
-    doses_original =  [5.0, 2.5, 0.005, 1, 90] #(mid conditions)
-    colors = ['forestgreen', 'dimgrey']
-    fig = plt.figure(figsize = (4.5, 3))
-    
-    for j, doses in enumerate([doses_original, doses_optimal]):
-        input_RNA_dose_response_readouts = []
-        for i, input_RNA_dose in enumerate(input_RNA_doses):
-            doses[3] = input_RNA_dose
-            t, solution, timecourse_readout = solveSingle(doses, p, p_fixed, 'model C')
-            input_RNA_dose_response_readouts.append(timecourse_readout[-1])
-        f0_mid, fmax_mid, km_mid, n_mid, R_sq_mid = fitHill(input_RNA_dose_response_readouts)
-        
-       
-        plt.plot(input_RNA_doses, input_RNA_dose_response_readouts,  marker = 'None', linestyle= 'dashed', color=colors[j])
-        plt.title('Prediction: input RNA dose response', fontsize = 8)
-        plt.xlabel('input RNA (fM)')
-        plt.ylabel('Readout (au) at 240 min.')    
-        plt.xscale('log')
-        plt.ylim([0,2500])
-        plt.legend(['original', 'optimal'], loc='center left', bbox_to_anchor=(1, 0.5))
-    # plt.savefig('./input RNA dose response prediction for original and optimal conditions updated.svg', dpi = 600)
-
-
-fmax_low_list = []
-thalf_low_list = []
-fmax_high_list = []
-thalf_high_list = []
-for param_index in range(0, len(p_labels)):
-    fmax_low, km_low, fmax_high, km_high = singleParamSweep_10percent(param_index, 'free',data_type)
-    percent_fmax_low = -100 * (fmax_mid - fmax_low)/fmax_mid
-    percent_fmax_high= -100 * (fmax_mid - fmax_high)/fmax_mid
-    percent_km_low = -100 * (km_mid - km_low)/km_mid
-    percent_km_high= -100 * (km_mid - km_high)/km_mid
-    
-    fmax_low_list.append(percent_fmax_low)
-    thalf_low_list.append(percent_km_low)
-    fmax_high_list.append(percent_fmax_high)
-    thalf_high_list.append(percent_km_high)
-    
-tornadoPlot('fmax', fmax_low_list, fmax_high_list, 'free', 'rep1 low')
-tornadoPlot('thalf', thalf_low_list, thalf_high_list, 'free', 'rep1 low')
-
-# fmax_low_list = []
-# thalf_low_list = []
-# fmax_high_list = []
-# thalf_high_list = []
-# for param_index in range(0, len(p_fixed_labels)):
-#     fmax_low, km_low, fmax_high, km_high = singleParamSweep_10percent(param_index, 'fixed', data_type)
-#     percent_fmax_low = -100 * (fmax_mid - fmax_low)/fmax_mid
-#     percent_fmax_high= -100 * (fmax_mid - fmax_high)/fmax_mid
-#     percent_km_low = -100 * (km_mid - km_low)/km_mid
-#     percent_km_high= -100 * (km_mid - km_high)/km_mid
-    
-#     fmax_low_list.append(percent_fmax_low)
-#     thalf_low_list.append(percent_km_low)
-#     fmax_high_list.append(percent_fmax_high)
-#     thalf_high_list.append(percent_km_high)
-    
-# tornadoPlot('fmax', fmax_low_list, fmax_high_list, 'fixed')
-# tornadoPlot('thalf', thalf_low_list, thalf_high_list, 'fixed')
+run_sensitivity_analysis(doses_mid, doses_norm, p_all, p_fixed, 'free', real_param_labels_all, 'rep1')

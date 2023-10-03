@@ -6,22 +6,91 @@ from scipy.integrate import odeint, solve_ivp
 import matplotlib.pyplot as plt
 from scipy.stats import laplace, expon
 import sympy as sp
+from typing import Tuple
 
 class Mechanism_Solver(object):
+
+    """
+    Base class for ODE solver. Contains methods to
+    set initial conditions, parameter values (rates),
+    and solve ODEs.
+    """
+
     def gradient(self):
+       
+        """
+        Specifies that gradient needs to be defined
+        by derived class.
+
+        Args: none
+        
+        Returns: none
+        """
+
         raise NotImplementedError
 
-    def set_initial_condition(self, x_init):
+    def set_initial_condition(self, x_init: np.ndarray) -> None:
+
+        """
+        Sets initial conditions for ODE solver. If
+        conservation_form is True, compiles conserved amounts
+        into array in which each element is the sum of the 
+        initial conditions for each element in the pair
+
+        Args: 
+            x_init: a numpy array of the initial conditions
+            for each model state
+
+        Returns: none
+        """
+
         self.initial_condition = x_init
         if self.conservation_form is True:
             self.conserved_amounts = np.array([])
             for pair in self.conserved_pairs:
-                self.conserved_amounts = np.append(self.conserved_amounts, sum(self.initial_condition[pair]))
+                self.conserved_amounts = np.append(self.conserved_amounts, 
+                                                   sum(self.initial_condition[pair]))
 
-    def set_rates(self, rates):
+    def set_rates(self, rates: np.ndarray) -> None:
+
+        """
+        Sets the rates (parameters) for the ODE solver
+
+        Args:
+            rates: a numpy array of the rates. Contains
+            both free and fixed parameters, except for
+            k_loc_deactivation and k_scale_deactivation,
+            which are separately defined
+
+        Returns: none
+        """
+
         self.rates = rates
 
-    def solve(self, tspace):
+    def solve(self, tspace: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        
+        """
+        Solves the ODEs for the given time points. Contains
+            different options for solver methods based on specified
+            attributes.
+
+        For the results reported in the associated manuscript, the
+        'solve_ivp' solver type was used with conservation_form = True
+
+        to solve the ODEs with the low error tolerances, 'atol = self.abs_tol, 
+        rtol = self.rel_tol' must be added to the solve_ivp function call        
+
+        Args:
+            tspace: a numpy array defining the time points for which to solve
+                the model ODEs
+
+        Returns: 
+            self.solution: a numpy array definng the simulation values at all 
+                time points in t_space for all model states
+
+            self.t: t_space
+        """
+
         self.actual_rates = self.rates.copy()
         if self.has_jacobian:
             self.make_jacobian()
@@ -55,11 +124,9 @@ class Mechanism_Solver(object):
                     print(sol)
                     sol = sol[0]
             else:
-                result = solve_ivp(self.gradient, [self.t[0], self.t[-1]], actual_initial_condition, args = (self.actual_rates,), method = self.solver_alg, t_eval = self.t, jac = self.jacobian) # atol = self.abs_tol, rtol = self.rel_tol,
+                result = solve_ivp(self.gradient, [self.t[0], self.t[-1]], actual_initial_condition, args = (self.actual_rates,), method = self.solver_alg, atol = self.abs_tol, rtol = self.rel_tol, t_eval = self.t, jac = self.jacobian) # atol = self.abs_tol, rtol = self.rel_tol,
                 sol = result.y.T
                 
-                #print(self.solver_alg)
-
             if len(self.dummy_variables) != 0:
                 self.dummy_solution = sol[:,-len(self.dummy_variables):]
                 sol = sol[:,:-len(self.dummy_variables)]
@@ -75,38 +142,48 @@ class Mechanism_Solver(object):
     
     
 class ODE_solver(Mechanism_Solver):
+
     '''
+    Derived class of Mechanism_Solver
+
     Main Attributes:
-        1. conservation_form: Tells the solver to use the conservation or non-conservation form of the equations.
+        1. conservation_form: Tells the solver to use the conservation or 
+                non-conservation form of the equations.
             Options: True or False. True by default
-        2. initial_condition: The initial condition for the solver. The order of the inputs DOES NOT depend on whether
-                              the conserved or the nonconserved version is used.
-            Options: The inputs should be in the following order.
-                        x_v, x_p1, x_p2, x_p1v, x_p2u, x_p1cv, x_p2cu, x_RT, x_RNase, x_RTp1v, x_RTp2u, x_RTp1cv \
-                        , x_RTp2cu, x_cDNA1v, x_cDNA2u, x_RNasecDNA1v, x_RNasecDNA2u, x_cDNA1, x_cDNA2, x_p2cDNA1, x_p1cDNA2, x_RTp2cDNA1 \
-                        , x_RTp1cDNA2, x_T7, x_pro, x_T7pro, x_u,x_iCas13, x_Cas13, x_uv, x_qRf, x_q, x_f
+        2. initial_condition: The initial condition for the solver. The order
+            of the inputs DOES NOT depend on whether the conserved or the 
+            nonconserved version is used.
+            Options: The inputs should be in the following order:
+                x_v, x_p1, x_p2, x_p1v, x_p2u, x_p1cv, x_p2cu, x_RT, 
+                x_RNase, x_RTp1v, x_RTp2u, x_RTp1cv, x_RTp2cu, x_cDNA1v,
+                x_cDNA2u, x_RNasecDNA1v, x_RNasecDNA2u, x_cDNA1, x_cDNA2,
+                x_p2cDNA1, x_p1cDNA2, x_RTp2cDNA1, x_RTp1cDNA2, x_T7, x_pro,
+                x_T7pro, x_u,x_iCas13, x_Cas13, x_uv, x_qRf, x_q, x_f
             The function set_initial_condition can be used to set the initial condition.
         3. rates: The rates for the solver to be used as part of the derivative.
             Options: The rates should be passed in the following order.
-                     k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, \
-                     k_T7off, k_FSS, k_RHA, k_SSS, k_txn, k_cas13, k_degRrep
+                k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on,
+                k_T7off, k_FSS, k_RHA, k_SSS, k_txn, k_cas13, k_degRrep
             The function set_rates can be used to set the initial condition.
         4. abs_tol: Sets the absolute tolerance for the Odeint integrator.
             Options: By default, set as None which results in abs_tol of 1.4e-8
-                     I would reccomend only choosing values between 1e-6 and 1e-13.
-                     Anything lower results in a "asking too much precision" WARNING
-                     and results in an unsuccessful integration. In that case,
-                     set complete_output = 1 to get more details.
+                I would reccomend only choosing values between 1e-6 and 1e-13.
+                Anything lower results in a "asking too much precision" WARNING
+                and results in an unsuccessful integration. In that case,
+                set complete_output = 1 to get more details.
+                *depends on solver being used
         5. rel_tol: Sets the relative tolerance for the Odeint integrator.
             Options: By default, set as None which results in abs_tol of 1.4e-8
-                     I would reccomend only choosing values between 1e-6 and 1e-13.
-                     Anything lower results in a "asking too much precision" WARNING
-                     and results in an unsuccessful integration. In that case,
-                     set complete_output = 1 to get more details.
-        6. complete_output: Sets full_output in the Odeint integrator. Useful to print to see what's wrong.
+                I would reccomend only choosing values between 1e-6 and 1e-13.
+                Anything lower results in a "asking too much precision" WARNING
+                and results in an unsuccessful integration. In that case,
+                set complete_output = 1 to get more details.
+                *depends on solver being used
+        6. complete_output: Sets full_output in the Odeint integrator. Useful to 
+            print for troubleshooting
             Options: 0 or 1. Default is 0.
-   
     '''
+
     def __init__(self):
         self.conservation_form = True
 
@@ -122,11 +199,13 @@ class ODE_solver(Mechanism_Solver):
         x_init[30] = 5000 # x_qRf
         self.initial_condition = x_init
 
-        x_dummy = 0 #dummy variable to model total T7 RNAP-mediated transcriptional activity
+        #dummy variable to model total T7 RNAP-mediated 
+        #transcriptional activity (only used in txn
+        #poisoning mechanism)
+        x_dummy = 0 
         self.dummy_variables = np.array([x_dummy])
 
         #rates
-        
         k_degv = 30.6
         k_bds = 0.198
         k_RTon = 0.024
@@ -149,7 +228,8 @@ class ODE_solver(Mechanism_Solver):
         self.k_scale_deactivation = 0.5
         self.dist_type = 'expon'
 
-        self.rates = np.array([k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, k_T7off, k_FSS, k_RHA, k_SSS, k_txn, k_cas13, k_degRrep]).astype(float)
+        self.rates = np.array([k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, k_T7off, 
+                               k_FSS, k_RHA, k_SSS, k_txn, k_cas13, k_degRrep]).astype(float)
         self.free_indices = [element for element in list(range(33)) if element not in [1, 2, 7, 8, 23, 27, 31, 32]]
         self.conserved_pairs = [[1, 3, 5, 9, 11, 13, 15, 17, 19, 20, 21, 22, 24, 25], \
                                 [2, 4, 6, 10, 12, 14, 16, 18, 19, 20, 21, 22, 24, 25], \
@@ -161,7 +241,8 @@ class ODE_solver(Mechanism_Solver):
                                 [32, 30]]
         self.conserved_amounts = np.array([])
         for pair in self.conserved_pairs:
-            self.conserved_amounts = np.append(self.conserved_amounts, sum(self.initial_condition[pair]))  #find initial conserved amounts
+            #find initial conserved amounts
+            self.conserved_amounts = np.append(self.conserved_amounts, sum(self.initial_condition[pair]))
 
         #arguments for the Odeint integrator
         self.abs_tol = None
@@ -173,7 +254,21 @@ class ODE_solver(Mechanism_Solver):
         self.has_jacobian = 1
 
 
-    def make_jacobian(self):
+    def make_jacobian(self) -> None:
+
+        """
+        Generates the jacobian to be used by the ODE solver. While
+            this function does not return anything, it sets the attribute
+            jac_core to the function for the jacobian (without the Cas13
+            deactivation mechanism).
+            This function uses sympy to define the model states and rates 
+            for the jacobian function
+
+        Args: none
+
+        Returns: none
+        """
+        
         x_v, x_p1v, x_p2u, x_p1cv, x_p2cu, x_RTp1v, x_RTp2u, x_RTp1cv \
         , x_RTp2cu, x_cDNA1v, x_cDNA2u, x_RNasecDNA1v, x_RNasecDNA2u, x_cDNA1, x_cDNA2, x_p2cDNA1, x_p1cDNA2, x_RTp2cDNA1 \
         , x_RTp1cDNA2, x_pro, x_T7pro, x_u, x_Cas13, x_uv, x_qRf, x_dummy, x_aCas13 = sp.symbols('x_v, x_p1v, x_p2u, x_p1cv, x_p2cu, x_RTp1v, x_RTp2u,\
@@ -202,13 +297,12 @@ class ODE_solver(Mechanism_Solver):
         x_q  =  self.conserved_amounts[6] - x_qRf
         x_f  =  self.conserved_amounts[7] - x_qRf
 
-        #Negative relationship between k_txn and [T7 RNAP]
-        
         #txn_poisoning
         if self.txn_poisoning == 'yes':
             k_txn = k_txn_p/(1+self.k_Mg*(x_dummy)**self.n_Mg)
             k_txn = k_txn/self.conserved_amounts[4]
         else:
+            #Negative relationship between k_txn and [T7 RNAP]
             if self.mechanism_C == 'yes':
                 k_txn = k_txn_p/self.conserved_amounts[4]
             else:
@@ -257,7 +351,29 @@ class ODE_solver(Mechanism_Solver):
                 z += 1
         self.jac_core = sp.lambdify([x, rates], M, modules='numpy')
 
-    def jacobian(self, t, x, rates):
+    def jacobian(
+            self, t: np.ndarray, x: np.ndarray, 
+            rates: np.ndarray
+    ) -> sp.FunctionClass:
+
+        """
+        Adds x_aCas13 to the jacobian based on whether
+            the deactivation mechanism is present in the
+            given model
+
+        Args:
+            t: a numpy array defining the time points (necessary
+                parameter for the ODE solver)
+
+            x: a numpy array defining the initial conditions (necessary
+                parameter for the ODE solver)
+
+            rates: a numpy array of the parameter values for the ODE solver
+
+        Returns:
+            the full Jacobian function to be used by the ODE solver
+        """
+
         # Cas13 deactivation for jacobian
         if self.mechanism_B == 'yes':
             dist = expon(loc = self.k_loc_deactivation, scale = self.k_scale_deactivation)
@@ -268,7 +384,32 @@ class ODE_solver(Mechanism_Solver):
         
         return self.jac_core(np.r_[x, x_aCas13], rates)
 
-    def gradient(self, t, x, rates):
+    def gradient(
+            self, t: np.ndarray, x: np.ndarray, 
+            rates: np.ndarray
+    ) -> np.ndarray:
+
+        """
+        Defines the gradient to be used in the ODE solver.
+            Note that, because the conservation_form = True
+            in the reported results, the gradient does not 
+            include the ODEs for the states that are conserved
+            (they are defined in the conservation laws)
+
+        Args:
+            t: a numpy array defining the time points (necessary
+                parameter for the ODE solver)
+
+            x: a numpy array defining the initial conditions (necessary
+                parameter for the ODE solver)
+
+            rates: a numpy array of the parameter values for the ODE solver
+            
+        Returns: 
+            velocity: a numpy array defining the gradient for the 
+                ODE solver
+        """
+
         if self.conservation_form is True:
             x_v, x_p1v, x_p2u, x_p1cv, x_p2cu, x_RTp1v, x_RTp2u, x_RTp1cv \
             , x_RTp2cu, x_cDNA1v, x_cDNA2u, x_RNasecDNA1v, x_RNasecDNA2u, x_cDNA1, x_cDNA2, x_p2cDNA1, x_p1cDNA2, x_RTp2cDNA1 \
@@ -307,8 +448,6 @@ class ODE_solver(Mechanism_Solver):
             x_f  =  self.conserved_amounts[7] - x_qRf
 
            
-            
-            
             if self.mechanism_B == 'yes':
                 dist = expon(loc = self.k_loc_deactivation, scale = self.k_scale_deactivation)
                 x_aCas13 = dist.sf(t)*x_Cas13
@@ -360,38 +499,48 @@ class ODE_solver(Mechanism_Solver):
 ###############################################    
 
 class ODE_solver_D(Mechanism_Solver):
+    
     '''
+    Derived class of Mechanism_Solver
+
     Main Attributes:
-        1. conservation_form: Tells the solver to use the conservation or non-conservation form of the equations.
+        1. conservation_form: Tells the solver to use the conservation or 
+                non-conservation form of the equations.
             Options: True or False. True by default
-        2. initial_condition: The initial condition for the solver. The order of the inputs DOES NOT depend on whether
-                              the conserved or the nonconserved version is used.
-            Options: The inputs should be in the following order.
-                        x_v, x_p1, x_p2, x_p1v, x_p2u, x_p1cv, x_p2cu, x_RT, x_RNase, x_RTp1v, x_RTp2u, x_RTp1cv \
-                        , x_RTp2cu, x_cDNA1v, x_cDNA2u, x_RNasecDNA1v, x_RNasecDNA2u, x_cDNA1, x_cDNA2, x_p2cDNA1, x_p1cDNA2, x_RTp2cDNA1 \
-                        , x_RTp1cDNA2, x_T7, x_pro, x_T7pro, x_u,x_iCas13, x_Cas13, x_uv, x_qRf, x_q, x_f
+        2. initial_condition: The initial condition for the solver. The order
+            of the inputs DOES NOT depend on whether the conserved or the 
+            nonconserved version is used.
+            Options: The inputs should be in the following order:
+                x_v, x_p1, x_p2, x_p1v, x_p2u, x_p1cv, x_p2cu, x_RT, 
+                x_RNase, x_RTp1v, x_RTp2u, x_RTp1cv, x_RTp2cu, x_cDNA1v,
+                x_cDNA2u, x_RNasecDNA1v, x_RNasecDNA2u, x_cDNA1, x_cDNA2,
+                x_p2cDNA1, x_p1cDNA2, x_RTp2cDNA1, x_RTp1cDNA2, x_T7, x_pro,
+                x_T7pro, x_u,x_iCas13, x_Cas13, x_uv, x_qRf, x_q, x_f
             The function set_initial_condition can be used to set the initial condition.
         3. rates: The rates for the solver to be used as part of the derivative.
             Options: The rates should be passed in the following order.
-                     k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on, \
-                     k_T7off, k_FSS, k_RHA, k_SSS, k_txn, k_cas13, k_degRrep
+                k_degv, k_bds, k_RTon, k_RToff, k_RNaseon, k_RNaseoff, k_T7on,
+                k_T7off, k_FSS, k_RHA, k_SSS, k_txn, k_cas13, k_degRrep
             The function set_rates can be used to set the initial condition.
         4. abs_tol: Sets the absolute tolerance for the Odeint integrator.
             Options: By default, set as None which results in abs_tol of 1.4e-8
-                     I would reccomend only choosing values between 1e-6 and 1e-13.
-                     Anything lower results in a "asking too much precision" WARNING
-                     and results in an unsuccessful integration. In that case,
-                     set complete_output = 1 to get more details.
+                I would reccomend only choosing values between 1e-6 and 1e-13.
+                Anything lower results in a "asking too much precision" WARNING
+                and results in an unsuccessful integration. In that case,
+                set complete_output = 1 to get more details.
+                *depends on solver being used
         5. rel_tol: Sets the relative tolerance for the Odeint integrator.
             Options: By default, set as None which results in abs_tol of 1.4e-8
-                     I would reccomend only choosing values between 1e-6 and 1e-13.
-                     Anything lower results in a "asking too much precision" WARNING
-                     and results in an unsuccessful integration. In that case,
-                     set complete_output = 1 to get more details.
-        6. complete_output: Sets full_output in the Odeint integrator. Useful to print to see what's wrong.
+                I would reccomend only choosing values between 1e-6 and 1e-13.
+                Anything lower results in a "asking too much precision" WARNING
+                and results in an unsuccessful integration. In that case,
+                set complete_output = 1 to get more details.
+                *depends on solver being used
+        6. complete_output: Sets full_output in the Odeint integrator. Useful to 
+            print for troubleshooting
             Options: 0 or 1. Default is 0.
-   
     '''
+
     def __init__(self):
         self.conservation_form = True
 
@@ -460,6 +609,20 @@ class ODE_solver_D(Mechanism_Solver):
 
 
     def make_jacobian(self):
+
+        """
+        Generates the jacobian to be used by the ODE solver. While
+            this function does not return anything, it sets the attribute
+            jac_core to the function for the jacobian (without the Cas13
+            deactivation mechanism).
+            This function uses sympy to define the model states and rates 
+            for the jacobian function
+
+        Args: none
+
+        Returns: none
+        """
+
         x_v, x_p1v, x_p2u, x_p1cv, x_p2cu, x_RTp1v, x_RTp2u, x_RTp1cv \
         , x_RTp2cu, x_cDNA1v, x_cDNA2u, x_RNasecDNA1v, x_RNasecDNA2u, x_cDNA1, x_cDNA2, x_p2cDNA1, x_p1cDNA2, x_RTp2cDNA1 \
         , x_RTp1cDNA2, x_pro, x_T7pro, x_u, x_Cas13, x_uv, x_qRf, x_dummy, x_aCas13 = sp.symbols('x_v, x_p1v, x_p2u, x_p1cv, x_p2cu, x_RTp1v, x_RTp2u,\
@@ -547,7 +710,29 @@ class ODE_solver_D(Mechanism_Solver):
                 z += 1
         self.jac_core = sp.lambdify([x, rates], M, modules='numpy')
 
-    def jacobian(self, t, x, rates):
+    def jacobian(
+            self, t: np.ndarray, x: np.ndarray, 
+            rates: np.ndarray
+    ) -> sp.FunctionClass:
+
+        """
+        Adds x_aCas13 to the jacobian based on whether
+            the deactivation mechanism is present in the
+            given model
+
+        Args:
+            t: a numpy array defining the time points (necessary
+                parameter for the ODE solver)
+
+            x: a numpy array defining the initial conditions (necessary
+                parameter for the ODE solver)
+
+            rates: a numpy array of the parameter values for the ODE solver
+
+        Returns:
+            the full Jacobian function to be used by the ODE solver
+        """
+
         # Cas13 deactivation for jacobian
         if self.mechanism_B == 'yes':
             dist = expon(loc = self.k_loc_deactivation, scale = self.k_scale_deactivation)
@@ -558,7 +743,32 @@ class ODE_solver_D(Mechanism_Solver):
         
         return self.jac_core(np.r_[x, x_aCas13], rates)
 
-    def gradient(self, t, x, rates):
+    def gradient(
+            self, t: np.ndarray, x: np.ndarray, 
+            rates: np.ndarray
+    ) -> np.ndarray:
+
+        """
+        Defines the gradient to be used in the ODE solver.
+            Note that, because the conservation_form = True
+            in the reported results, the gradient does not 
+            include the ODEs for the states that are conserved
+            (they are defined in the conservation laws)
+
+        Args:
+            t: a numpy array defining the time points (necessary
+                parameter for the ODE solver)
+
+            x: a numpy array defining the initial conditions (necessary
+                parameter for the ODE solver)
+
+            rates: a numpy array of the parameter values for the ODE solver
+
+        Returns: 
+            velocity: a numpy array defining the gradient for the 
+                ODE solver
+        """
+
         if self.conservation_form is True:
             x_v, x_p1v, x_p2u, x_p1cv, x_p2cu, x_RTp1v, x_RTp2u, x_RTp1cv \
             , x_RTp2cu, x_cDNA1v, x_cDNA2u, x_RNasecDNA1v, x_RNasecDNA2u, x_cDNA1, x_cDNA2, x_p2cDNA1, x_p1cDNA2, x_RTp2cDNA1 \
@@ -599,8 +809,6 @@ class ODE_solver_D(Mechanism_Solver):
             x_q  =  self.conserved_amounts[6] - x_qRf
             x_f  =  self.conserved_amounts[7] - x_qRf
 
-           
-            
             
             if self.mechanism_B == 'yes':
                 dist = expon(loc = self.k_loc_deactivation, scale = self.k_scale_deactivation)

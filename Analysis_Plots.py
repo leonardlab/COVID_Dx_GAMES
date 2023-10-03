@@ -15,6 +15,7 @@ from math import log10
 from lmfit import Parameters, minimize
 from Solvers_COVID_Dx import calcRsq
 from scipy.stats import expon
+from typing import Tuple
 
 
 #GAMES imports
@@ -31,35 +32,60 @@ error = data_dictionary["error"]
 model_states = conditions_dictionary["model states"]
 data = conditions_dictionary["data"]
 
+#import dataframes for experimental data and error based on dataset being used
+#(Settings_COVID_Dx.py conditions_dictionary["data"])
+
+#Note that paths need to be updated before running
+#dataset 2
 if 'rep2' in data:
     df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED_DATA_rep2_EXP.pkl')
     df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED_DATA_rep2_ERR.pkl') 
 
+#dataset 3
 elif 'rep3' in data:
     df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED_DATA_rep3_EXP.pkl')
     df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED_DATA_rep3_ERR.pkl')
 
+#dataset 1
 else:
     df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA EXP.pkl')
     df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA ERR.pkl')
 
 #Import custom style file for plotting
+#Note that path needs to be updated before running
 plt.style.use('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/paper.mplstyle.py')
 dpi_ = 600
 
-def plotMeanMeasurementError():
+def plotMeanMeasurementError() -> None:
     
-    ''' Purpose: plot the mean proportion measurement error for the experimental data (mean across each condition)
+    '''
+    Plots the mean proportion measurement error for the experimental data
+        (mean across each condition).
+    Uses experimental data and error as defined in Settings_COVID_Dx.py
     
-        Input: none
+    Args: none
         
-        Output: none
+    Returns: none
         
-        Plots: 'proportion error distribution means.svg' - 
-                plot of mean proportion measurement error for the experimental data '''
+    Figures: 
+        'proportion error distribution means.svg': 
+            a plot of mean proportion measurement error for the experimental data 
+    '''
 
-    def chunks(lst, n):
-        """Yield successive n-sized chunks from lst."""
+    def chunks(lst: list, n: int) -> list:
+        """
+        Yield successive n-sized chunks from lst
+        
+        Args:
+            lst: a list of values
+            
+            n: an integer defining the size of each chunk
+
+        Returns:
+            lst[i:i + n]: a list of lists containing the values
+            from lst structured as n-sized chunks
+        """
+
         for i in range(0, len(lst), n):
             yield lst[i:i + n]
         
@@ -78,24 +104,26 @@ def plotMeanMeasurementError():
     plt.xlabel('mean proportion_error')
     plt.ylabel('count')
     plt.savefig('./proportion error distribution means.svg')
-    
-#plotMeanMeasurementError()  
-    
 
 
-def parityPlot(sim, exp, data):
+def parityPlot(sim: list, exp: list, data: str) -> None:
     
-    ''' Purpose: plot the experimental and simulated data in the form of a parity plot
+    ''' 
+    Plots the experimental and simulated data in the form of a parity plot
     
-        Input: 
-            sim: a list of floats containing simulated values
-            exp: a list of floats containing experimental values
-            data: a string defining the data identity
+    Args: 
+        sim: a list of floats containing simulated values
+
+        exp: a list of floats containing experimental values
+
+        data: a string defining the data identity
         
-        Output: none
+    Returns: none
         
-        Plots: FIT TO TRAINING DATA PARITY PLOT.svg - 
-                parity plot of the experimental and simulated data'''
+    Figures: 
+        'FIT TO TRAINING DATA PARITY PLOT.svg':
+            a parity plot of the experimental vs simulated data
+    '''
     
     if data == 'PEM evaluation':
         color_ = [i/255 for i in [204, 121, 167]] #PINK
@@ -118,16 +146,22 @@ def parityPlot(sim, exp, data):
     plt.savefig('./FIT TO TRAINING DATA PARITY PLOT.svg', dpi = 600, bbox_inches="tight")
 
 
-def plotParamDistributions(df):
-    ''' Purpose: Plot distribution of all parameter sets for R2 values within 10% of the highest value
+def plotParamDistributions(df: pd.DataFrame) -> None:
     
-        Input: 
-            df: df containing optimization results
+    ''' 
+    Plots the distribution of parameter values for all parameter sets 
+        with R2 values within 10% of the highest value
+    
+    Args: 
+        df: a dataframe containing optimization results
          
-        Output: none
+    Returns: none
         
-        Plots: OPTIMIZED PARAMETER DISTRIBUTIONS.svg - 
-                Plot of distribution of all parameter sets for R2 values within 10% of the highest value'''
+    Figures: 
+        'OPTIMIZED PARAMETER DISTRIBUTIONS.svg':
+            a plot of distribution of parameter values for all parameter
+            sets with R2 values within 10% of the highest value
+    '''
 
     #Only keep rows with Rsq within 10% of the highest value
     chi2 = df.sort_values(by=['chi_sq'])
@@ -136,7 +170,17 @@ def plotParamDistributions(df):
     df = df[df['Rsq']>= cutoff_R2]
    
     #Restructure df for plotting
-    df_new = pd.DataFrame(columns = ['k_cas13', 'k_degv', 'k_txn', 'k_FSS', 'k_RHA', 'k_loc_deactivation', 'k_txn_poisoning', 'n_txn_poisoning','k_scale_deactivation', 'Rsq'])
+    df_new = pd.DataFrame(columns = [
+        'k_cas13', 
+        'k_degv', 
+        'k_txn', 
+        'k_FSS', 
+        'k_RHA', 
+        'k_loc_deactivation', 
+        'k_txn_poisoning', 
+        'n_txn_poisoning',
+        'k_scale_deactivation', 
+        'Rsq'])
     for label in param_labels:
         new_list = [log10(i) for i in list(df[label + '*'])]
         df_new[label] = new_list
@@ -152,17 +196,24 @@ def plotParamDistributions(df):
     plt.savefig('OPTIMIZED PARAMETER DISTRIBUTIONS.svg', dpi = 600)
      
         
-def plotParamBounds(cal_params, bounds):
-    ''' Purpose: Plot min bound, max bound, and calibrated value for each parameter
+def plotParamBounds(cal_params: list, bounds: list) -> None:
     
-        Input: 
-            cal_params: list of floats defining the calibrated parameters
-            bounds: list of lists defining the bounds for each parameter (each inner list is structured such that [min_bound, max_bound])
+    '''
+    Plots the min bound, max bound, and calibrated value for each parameter
+    
+    Args: 
+        cal_params: a list of floats defining the calibrated parameters
+
+        bounds: a list of lists defining the bounds for each parameter (each 
+        inner list is structured as [min_bound, max_bound])
          
-        Output: none
+    Returns: none
         
-        Plots: COMPARISON OF CALIBRATED PARAMETERS AND BOUNDS.svg - 
-                Plot of min bound, max bound, and calibrated value for each parameter'''
+    Figures: 
+        'COMPARISON OF CALIBRATED PARAMETERS AND BOUNDS.svg':
+            a plot of min bound, max bound, and calibrated value for each
+            parameter
+    '''
    
     #Define min and bmax bounds for each parameter and log of calibrated parameters
     min_bounds = [list_[0] for list_ in bounds]
@@ -186,19 +237,48 @@ def plotParamBounds(cal_params, bounds):
     plt.savefig('./COMPARISON OF CALIBRATED PARAMETERS AND BOUNDS.svg')
 
     
-def plotModelingObjectives123(solutions):
-    ''' Purpose: Plot modeling objectives involving Hill fit summary metrics (1, 2, 3)
+def plotModelingObjectives123(solutions: list) -> None:
     
-        Input: 
-            solutions: list of floats defining the data for each condition and timepoint (length = # data points total)
+    '''
+    Plots the modeling objectives involving Hill fit summary metrics
+        (1, 2, 3).
+    Can also be used to plot the Hill fit summary metrics for the
+        experimental data.
+    
+    Args: 
+        solutions: a list of floats defining the data for each condition
+        and timepoint (length = # data points total, for all doses at all 
+        timepoints)
             
-        Output: none
-        
-        Plots: 'MODELING OBJECTIVES 123 ' + type_ + '.svg' - 
-                Plot of modeling objectives involving Hill fit summary metrics (1, 2, 3) where type_ is 'exp' or 'sim'
+    Returns: none
     '''
     
-    def fitHill(y_exp, runID):
+    def fitHill(y_exp: list, runID: str) -> Tuple[float, float, float, float, float]:
+
+        """
+        Fits data to a hill function for a single set of
+            conditions (component doses).
+
+        Args: 
+            y_exp: a list of floats defining the normalized 
+                simulation values for a single set of conditions
+
+            runID: a string defining the run ID (for plotting)
+
+        Returns:
+            f0: a float defining the initial value in the dataset
+
+            fmax: a float defining the final value in the dataset
+
+            km: a float defining the optimized parameter for t1/2
+
+            n: a float defining the optimized parameter for the 
+                Hill coefficient
+
+            R_sq: a float defining the R squared value between the 
+                data and the Hill fit
+        """
+
         x = list(np.linspace(0, 240, 61)) #time (min)
         
         #Set v max to the final value of the time course
@@ -207,8 +287,30 @@ def plotModelingObjectives123(solutions):
         #Set v0 to the intiial value of the time course
         f0 = y_exp[0]
     
-        #Define a function to calculate the residual between the input simulation value (sim) and the Hill fit (model)
-        def residual(p, x, y_exp):
+        def residual(p: list, x: list, y_exp: list) -> float:
+
+            """
+            Calculates the residual between the input simulation
+                values and the Hill fit. Used in the minimization
+                function as the cost function to be minimized
+                between the simulation and the Hill fit.
+
+            Args:
+                p: a list of floats defining the parameters for
+                    the hill function
+
+                x: a list of floats defining the time values for
+                    the simulation
+
+                y_exp: a list of floats defining the simulation
+                    values
+
+            Returns: 
+                (y_exp - model): a float defining the residual 
+                between the input simulation values and the Hill 
+                fit
+            """
+
             km = p['km'].value
             n = p['n'].value
             model = (((fmax - f0) * (x ** n)) / (km ** n + x ** n)) + f0
@@ -255,12 +357,45 @@ def plotModelingObjectives123(solutions):
         return f0, fmax, km, n, R_sq
 
     #Unnpack the data from "exp_data" and "error"
-    def chunks(lst, n):
-        """Yield successive n-sized chunks from lst."""
+    def chunks(lst: list, n: int) -> list:
+        """
+        Yield successive n-sized chunks from lst
+        
+        Args:
+            lst: a list of floats
+            
+            n: an integer defining the size of each chunk
+
+        Returns:
+            lst[i:i + n]: a list of lists containing the values
+            from lst structured as n-sized chunks
+        """
+
         for i in range(0, len(lst), n):
             yield lst[i:i + n]
         
-    def fitHillAllData(data_lists, type_):
+    def fitHillAllData(data_lists: list, type_: str) -> None:
+
+        """
+        Fits data to a hill function for all conditions
+            (component doses).
+
+        Args:
+            data_lists: a list of lists containing the
+                simulation values for each set of
+                conditions
+            
+            type_: a string defining the type of data 
+                being fit- 'exp or 'sim'
+        
+        Returns: none
+
+        Figures: 
+        ''MODELING OBJECTIVES 123 ' + type_ + '.svg'':
+            Plot of modeling objectives involving Hill fit summary
+                metrics (1, 2, 3)
+        """
+
         fit_params = []
         for time_course in data_lists:
             f0, fmax, km, n, R_sq = fitHill(time_course, '')
@@ -316,20 +451,34 @@ def plotModelingObjectives123(solutions):
     fitHillAllData(data_lists, 'sim')
     print('Modeling objectives 1 2 and 3 plotted.')
 
-def resultsPanel(dfSim, dfExp, dfErr, labels, varyCondition):   
-    '''Purpose: Plot selected readout time courses
-    
-       Input: 
-            dfSim: df containing the simulated data
-            dfExp: df containing the experimental data
-            dfErr: df containing the measurement error associated with the experimental data
-            labels: list of lists containing the condition labels to be plotted
-            varyCondition: string contraining the label of the condition that is sweeped over in the plot
+def resultsPanel(
+        dfSim: pd.DataFrame, dfExp: pd.DataFrame,
+        dfErr: pd.DataFrame, labels: list,
+        varyCondition: str
+ ) -> None:   
    
-       Output: none
+    '''
+    Plots selected readout time courses (sweeps) for a given enzyme
+    
+    Args: 
+        dfSim: a dataframe containing the simulated data
+
+        dfExp: a dataframe containing the experimental data
+
+        dfErr: a dataframe containing the measurement error associated with
+            the experimental data
         
-       Plots: MODELING OBJECTIVE ' + str(objective) + '.svg' - 
-                Plot of readout dynamics associated with the given modeling objective 
+        labels: a list of lists containing the condition labels to be plotted
+
+        varyCondition: a string contraining the label of the enzyme condition
+            that is sweeped over in the plot
+   
+    Returns: none
+        
+    Figures: 
+        'MODELING OBJECTIVE ' + str(objective) + '.svg'':
+            plot of readout dynamics associated with the given modeling objective
+                (enzyme sweep)
     '''
     
     fig = plt.figure(figsize = (12,3))
@@ -339,7 +488,26 @@ def resultsPanel(dfSim, dfExp, dfErr, labels, varyCondition):
     ax3 = plt.subplot(143)   
     ax4 = plt.subplot(144)
    
-    def grabData(labels):
+    def grabData(labels: list) -> Tuple[list, list, list]:
+        """
+        Compiles the simulation values and experimental
+            data for the given set of labels
+
+        Args:
+            labels: a list of lists defining the labels
+                (component doses) to compile data for
+            
+        Returns:
+            sim: a list of lists defining the simulation
+                values for the set of labels
+
+            exp: a list of lists defining the experimental
+                data for the set of labels
+
+            err: a list of lists defining the experimental
+                error for the set of labels
+        """
+
         count = 0
         sim = [[0] * 61] * 3
            
@@ -509,15 +677,16 @@ def resultsPanel(dfSim, dfExp, dfErr, labels, varyCondition):
     ax4.set_ylim(0, y_max_10)
     plt.savefig('./MODELING OBJECTIVE ' + str(objective) + '.svg', dpi = 600, bbox_inches="tight")
 
-def plotModelingObjectives456(df_sim):
-    '''Purpose: Plot selected readout time courses for objectives 4, 5, and 6
+def plotModelingObjectives456(df_sim: pd.DataFrame) -> None:
     
-       Input: 
-            dfSim: df containing the simulated data
+    '''
+    Plots selected readout time courses for objectives 4, 5, and 6 (enzyme sweeps).
+    Calls resultsPanel for each objective to generate plots
+    
+    Args: 
+        dfSim: a dataframe containing the simulated data
    
-       Output: none
-        
-       Plots: None
+    Returns: none
     '''
      
     cas = 90
@@ -536,20 +705,27 @@ def plotModelingObjectives456(df_sim):
     resultsPanel(df_sim, df_data, df_error, labels, varyCondition) 
     print('RNAse done')
     
-def plotLowCas13(df, data_type, rep):
-    '''Purpose: Plot Fmax distributions (box plot) for low and high Cas13a-gRNA conditions
-    
-        Input: 
-            df: df containing the data (exp or sim)
-            data_type: string defining the type of data included in the df ('exp' or 'sim')
-   
-        Output: none
-        
-        Plots: LOW VS HIGH CAS13A-GRNA COMPARISON.svg - Box plot showing Fmax distributions 
-            for low and high Cas13a-gRNA conditions
+def plotLowCas13(df: pd.DataFrame, data_type: str, rep: str) -> None:
     
     '''
-    # 
+    Plots Fmax distributions (box plot) for low and high Cas13a-gRNA conditions
+    
+    Args: 
+        df: a dataframe containing the data (exp or sim)
+
+        data_type: a string defining the type of data included in the df ('exp' 
+            or 'sim')
+
+        rep: a string defining the dataset ('rep1', 'rep2', or 'rep3'); only necessary
+        for exp data, otherwise use '' 
+   
+    Returns: none
+        
+    Figures: 
+        'LOW VS HIGH CAS13A-GRNA COMPARISON.svg'
+            a box plot showing Fmax distributions for low and high Cas13a-gRNA conditions
+    '''
+    
     background_only = []
     lowCas13_only = []
     highCas13_only = []
@@ -578,7 +754,19 @@ def plotLowCas13(df, data_type, rep):
                 
     elif data_type == 'sim':
         
-          def Convert(string):
+          def Convert(string: str) -> list:
+
+            """
+            Converts a string into a list of
+                strings
+
+            Args:
+                string: a string to be converted
+
+            Returns:
+                li: a reulting list of strings 
+            """
+
             li = string.strip("[]")
 
             li = list(li.split(", "))
@@ -609,399 +797,7 @@ def plotLowCas13(df, data_type, rep):
     sns.boxplot(x="label", y="Readout at final timepoint", data=df, color = 'lightgrey')
     sns.swarmplot(x="label", y="Readout at final timepoint", data=df, color = 'dimgrey')
     plt.savefig('./' + rep + 'LOW VS HIGH CAS13A-GRNA COMPARISON.svg')
-    
-def plot_all_states(
-        df: pd.DataFrame, 
-        dose: list, #str
-        params: str,
-        t_len: str
-    ):
-    
-    # if dose == 'mid':
-    #     doses = [5.0, 2.5, 0.005, 1, 90]
 
-    # elif dose == 'opt':
-    #     doses = [5.0, 10.0, 0.02, 1, 90]
-
-    # elif dose == 'high RNase H':
-    #     doses = [5.0, 2.5, 0.02, 1, 90]
-
-    # elif dose == 'high RNase H 10fM':
-    #     doses = [5.0, 2.5, 0.02, 10, 90]
-    
-    time = np.linspace(0, 240, 61)
-    t_points = 61
-    if t_len == '2 hours':
-        time = time[:31]
-        t_points = 31
-
-    fig, axs = plt.subplots(nrows=7, ncols=5, sharex=False, sharey=False, figsize = (10, 15))
-    fig.subplots_adjust(hspace=0.5)
-    fig.subplots_adjust(wspace=0)
-    axs = axs.ravel()
-
-    for i, state in enumerate(model_states):
-        axs[i].plot(time, df.at[state, str(dose)][:t_points])
-        axs[i].set_xlabel('time (min)')
-        axs[i].set_ylabel('simulation value')
-        axs[i].set_title(state)
-        axs[i].set_box_aspect(1)
-    axs[-1].axis('off')
-    axs[-2].axis('off')
-    fig.suptitle('All Model States '+str(dose))
-    # plt.show()
-    plt.savefig('All_model_states_'+str(dose)+'_'+'.svg')
-
-def plot_states_RHS(
-        df: pd.DataFrame,
-        dose: str,
-        params: str,
-        p: list,
-        t_len: str
-    ):
-
-    if dose == 'mid':
-        doses = [5.0, 2.5, 0.005, 1, 90]
-
-    elif dose == 'opt':
-        doses = [5.0, 10.0, 0.02, 1, 90]
-    
-    time = np.linspace(0, 240, 61)
-    t_points = 61
-    if t_len == '2 hours':
-        time = time[:31]
-        t_points = 31
-
-
-    #Parameters
-    k_cas13  = p[0] #nM-1 min-1
-    k_degv = p[1] #nM-1 min-1
-    k_txn = p[2] #min-1
-    k_FSS = p[3] #min-1
-    k_RHA = p[4] #min-1
-    k_bds = k_cas13 #nM-1 min-1
-    k_RTon = .024 #nM-1 min-1
-    k_RToff = 2.4 #min-1
-    k_T7on = 3.36 #nM-1 min-1
-    k_T7off = 12 #min-1
-    k_SSS = k_FSS #min-1
-    k_degRrep = k_degv  #nM-1 min-1
-    k_RNaseon = .024 #nM-1 min-1
-    k_RNaseoff = 2.4 #min-1
-    k_loc_deactivation = p[5]
-    k_scale_deactivation = p[6]
-
-    all_state_tcs = df[str(doses)].tolist()
-    
-    x_v_list, x_p1_list, x_p2_list, x_p1v_list, x_p2u_list, x_p1cv_list, x_p2cu_list, x_RT_list, x_RNase_list, x_RTp1v_list, x_RTp2u_list, x_RTp1cv_list \
-        , x_RTp2cu_list, x_cDNA1v_list, x_cDNA2u_list, x_RNasecDNA1v_list, x_RNasecDNA2u_list, x_cDNA1_list, x_cDNA2_list, x_p2cDNA1_list, x_p1cDNA2_list, x_RTp2cDNA1_list \
-        , x_RTp1cDNA2_list, x_T7_list, x_pro_list, x_T7pro_list, x_u_list, x_iCas13_list, x_Cas13_list, x_uv_list, x_qRf_list, x_q_list, x_f_list = all_state_tcs
-
-    dist = expon(loc = k_loc_deactivation, scale = k_scale_deactivation)
-    frac_act_list = dist.sf(time)
-    x_aCas13_list = [frac_act*x_Cas13 for frac_act, x_Cas13 in zip(frac_act_list, x_Cas13_list)]
-
-    x_v_RHS = [k_degv*x_v*x_aCas13 - k_bds*x_v*x_u - k_bds*x_v*x_p1  \
-        for x_v, x_aCas13, x_u, x_p1 in zip(
-        x_v_list,
-        x_aCas13_list,
-        x_u_list,
-        x_p1_list
-    )]
-    x_p1_RHS = [- k_bds*x_v*x_p1- k_bds*x_p1*x_cDNA2  \
-        for x_v, x_p1, x_cDNA2 in zip(
-            x_v_list,
-            x_p1_list, 
-            x_cDNA2_list
-        )]
-    x_p2_RHS = [- k_bds*x_u*x_p2 - k_bds*x_p2*x_cDNA1  \
-        for x_u, x_p2, x_cDNA1 in zip(
-            x_u_list,
-            x_p2_list,
-            x_cDNA1_list
-        )]
-    x_p1v_RHS = [k_bds*x_v*x_p1 - k_degv*x_p1v*x_aCas13 - k_RTon*x_p1v*x_RT + k_RToff*x_RTp1v  \
-        for x_v, x_p1, x_p1v, x_aCas13, x_RT, x_RTp1v in zip(
-        x_v_list,
-        x_p1_list,
-        x_p1v_list,
-        x_aCas13_list, 
-        x_RT_list,
-        x_RTp1v_list
-    )]
-    x_p2u_RHS = [k_bds*x_u*x_p2 - k_degv*x_p2u*x_aCas13 - k_RTon*x_p2u*x_RT + k_RToff*x_RTp2u  \
-        for x_u, x_p2, x_p2u, x_aCas13, x_RT, x_RTp2u in zip(
-        x_u_list,
-        x_p2_list,
-        x_p2u_list,
-        x_aCas13_list,
-        x_RT_list,
-        x_RTp2u_list
-        )]
-    x_p1cv_RHS = [k_degv*x_p1v*x_aCas13 - k_RTon*x_p1cv*x_RT + k_RToff*x_RTp1cv  \
-        for x_p1v, x_aCas13, x_p1cv, x_RT, x_RTp1cv in zip(
-        x_p1v_list,
-        x_aCas13_list,
-        x_p1cv_list,
-        x_RT_list,
-        x_RTp1cv_list
-        )]
-    x_p2cu_RHS = [k_degv*x_p2u*x_aCas13 - k_RTon*x_p2cu*x_RT + k_RToff*x_RTp2cu  \
-        for x_p2u, x_aCas13, x_p2cu, x_RT, x_RTp2cu in zip(
-        x_p2u_list,
-        x_aCas13_list,
-        x_p2cu_list,
-        x_RT_list,
-        x_RTp2cu_list
-        )]
-    x_RT_RHS = [+ k_RToff*x_RTp1v + k_RToff*x_RTp1cv + k_RToff*x_RTp2cDNA1 + k_RToff*x_RTp2u
-        + k_RToff*x_RTp2cu + k_RToff*x_RTp1cDNA2 - k_RTon*x_RT*x_p1v - k_RTon*x_RT*x_p1cv
-        - k_RTon*x_RT*x_p2cDNA1 - k_RTon*x_RT*x_p2u - k_RTon*x_RT*x_p2cu - k_RTon*x_RT*x_p1cDNA2
-        + k_FSS*x_RTp1v + k_FSS*x_RTp2u + k_SSS*x_RTp2cDNA1 + k_SSS*x_RTp1cDNA2  \
-        for x_RTp1v, x_RTp1cv, x_RTp2cDNA1, x_RTp2u, x_RTp2cu, x_RTp1cDNA2, x_RT, x_p1v,
-        x_p1cv, x_p2cDNA1, x_p2u, x_p2cu, x_p1cDNA2 in zip(
-        x_RTp1v_list,
-        x_RTp1cv_list,
-        x_RTp2cDNA1_list,
-        x_RTp2u_list,
-        x_RTp2cu_list,
-        x_RTp1cDNA2_list,
-        x_RT_list,
-        x_p1v_list,
-        x_p1cv_list,
-        x_p2cDNA1_list,
-        x_p2u_list,
-        x_p2cu_list,
-        x_p1cDNA2_list  
-        )]
-    x_RNase_RHS = [+ k_RNaseoff*x_RNasecDNA1v + k_RNaseoff*x_RNasecDNA2u- k_RNaseon*x_RNase*x_cDNA1v
-        - k_RNaseon*x_RNase*x_cDNA2u + k_RHA*x_RNasecDNA1v + k_RHA*x_RNasecDNA2u  \
-        for x_RNasecDNA1v, x_RNasecDNA2u, x_RNase, x_cDNA1v, x_cDNA2u in zip(
-        x_RNasecDNA1v_list, 
-        x_RNasecDNA2u_list,
-        x_RNase_list,
-        x_cDNA1v_list,
-        x_cDNA2u_list
-        )]
-    x_RTp1v_RHS = [- k_RToff*x_RTp1v + k_RTon*x_RT*x_p1v - k_degv*x_RTp1v*x_aCas13 - k_FSS*x_RTp1v  \
-        for x_RTp1v, x_RT, x_p1v, x_aCas13 in zip(
-        x_RTp1v_list,
-        x_RT_list,
-        x_p1v_list,
-        x_aCas13_list 
-        )]
-    x_RTp2u_RHS = [- k_RToff*x_RTp2u + k_RTon*x_RT*x_p2u - k_degv*x_RTp2u*x_aCas13 - k_FSS*x_RTp2u  \
-        for x_RTp2u, x_RT, x_p2u, x_RTp2u, x_aCas13 in zip(
-        x_RTp2u_list,
-        x_RT_list,
-        x_p2u_list,
-        x_RTp2u_list,
-        x_aCas13_list    
-        )]
-    x_RTp1cv_RHS = [- k_RToff*x_RTp1cv + k_RTon*x_RT*x_p1cv + k_degv*x_RTp1v*x_aCas13  \
-        for x_RTp1cv, x_RT, x_p1cv, x_RTp1v, x_aCas13 in zip(
-        x_RTp1cv_list,
-        x_RT_list,
-        x_p1cv_list,
-        x_RTp1v_list,
-        x_aCas13_list
-        )]
-    x_RTp2cu_RHS = [- k_RToff*x_RTp2cu + k_RTon*x_RT*x_p2cu + k_degv*x_RTp2u*x_aCas13  \
-        for x_RTp2cu, x_RT, x_p2cu, x_RTp2u, x_aCas13 in zip(
-        x_RTp2cu_list,
-        x_RT_list,
-        x_p2cu_list,
-        x_RTp2u_list,
-        x_aCas13_list
-        )]
-    x_cDNA1v_RHS = [k_FSS*x_RTp1v - k_RNaseon*x_cDNA1v*x_RNase + k_RNaseoff*x_RNasecDNA1v  \
-        for x_RTp1v, x_cDNA1v, x_RNase, x_RNasecDNA1v in zip(
-        x_RTp1v_list,
-        x_cDNA1v_list,
-        x_RNase_list,
-        x_RNasecDNA1v_list
-        )]
-    x_cDNA2u_RHS = [k_FSS*x_RTp2u - k_RNaseon*x_cDNA2u*x_RNase + k_RNaseoff *x_RNasecDNA2u  \
-        for x_RTp2u, x_cDNA2u, x_RNase, x_RNasecDNA2u in zip(
-        x_RTp2u_list,
-        x_cDNA2u_list,
-        x_RNase_list,
-        x_RNasecDNA2u_list
-        )]
-    x_RNasecDNA1v_RHS = [- k_RHA*x_RNasecDNA1v - k_RNaseoff*x_RNasecDNA1v + k_RNaseon*x_RNase*x_cDNA1v  \
-        for x_RNasecDNA1v, x_RNase, x_cDNA1v in zip(
-        x_RNasecDNA1v_list,
-        x_RNase_list,
-        x_cDNA1v_list
-        )]
-    x_RNasecDNA2u_RHS = [- k_RHA*x_RNasecDNA2u - k_RNaseoff*x_RNasecDNA2u + k_RNaseon*x_RNase*x_cDNA2u  \
-        for x_RNasecDNA2u, x_RNase, x_cDNA2u in zip(
-        x_RNasecDNA2u_list,
-        x_RNase_list,
-        x_cDNA2u_list
-        )]
-    x_cDNA1_RHS = [k_RHA*x_RNasecDNA1v - k_bds*x_cDNA1*x_p2  \
-        for x_RNasecDNA1v, x_cDNA1, x_p2 in zip(
-        x_RNasecDNA1v_list,
-        x_cDNA1_list,
-        x_p2_list
-        )]
-    x_cDNA2_RHS = [k_RHA*x_RNasecDNA2u - k_bds*x_cDNA2*x_p1  \
-        for x_RNasecDNA2u, x_cDNA2, x_p1 in zip(
-        x_RNasecDNA2u_list,
-        x_cDNA2_list,
-        x_p1_list
-        )]
-    x_p2cDNA1_RHS = [k_bds*x_cDNA1*x_p2 + k_RToff*x_RTp2cDNA1 - k_RTon*x_RT*x_p2cDNA1  \
-        for x_cDNA1, x_p2, x_RTp2cDNA1, x_RT, x_p2cDNA1 in zip(
-        x_cDNA1_list,
-        x_p2_list,
-        x_RTp2cDNA1_list,
-        x_RT_list,
-        x_p2cDNA1_list
-        )]
-    x_p1cDNA2_RHS = [k_bds*x_cDNA2*x_p1 + k_RToff*x_RTp1cDNA2 - k_RTon*x_RT*x_p1cDNA2  \
-        for x_cDNA2, x_p1, x_RTp1cDNA2, x_RT, x_p1cDNA2 in zip(
-        x_cDNA2_list,
-        x_p1_list,
-        x_RTp1cDNA2_list,
-        x_RT_list,
-        x_p1cDNA2_list
-        )]
-    x_RTp2cDNA1_RHS = [k_RTon*x_RT*x_p2cDNA1 - k_RToff*x_RTp2cDNA1 - k_SSS*x_RTp2cDNA1  \
-        for x_RT, x_p2cDNA1, x_RTp2cDNA1 in zip(
-        x_RT_list,
-        x_p2cDNA1_list,
-        x_RTp2cDNA1_list
-        )]
-    x_RTp1cDNA2_RHS = [k_RTon*x_RT*x_p1cDNA2 - k_RToff*x_RTp1cDNA2 - k_SSS*x_RTp1cDNA2  \
-        for x_RT, x_p1cDNA2, x_RTp1cDNA2 in zip(
-        x_RT_list,
-        x_p1cDNA2_list,
-        x_RTp1cDNA2_list
-        )]
-    x_T7_RHS = [+ k_T7off*x_T7pro - k_T7on*x_T7*x_pro + k_txn*x_T7pro  \
-        for x_T7pro, x_T7, x_pro in zip(
-        x_T7pro_list,
-        x_T7_list,
-        x_pro_list
-        )]
-    x_pro_RHS = [k_SSS*x_RTp2cDNA1 + k_SSS*x_RTp1cDNA2 - k_T7on*x_T7*x_pro + k_T7off*x_T7pro + k_txn*x_T7pro  \
-        for x_RTp2cDNA1, x_RTp1cDNA2, x_T7, x_pro, x_T7pro in zip(
-        x_RTp2cDNA1_list,
-        x_RTp1cDNA2_list, 
-        x_T7_list,
-        x_pro_list,
-        x_T7pro_list
-        )]
-    x_T7pro_RHS = [- k_T7off*x_T7pro + k_T7on*x_T7*x_pro - k_txn*x_T7pro  \
-        for x_T7pro, x_T7, x_pro in zip(
-        x_T7pro_list,
-        x_T7_list,
-        x_pro_list
-        )]
-    x_u_RHS = [k_txn*x_T7pro - k_bds*x_u*x_v - k_degv*x_u*x_aCas13 - k_cas13*x_u*x_iCas13 - k_bds*x_u*x_p2  \
-        for x_T7pro, x_u, x_v, x_aCas13, x_iCas13, x_p2 in zip(
-        x_T7pro_list,
-        x_u_list,
-        x_v_list,
-        x_aCas13_list,
-        x_iCas13_list,
-        x_p2_list
-        )]
-    x_iCas13_RHS = [- k_cas13*x_u*x_iCas13  \
-        for x_u, x_iCas13 in zip(
-            x_u_list, 
-            x_iCas13_list
-        )]
-    x_Cas13_RHS = [k_cas13*x_u*x_iCas13  \
-        for x_u, x_iCas13 in zip(
-        x_u_list,
-        x_iCas13_list
-        )]
-    x_uv_RHS = [k_bds*x_u*x_v  \
-        for x_u, x_v in zip(
-            x_u_list,
-            x_v_list
-        )]
-    x_qRf_RHS = [- k_degRrep*x_aCas13*x_qRf  \
-        for x_aCas13, x_qRf in zip(
-            x_aCas13_list, 
-            x_qRf_list
-        )]
-    x_q_RHS = [+ k_degRrep*x_aCas13*x_qRf  \
-        for x_aCas13, x_qRf in zip(
-        x_aCas13_list, 
-        x_qRf_list
-        )]
-    x_f_RHS = [+ k_degRrep*x_aCas13*x_qRf  \
-        for x_aCas13, x_qRf in zip(
-        x_aCas13_list, 
-        x_qRf_list
-        )]
-
-    all_state_RHS = [
-        x_v_RHS, 
-        x_p1_RHS,
-        x_p2_RHS,
-        x_p1v_RHS,
-        x_p2u_RHS,
-        x_p1cv_RHS,
-        x_p2cu_RHS,
-        x_RT_RHS,
-        x_RNase_RHS,
-        x_RTp1v_RHS,
-        x_RTp2u_RHS,
-        x_RTp1cv_RHS,
-        x_RTp2cu_RHS,
-        x_cDNA1v_RHS,
-        x_cDNA2u_RHS,
-        x_RNasecDNA1v_RHS,
-        x_RNasecDNA2u_RHS,
-        x_cDNA1_RHS,
-        x_cDNA2_RHS,
-        x_p2cDNA1_RHS,
-        x_p1cDNA2_RHS,
-        x_RTp2cDNA1_RHS,
-        x_RTp1cDNA2_RHS,
-        x_T7_RHS,
-        x_pro_RHS,
-        x_T7pro_RHS,
-        x_u_RHS,
-        x_iCas13_RHS,
-        x_Cas13_RHS,
-        x_uv_RHS,
-        x_qRf_RHS,
-        x_q_RHS,
-        x_f_RHS 
-    ]
-
-    fig, axs = plt.subplots(nrows=7, ncols=5, sharex=False, sharey=False, figsize = (10, 15))
-    fig.subplots_adjust(hspace=0.5)
-    fig.subplots_adjust(wspace=0)
-    axs = axs.ravel()
-
-    for i, state in enumerate(model_states):
-        axs[i].plot(time, all_state_RHS[i][:t_points])
-        axs[i].set_xlabel('time (min)')
-        axs[i].set_ylabel('ODE RHS sim. value')
-        # axs[i].set_title(state)
-        axs[i].set_box_aspect(1)
-    
-    axs[-1].axis('off')
-    axs[-2].axis('off')
-    fig.suptitle('All States RHS '+params+' '+dose)
-    # plt.show()
-    plt.savefig('notitle_All_states_RHS_'+params+'_'+dose+'.svg')
-
-    fig, ax = plt.subplots(nrows=1, ncols=1, sharex=False, sharey=False, figsize = (2, 3))
-    fig.subplots_adjust(hspace=0.5)
-    fig.subplots_adjust(wspace=0)
-
-    ax.plot(time, x_aCas13_list[:t_points])
-    ax.set_xlabel('time (min)')
-    ax.set_ylabel('sim. value')
-    plt.savefig('Active_cas13_time_series_'+params+'_'+dose+'.svg')
 
     
     

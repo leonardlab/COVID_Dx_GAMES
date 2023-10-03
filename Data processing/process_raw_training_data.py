@@ -5,11 +5,44 @@ Created on Fri May 14 09:27:58 2021
 
 @author: kate
 """
+from typing import Tuple
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def processData(path, originalFilename, sheetName, vRNA_dose, Cas13_dose):
+def processData(
+        path: str, originalFilename: str,
+        sheetName: str, vRNA_dose: float, Cas13_dose: float
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    
+    """
+    Processes the experimental data and error excel sheets
+        for use by downstream code
+
+    Args:
+        path: a string defining the path to the COVID_Dx_GAMES
+            local github repo
+
+        originalFilename: a string defining the rest of the path
+            to the experimental data excel file
+        
+        sheetName: a string defining the excel sheet name for each
+            viral RNA condition
+        
+        vRNA_dose: a float defining the viral RNA dose corresponding
+            to sheetName
+        
+        Cas13_dose: a float defining the Cas13 dose for the given
+            excel file
+
+    Returns:
+        dfExp: a dataframe defining the restructured experimental
+            data
+
+        dfErr: a dataframe defining the restructured experimental
+            error
+    """
+
     stri = path + originalFilename
     x1 =pd.ExcelFile(stri, engine='openpyxl')
     df = x1.parse(sheetName)
@@ -76,7 +109,34 @@ def processData(path, originalFilename, sheetName, vRNA_dose, Cas13_dose):
     return dfExp, dfErr
 
 
-def compile_dataset(path, fnames, sheet_names, vRNA_doses, Cas13_doses, out_fname):
+def compile_dataset(
+        path: str, fnames: list, sheet_names: list,
+        vRNA_doses: list, Cas13_doses: list, out_fname: str
+) -> None:
+    
+    """
+    Compiles the full experimental dataset for all sheets in
+        all given files
+
+    Args:
+        path: a string defining the path to the COVID_Dx_GAMES
+            local github repo
+
+        fnames: a list of strings defining the rest of the paths
+            to the experimental data excel files
+
+        sheet_names: a list of strings defining the excel sheet
+        names for each viral RNA condition in each excel file
+        
+        vRNA_doses: a list of floats defining the viral RNA dose
+            corresponding to each sheet name in sheet_names
+        
+        Cas13_dose: a list of floats defining the Cas13 dose for
+            each excel file in fnames
+    
+    Returns: none
+    """
+
     # compile data for excel sheet 1: first Cas13 dose
     dfExp_list1 = []
     dfErr_list1 = []

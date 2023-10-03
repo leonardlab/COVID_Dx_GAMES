@@ -6,30 +6,32 @@
 #Package imports
 import pandas as pd
 import json
+from typing import Tuple
 
-def defineExp(data, model, k_CV, k_PEM_evaluation):
-    ''' 
-    Purpose: Import the experimental data from a file and
-        structure the data to be compatible with downstream LMFIT (optimization) code.
+
+def defineExp(data: str, k_PEM_evaluation: int
+) -> Tuple[list, list, list, list, list]:
     
-    Inputs:
+    ''' 
+    Imports the experimental data from a .pkl file and structures the data to be
+    compatible with downstream LMFIT (optimization) code. Different portions of
+    the data are used based on the data arg
+    
+    Args:
         data: a string defining the data identity
-        
-        model: a string defining the model identity
-        
-        k_CV: an integer defining the value of k_CV for this run 
-            (only used when data = 'cross-validation train' or data = 'cross-validation test')
             
-        k_PEM_evaluation: an integer defining the value of k_PEM_evaluation for this run 
-            (only used when data = 'PEM evaluation')
+        k_PEM_evaluation: an integer defining the value of k_PEM_evaluation for the 
+            run (only used when data = 'PEM evaluation')
       
-    Outputs:
-         x: a list of lists defining the component doses for each condition. Each list has 5 items and there 
-             are the same number of lists as number of conditions. Each individual list holds the component 
-             doses in the following order: [x_T7, x_RT, x_RNase, x_inputRNA, x_Cas13]. Note that the component 
-             dose for x_Cas13 represents the Cas13 component dose, not the Cas13a-gRNA component dose. The amount 
-             of gRNA added is exactly half the amount of Cas13, so it is assumed that [Cas13a-gRNA] = [Cas13]/2. 
-             This operation (dividing [Cas13] by 2) is completed in Solvers.py each time the equations are solved.
+    Returns:
+         x: a list of lists defining the component doses for each condition. Each list has 5
+            items and there are the same number of lists as number of conditions. Each individual
+            list holds the component doses in the following order: [x_T7, x_RT, x_RNase, x_inputRNA
+            x_Cas13]. 
+            Note that the component dose for x_Cas13 represents the Cas13 component dose, not the 
+            Cas13a-gRNA component dose. The amount of gRNA added is exactly half the amount of Cas13,
+            so it is assumed that [Cas13a-gRNA] = [Cas13]/2. This operation (dividing [Cas13] by 2) is
+            completed in Solvers.py each time the equations are solved.
 
          exp_data: a list of floats defining the normalized readout values 
              for each datapoint (length = # datapoints)
@@ -41,32 +43,31 @@ def defineExp(data, model, k_CV, k_PEM_evaluation):
              time course for a different condition   
              
          timecourses_err: a list of lists containing the same data as error, but each list contains 
-             a list of error values for a different condition   
-        
-  '''
+             a list of error values for a different condition      
+    '''
 
     #Import training data
+    #Note that paths need to be updated before running
+    #dataset 2
     if 'rep2' in data:
         df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED_DATA_rep2_EXP.pkl')
         df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED_DATA_rep2_ERR.pkl') 
 
+    #dataset 3
     elif 'rep3' in data:
         df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED_DATA_rep3_EXP.pkl')
         df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED_DATA_rep3_ERR.pkl')
     
+    #dataset 1
     else:
         df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA EXP.pkl')
         df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA ERR.pkl')
 
-    with open("/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/x_CV_train2.json", "r") as fp:
-        x_CV_train = json.load(fp)
-        
-    with open("/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/x_CV_test2.json", "r") as fp:
-        x_CV_test = json.load(fp)
-
     if data == 'PEM evaluation':
         #Import df for appropriate model and k_PEM_evaluation
-        filename = '/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230924_ModelA_PEM_rep3/GENERATE PEM EVALUATION DATA/PEM EVALUATION DATA NOISE model A.xlsx'
+        #this path needs to be updated each time a PEM evaluation is run (i.e. for different models)
+        filename = ('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/230924_ModelA_PEM_rep3/'
+                    'GENERATE PEM EVALUATION DATA/PEM EVALUATION DATA NOISE model A.xlsx')
         df = pd.read_excel(filename, sheet_name = str(k_PEM_evaluation), engine='openpyxl')
         
         exp_data = []
@@ -81,234 +82,43 @@ def defineExp(data, model, k_CV, k_PEM_evaluation):
         #error not used for PEM evaluation paramter estimation runs, so use placeholder
         error = [1] * len(exp_data)
         
-        #same x as 'slice drop high error'
-        # x = [[20.0, 2.5, 0.005, 10, 90], [5.0, 10.0, 0.005, 10, 90], [5.0, 2.5, 0.02, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.001, 10, 90], [1.0, 2.5, 0.005, 10, 90], [20.0, 2.5, 0.005, 1, 90], [5.0, 10.0, 0.005, 1, 90], [5.0, 2.5, 0.02, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.001, 1, 90], [5.0, 0.5, 0.005, 1, 90], [1.0, 2.5, 0.005, 1, 90]]
-        #for rep 2 data
-        # x = [[20.0, 2.5, 0.005, 1, 90], [5.0, 10.0, 0.005, 1, 90], [5.0, 2.5, 0.02, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.001, 1, 90], [5.0, 0.5, 0.005, 1, 90], [1.0, 2.5, 0.005, 1, 90], [20.0, 2.5, 0.005, 10, 90], [5.0, 10.0, 0.005, 10, 90], [5.0, 2.5, 0.02, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.001, 10, 90], [5.0, 0.5, 0.005, 10, 90], [1.0, 2.5, 0.005, 10, 90]]
-        #for rep 3 data
-        x = [[20.0, 2.5, 0.005, 1, 90], [5.0, 10.0, 0.005, 1, 90], [5.0, 2.5, 0.02, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.001, 1, 90], [5.0, 0.5, 0.005, 1, 90], [1.0, 2.5, 0.005, 1, 90], [20.0, 2.5, 0.005, 10, 90], [5.0, 10.0, 0.005, 10, 90], [5.0, 2.5, 0.02, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.001, 10, 90], [5.0, 0.5, 0.005, 10, 90], [1.0, 2.5, 0.005, 10, 90]]
+        #the x values need to be selected based on which experimental dataset is being used
+        #rep 1 x vals
+        x = [
+            [20.0, 2.5, 0.005, 10, 90], [5.0, 10.0, 0.005, 10, 90], [5.0, 2.5, 0.02, 10, 90],
+            [5.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.001, 10, 90], [1.0, 2.5, 0.005, 10, 90], 
+            [20.0, 2.5, 0.005, 1, 90], [5.0, 10.0, 0.005, 1, 90], [5.0, 2.5, 0.02, 1, 90],
+            [5.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.001, 1, 90], [5.0, 0.5, 0.005, 1, 90], 
+            [1.0, 2.5, 0.005, 1, 90]
+        ]
+        #rep 2 x vals
+        # x = [
+        #     [20.0, 2.5, 0.005, 1, 90], [5.0, 10.0, 0.005, 1, 90], [5.0, 2.5, 0.02, 1, 90], 
+        #     [5.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.001, 1, 90], [5.0, 0.5, 0.005, 1, 90], 
+        #     [1.0, 2.5, 0.005, 1, 90], [20.0, 2.5, 0.005, 10, 90], [5.0, 10.0, 0.005, 10, 90], 
+        #     [5.0, 2.5, 0.02, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.001, 10, 90], 
+        #     [5.0, 0.5, 0.005, 10, 90], [1.0, 2.5, 0.005, 10, 90]
+        # ]
+        #rep 3 x vals
+        # x = [
+        #     [20.0, 2.5, 0.005, 1, 90], [5.0, 10.0, 0.005, 1, 90], [5.0, 2.5, 0.02, 1, 90],
+        #     [5.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.001, 1, 90], [5.0, 0.5, 0.005, 1, 90], 
+        #     [1.0, 2.5, 0.005, 1, 90], [20.0, 2.5, 0.005, 10, 90], [5.0, 10.0, 0.005, 10, 90], 
+        #     [5.0, 2.5, 0.02, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.001, 10, 90], 
+        #     [5.0, 0.5, 0.005, 10, 90], [1.0, 2.5, 0.005, 10, 90]
+        # ]
         #not used for PEM evaluation, so use placeholder
         timecourses = []
         timecourses_err = []
         
 
-    #Choose conditions to include or drop
-    if data == 'all echo without low iCas13 or 0 vRNA':
-        x = []
-        exp_data = []
-        error = []
-        timecourses = []
-        timecourses_err = []
-        maxVal = 0.6599948235700113
-        
-        for (columnName, columnData) in df_data.iteritems():
-            label = list(columnData.iloc[0])
-            if label == [20.0, 10.0, 0.001, 10.0, 90.0] or label == [20.0, 10.0, 0.001, 0.0, 90.0] or label == [5.0, 2.5, 0.001, 0.0, 90.0]:
-                continue
-        
-            else:
-                if label[3] != 0.0:
-                    if label[4] != 4.5:
-                        x.append(label)
-                    
-                        timecourse = list(columnData.iloc[1:])
-                        timecourse = [i/maxVal for i in timecourse]
-                        timecourses.append(timecourse)
-                        exp_data = exp_data + timecourse
-        
-        for (columnName, columnData) in df_error.iteritems():
-            label = list(columnData.iloc[0])
-            if label == [20.0, 10.0, 0.001, 10.0, 90.0] or label == [20.0, 10.0, 0.001, 0.0, 90.0] or label == [5.0, 2.5, 0.001, 0.0, 90.0]:
-                continue
-            else:
-                if label[3] != 0.0:
-                    if label[4] != 4.5:
-                        err = list(columnData.iloc[1:])
-                        err = [i/maxVal for i in err]
-                        timecourses_err.append(err)
-                        error = error + err
-                        
-    elif data == 'all echo without low iCas13 or 0 vRNA and drop high error':
-        x = []
-        exp_data = []
-        error = []
-        timecourses = []
-        timecourses_err = []
-        maxVal = 0.6599948235700113
-        
-        drop_labels = [[5.0, 10.0, 0.001, 1, 90], [1.0, 2.5, 0.001, 10.0, 90.0], [20.0, 10.0, 0.001, 1.0, 90.0], [5.0, 0.5, 0.005, 10.0, 90.0], [20.0, 0.5, 0.005, 1.0, 90.0], [1.0, 2.5, 0.001, 1.0, 90.0], [20.0, 0.5, 0.005, 10.0, 90.0]]
-        
-        for (columnName, columnData) in df_data.iteritems():
-            label = list(columnData.iloc[0])
-            if label == [20.0, 10.0, 0.001, 10.0, 90.0] or label == [20.0, 10.0, 0.001, 0.0, 90.0] or label == [5.0, 2.5, 0.001, 0.0, 90.0]:
-                continue
-        
-            elif label in drop_labels:
-                continue
-        
-            else:
-                if label[3] != 0.0:
-                    if label[4] != 4.5:
-                        x.append(label)
-                    
-                        timecourse = list(columnData.iloc[1:])
-                        timecourse = [i/maxVal for i in timecourse]
-                        timecourses.append(timecourse)
-                        exp_data = exp_data + timecourse
-        
-        for (columnName, columnData) in df_error.iteritems():
-            label = list(columnData.iloc[0])
-            if label == [20.0, 10.0, 0.001, 10.0, 90.0] or label == [20.0, 10.0, 0.001, 0.0, 90.0] or label == [5.0, 2.5, 0.001, 0.0, 90.0]:
-                continue
-            
-            elif label in drop_labels:
-                continue
-            
-            else:
-                if label[3] != 0.0:
-                    if label[4] != 4.5:
-                        err = list(columnData.iloc[1:])
-                        err = [i/maxVal for i in err]
-                        timecourses_err.append(err)
-                        error = error + err 
-                        
-    elif data == 'cross-validation train':
-        
-        labels = x_CV_train[k_CV - 1]
-       
-        x = []
-        exp_data = []
-        for (columnName, columnData) in df_data.iteritems():
-            label = list(columnData.iloc[0])
-            
-            if label == [20.0, 10.0, 0.001, 10.0, 90.0] or label == [20.0, 10.0, 0.001, 0.0, 90.0] or label == [5.0, 2.5, 0.001, 0.0, 90.0]:
-                continue
-            elif label in labels:
-                x.append(label)
-                timecourse = list(columnData.iloc[1:])
-                exp_data = exp_data + timecourse
-        
-        maxVal = max(exp_data)
-        exp_data = []
-        timecourses = []
-        timecourses_err = []
-        for (columnName, columnData) in df_data.iteritems():
-            label = list(columnData.iloc[0])
-            
-            if label == [20.0, 10.0, 0.001, 10.0, 90.0] or label == [20.0, 10.0, 0.001, 0.0, 90.0] or label == [5.0, 2.5, 0.001, 0.0, 90.0]:
-                continue
-            elif label in labels:
-                timecourse = list(columnData.iloc[1:])
-                timecourse = [i/maxVal for i in timecourse]
-                
-                timecourses.append(timecourse)
-                exp_data = exp_data + timecourse           
-
-        error = []
-        for (columnName, columnData) in df_error.iteritems():
-            label = list(columnData.iloc[0])
-            if label == [20.0, 10.0, 0.001, 10.0, 90.0] or label == [20.0, 10.0, 0.001, 0.0, 90.0] or label == [5.0, 2.5, 0.001, 0.0, 90.0]:
-                continue
-            
-            elif label in labels:
-                err = list(columnData.iloc[1:])
-                err = [i/maxVal for i in err]
-                timecourses_err.append(err)
-                error = error + err
-                
-    elif data == 'cross-validation test':
-    
-        labels = x_CV_test[k_CV - 1]
-    
-        x = []
-        exp_data = []
-        for (columnName, columnData) in df_data.iteritems():
-            label = list(columnData.iloc[0])
-            
-            if label == [20.0, 10.0, 0.001, 10.0, 90.0] or label == [20.0, 10.0, 0.001, 0.0, 90.0] or label == [5.0, 2.5, 0.001, 0.0, 90.0]:
-                continue
-            elif label in labels:
-                x.append(label)
-                timecourse = list(columnData.iloc[1:])
-                exp_data = exp_data + timecourse
-        
-        maxVal = max(exp_data)
-        exp_data = []
-        timecourses = []
-        timecourses_err = []
-        for (columnName, columnData) in df_data.iteritems():
-            label = list(columnData.iloc[0])
-            
-            if label == [20.0, 10.0, 0.001, 10.0, 90.0] or label == [20.0, 10.0, 0.001, 0.0, 90.0] or label == [5.0, 2.5, 0.001, 0.0, 90.0]:
-                continue
-            elif label in labels:
-                timecourse = list(columnData.iloc[1:])
-                timecourse = [i/maxVal for i in timecourse]
-                
-                timecourses.append(timecourse)
-                exp_data = exp_data + timecourse           
-
-        
-        error = []
-        for (columnName, columnData) in df_error.iteritems():
-            label = list(columnData.iloc[0])
-            if label == [20.0, 10.0, 0.001, 10.0, 90.0] or label == [20.0, 10.0, 0.001, 0.0, 90.0] or label == [5.0, 2.5, 0.001, 0.0, 90.0]:
-                continue
-            
-            elif label in labels:
-                err = list(columnData.iloc[1:])
-                err = [i/maxVal for i in err]
-                timecourses_err.append(err)
-                error = error + err
-            
-        
-    
-    elif data == 'cross-validation data partitioning':
-        x = []
-        exp_data = []
-        error = []
-        timecourses = []
-        timecourses_err = []
-        maxVal = 0.6599948235700113
-        
-        drop_labels = [[5.0, 10.0, 0.001, 1, 90], [1.0, 2.5, 0.001, 10.0, 90.0], [20.0, 10.0, 0.001, 1.0, 90.0], [5.0, 0.5, 0.005, 10.0, 90.0], [20.0, 0.5, 0.005, 1.0, 90.0], [1.0, 2.5, 0.001, 1.0, 90.0], [20.0, 0.5, 0.005, 10.0, 90.0]]
-        
-        for (columnName, columnData) in df_data.iteritems():
-            label = list(columnData.iloc[0])
-            if label == [20.0, 10.0, 0.001, 10.0, 90.0] or label == [20.0, 10.0, 0.001, 0.0, 90.0] or label == [5.0, 2.5, 0.001, 0.0, 90.0]:
-                continue
-        
-            elif label in drop_labels:
-                continue
-        
-            else:
-                if label[3] != 0.0:
-                    if label[4] != 4.5:
-                        x.append(label)
-                    
-                        timecourse = list(columnData.iloc[1:])
-                        timecourse = [i/maxVal for i in timecourse]
-                        timecourses.append(timecourse)
-                        exp_data = exp_data + timecourse
-        
-        for (columnName, columnData) in df_error.iteritems():
-            label = list(columnData.iloc[0])
-            if label == [20.0, 10.0, 0.001, 10.0, 90.0] or label == [20.0, 10.0, 0.001, 0.0, 90.0] or label == [5.0, 2.5, 0.001, 0.0, 90.0]:
-                continue
-            
-            elif label in drop_labels:
-                continue
-            
-            else:
-                if label[3] != 0.0:
-                    if label[4] != 4.5:
-                        err = list(columnData.iloc[1:])
-                        err = [i/maxVal for i in err]
-                        timecourses_err.append(err)
-                        error = error + err          
-                        
+    #Choose conditions to include or drop                             
     elif data == 'all echo drop high error':
-        drop_labels = [[5.0, 10.0, 0.001, 1, 90], [1.0, 2.5, 0.001, 10.0, 90.0], [20.0, 10.0, 0.001, 1.0, 90.0], [5.0, 0.5, 0.005, 10.0, 90.0], [20.0, 0.5, 0.005, 1.0, 90.0], [1.0, 2.5, 0.001, 1.0, 90.0], [20.0, 0.5, 0.005, 10.0, 90.0]]
+        drop_labels = [
+            [5.0, 10.0, 0.001, 1, 90], [1.0, 2.5, 0.001, 10.0, 90.0], [20.0, 10.0, 0.001, 1.0, 90.0],
+            [5.0, 0.5, 0.005, 10.0, 90.0], [20.0, 0.5, 0.005, 1.0, 90.0], [1.0, 2.5, 0.001, 1.0, 90.0], 
+            [20.0, 0.5, 0.005, 10.0, 90.0]
+        ]
         
         x = []
         exp_data = []
@@ -393,7 +203,11 @@ def defineExp(data, model, k_CV, k_PEM_evaluation):
         labels_RNase =labels1 + labels10
         
         labels_pre_drop = labels_T7 + labels_RT + labels_RNase
-        drop_labels = [[5.0, 10.0, 0.001, 1, 90], [1.0, 2.5, 0.001, 10.0, 90.0], [20.0, 10.0, 0.001, 1.0, 90.0], [5.0, 0.5, 0.005, 10.0, 90.0], [20.0, 0.5, 0.005, 1.0, 90.0], [1.0, 2.5, 0.001, 1.0, 90.0], [20.0, 0.5, 0.005, 10.0, 90.0]]
+        drop_labels = [
+            [5.0, 10.0, 0.001, 1, 90], [1.0, 2.5, 0.001, 10.0, 90.0], [20.0, 10.0, 0.001, 1.0, 90.0],
+            [5.0, 0.5, 0.005, 10.0, 90.0], [20.0, 0.5, 0.005, 1.0, 90.0], [1.0, 2.5, 0.001, 1.0, 90.0],
+            [20.0, 0.5, 0.005, 10.0, 90.0]
+        ]
         labels = []
         for label in labels_pre_drop:
             if label not in drop_labels:
@@ -439,72 +253,7 @@ def defineExp(data, model, k_CV, k_PEM_evaluation):
                 err = [i/maxVal for i in err]
                 timecourses_err.append(err)
                 error = error + err 
-           
-   
-    elif data == 'slice drop high error add optimal':
-        labels1 = [[1.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.005, 1, 90], [20.0, 2.5, 0.005, 1, 90]]
-        labels10 = [[1.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.005, 10, 90], [20.0, 2.5, 0.005, 10, 90]]
-        labels_T7 = labels1 + labels10
-        
-        labels1 = [[5.0, 0.5, 0.005, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 10.0, 0.005, 1, 90]]
-        labels10 = [[5.0, 0.5, 0.005, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 10.0, 0.005, 10, 90]]
-        labels_RT = labels1 + labels10
-        
-        labels1 = [[5.0, 2.5, 0.001, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.02, 1, 90]]
-        labels10 = [[5.0, 2.5, 0.001, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.02, 10, 90]]
-        labels_RNase =labels1 + labels10
-        
-        labels_pre_drop = labels_T7 + labels_RT + labels_RNase
-        labels_pre_drop.append([5.0, 10.0, 0.02, 1, 90]) #optimal condition
-       
-        
 
-        drop_labels = [[5.0, 10.0, 0.001, 1, 90], [1.0, 2.5, 0.001, 10.0, 90.0], [20.0, 10.0, 0.001, 1.0, 90.0], [5.0, 0.5, 0.005, 10.0, 90.0], [20.0, 0.5, 0.005, 1.0, 90.0], [1.0, 2.5, 0.001, 1.0, 90.0], [20.0, 0.5, 0.005, 10.0, 90.0]]
-        labels = []
-        for label in labels_pre_drop:
-            if label not in drop_labels:
-                labels.append(label)
-     
-        x = []
-        exp_data = []
-        for (columnName, columnData) in df_data.iteritems():
-            label = list(columnData.iloc[0])
-            
-            if label == [20.0, 10.0, 0.001, 10.0, 90.0] or label == [20.0, 10.0, 0.001, 0.0, 90.0] or label == [5.0, 2.5, 0.001, 0.0, 90.0]:
-                continue
-            elif label in labels:
-                x.append(label)
-                timecourse = list(columnData.iloc[1:])
-
-                exp_data = exp_data + timecourse
-        
-        maxVal = max(exp_data)
-        exp_data = []
-        timecourses = []
-        timecourses_err = []
-        for (columnName, columnData) in df_data.iteritems():
-            label = list(columnData.iloc[0])
-            
-            if label == [20.0, 10.0, 0.001, 10.0, 90.0] or label == [20.0, 10.0, 0.001, 0.0, 90.0] or label == [5.0, 2.5, 0.001, 0.0, 90.0]:
-                continue
-            elif label in labels:
-                timecourse = list(columnData.iloc[1:])
-                timecourse = [i/maxVal for i in timecourse]
-                
-                timecourses.append(timecourse)
-                exp_data = exp_data + timecourse           
-     
-        error = []
-        for (columnName, columnData) in df_error.iteritems():
-            label = list(columnData.iloc[0])
-            if label == [20.0, 10.0, 0.001, 10.0, 90.0] or label == [20.0, 10.0, 0.001, 0.0, 90.0] or label == [5.0, 2.5, 0.001, 0.0, 90.0]:
-                continue
-            
-            elif label in labels:
-                err = list(columnData.iloc[1:])
-                err = [i/maxVal for i in err]
-                timecourses_err.append(err)
-                error = error + err 
 
     elif data == 'rep2 all echo drop high error':
         drop_labels = [[20.0, 2.5, 0.02, 10, 90]]        
@@ -556,7 +305,7 @@ def defineExp(data, model, k_CV, k_PEM_evaluation):
         labels_RNase =labels1 + labels10
         
         labels_pre_drop = labels_T7 + labels_RT + labels_RNase
-        drop_labels = [[20.0, 2.5, 0.02, 10, 90]] #not even in the slice labels so not relevant
+        drop_labels = [[20.0, 2.5, 0.02, 10, 90]] #not in the slice labels so not relevant here
         labels = []
         for label in labels_pre_drop:
             if label not in drop_labels:
@@ -647,7 +396,7 @@ def defineExp(data, model, k_CV, k_PEM_evaluation):
         labels_RNase =labels1 + labels10
         
         labels_pre_drop = labels_T7 + labels_RT + labels_RNase
-        drop_labels = [[5.0, 10.0, 0.02, 10, 90]]
+        drop_labels = [[5.0, 10.0, 0.02, 10, 90]] #not in the slice labels so not relevant here
         labels = []
         for label in labels_pre_drop:
             if label not in drop_labels:
