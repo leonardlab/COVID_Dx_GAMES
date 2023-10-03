@@ -37,6 +37,8 @@ problem_free = conditions_dictionary["problem"]
 bounds = problem_free['bounds']
 p_all = conditions_dictionary["p_all"] 
 real_param_labels_all = conditions_dictionary["real_param_labels_all"] 
+
+#Note that this path needs to be updated before running
 plt.style.use('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/paper.mplstyle.py')
 
 def solveSingle(

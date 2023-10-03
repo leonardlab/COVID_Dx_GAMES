@@ -34,7 +34,7 @@ def init() -> Tuple[dict, dict, dict]:
     # 1. Define and create folder for saving results
     # =============================================================================
     #This will be the name of the run-specific results folder. 
-    folder_name = 'test_new_sens_analysis'
+    folder_name = 'Test_run'
 
     # =============================================================================
     # 2. Define modelID, free parameters, and bounds
@@ -60,9 +60,9 @@ def init() -> Tuple[dict, dict, dict]:
         p_all = [0.00198, 30.6, 36, 0.6, 1.0, 1.0, 1.0, 1, 1]
 
         # p_all = [0.00063618, 239.9315589, 858.2136969, 0.027772651, 1.753931699, 10.64957523, 42.38269934, 61.82812743, 8.241330405] #rep1 best fit high tol
-        p_all = [0.000224063, 136.0589787, 1151.286829, 0.09603252, 1.659857597, 12.48387036, 55.71209137, 56.73099109, 6.906538862] #rep1 best fit low tol
+        # p_all = [0.000224063, 136.0589787, 1151.286829, 0.09603252, 1.659857597, 12.48387036, 55.71209137, 56.73099109, 6.906538862] #rep1 best fit low tol
 
-        #p_all = [1.51719E-05, 12223.96888, 315.8195865, 0.381765754, 2.197307165, 29.34473237, 68.69366218, 101.5269246, 17.96639629] #rep2 best fit high tol
+        p_all = [1.51719E-05, 12223.96888, 315.8195865, 0.381765754, 2.197307165, 29.34473237, 68.69366218, 101.5269246, 17.96639629] #rep2 best fit high tol
         # p_all = [2.22994E-05, 8940.243435, 226.2897324, 232.9366873, 1.749944885, 22.66728787, 4.675577757, 97.309157, 19.21663556] #rep2 best fit low tol 
 
         # p_all = [0.00012593, 30452.9863669, 41.57403523, 0.07926811, 1.07134915, 14.7113393, 0.62647773, 46.40684061, 18.541746] #rep3 best fit high tol
@@ -152,7 +152,7 @@ def init() -> Tuple[dict, dict, dict]:
     #data set 2: 'rep2 slice drop high error'
     #data set 3: 'rep3 slice drop high error'
     #PEM evaluation data: 'PEM evaluation'
-    conditions_dictionary["data"] = 'slice drop high error'
+    conditions_dictionary["data"] = 'rep2 slice drop high error'
     #'parameter estimation', #'generate PEM evaluation data', or ' ' for test
     conditions_dictionary["run_type"] = ' '  
     conditions_dictionary["n_search"] = 5000

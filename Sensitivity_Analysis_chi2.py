@@ -24,6 +24,8 @@ timecourses_err = data_dictionary["timecourses_err"]
 timecourses_exp = data_dictionary["timecourses"]
 problem_free = conditions_dictionary["problem"]
 bounds = problem_free['bounds']
+
+#Note that this path needs to be updated before running
 plt.style.use('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/paper.mplstyle.py')
 
 def single_param_sweep_10pct(p: list, param_index: int

@@ -68,6 +68,7 @@ timecourses_err = data_dictionary["timecourses_err"]
 timecourses =  data_dictionary["timecourses"] 
 
 #Set style file
+#Note that this path needs to be updated before running
 plt.style.use('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/paper.mplstyle.py')
 
 #ignore ODEint warnings that clog up the console
@@ -319,7 +320,8 @@ def optPar(row: tuple) -> Tuple[list, list]:
 
     def solveForOpt(
             x: list, p1: float, p2: float, p3: float,
-            p4: float, p5: float, p6: float, p7: float
+            p4: float, p5: float, p6: float, p7: float,
+            p8: float, p9: float
     ) -> np.ndarray:
         """
         Structures solveAll to be compatible with optimization
@@ -342,7 +344,7 @@ def optPar(row: tuple) -> Tuple[list, list]:
         #This is the function that is solved at each step in the optimization 
         #algorithm
         #Solve ODEs for all data_sets
-        p = [p1, p2, p3, p4, p5, p6, p7]
+        p = [p1, p2, p3, p4, p5, p6, p7, p8, p9]
         doses, norm_solutions, mse, df_sim = solveAll(p, exp_data, '')
         print('eval #: ' + str(len(chi_sq_list)))
         print(p)
@@ -413,9 +415,10 @@ def optPar(row: tuple) -> Tuple[list, list]:
         result_row.append(items[i])
         result_row_labels.append(item_labels[i])
 
-    #index value = num params *2 + 8; 26 for modelD 
-    result_row = result_row[:22]
-    result_row_labels = result_row_labels[:22]
+    #index value = num params *2 + 8; 22 for models A-C,
+    #26 for model D 
+    result_row = result_row[:26]
+    result_row_labels = result_row_labels[:26]
     return result_row, result_row_labels
 
 

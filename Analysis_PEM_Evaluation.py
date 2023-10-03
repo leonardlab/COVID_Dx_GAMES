@@ -27,8 +27,6 @@ real_param_labels_all = conditions_dictionary['real_param_labels_all']
 param_labels = real_param_labels_all 
 model = conditions_dictionary["model"] 
 data = conditions_dictionary["data"]
-df_data = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA EXP.pkl')
-df_error = pd.read_pickle('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/PROCESSED DATA ERR.pkl')
 
 #Import custom style file for plotting
 #Note that this path needs to be updated before running
