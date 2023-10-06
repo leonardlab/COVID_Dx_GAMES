@@ -18,6 +18,7 @@ from Solvers_COVID_Dx import calcRsq
 from Run_COVID_Dx import solveAll
 from Saving_COVID_Dx import createFolder
 from Analysis_Plots import plotModelingObjectives123, plotModelingObjectives456, parityPlot
+from Analysis_Plots import plotModelingObjectives123, plotModelingObjectives456, parityPlot
 
 #Define settings
 conditions_dictionary, initial_params_dictionary, data_dictionary = Settings_COVID_Dx.init()
@@ -91,9 +92,6 @@ def testSingleSet(p: list) -> None:
     #Plot modeling objectives
     plotModelingObjectives123(solutions)
     plotModelingObjectives456(df_sim)
-
-    # for doses in x:
-    #     plot_all_states(df_all_states, doses, '', '')
     
     print('*******')
     print('R2: ' + str(np.round(R_sq, 5)))
@@ -165,6 +163,9 @@ p = [2.22994E-05, 8940.243435, 226.2897324, 232.9366873, 1.749944885, 22.6672878
 #model D rep 3 best fit low tol
 # p = [6.38185E-05, 28934.65508, 119.187498, 0.077888022, 1.627413157, 23.55089534, 22.28442186, 50.03161646, 17.06654392]
 
+# p = [0.001723086, 128.9759141, 0.251419297, 0.022706194, 2690.368918, 36.30447526, 39.24078673]
+
+p = [0.00031625, 771.62538369, 0.04050095, 1.0522019, 0.22352758, 24.85053933, 65.76394723]
 
 testSingleSet(p)   
 

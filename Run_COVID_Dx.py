@@ -98,8 +98,8 @@ def check_filters(solutions: list, mse: float) -> float:
             
     filter_code = 0
     #max val filter for fluorophore output
-    if max(solutions) < 2000:
-        filter_code = 1
+    # if max(solutions) < 2000:
+    #     filter_code = 1
             
     mse = max(mse, filter_code)
             
@@ -326,8 +326,8 @@ def optPar(row: tuple) -> Tuple[list, list]:
 
     def solveForOpt(
             x: list, p1: float, p2: float, p3: float,
-            p4: float, p5: float, p6: float, p7: float,
-            p8: float, p9: float
+            p4: float, p5: float, p6: float, p7: float#,
+            # p8: float, p9: float
     ) -> np.ndarray:
         """
         Structures solveAll to be compatible with optimization
@@ -350,7 +350,7 @@ def optPar(row: tuple) -> Tuple[list, list]:
         #This is the function that is solved at each step in the optimization 
         #algorithm
         #Solve ODEs for all data_sets
-        p = [p1, p2, p3, p4, p5, p6, p7, p8, p9]
+        p = [p1, p2, p3, p4, p5, p6, p7]#, p8, p9]
         doses, norm_solutions, mse, df_sim = solveAll(p, exp_data, '')
         print('eval #: ' + str(len(chi_sq_list)))
         print(p)
@@ -423,8 +423,8 @@ def optPar(row: tuple) -> Tuple[list, list]:
 
     #index value = num params *2 + 8; 22 for models A-C,
     #26 for model D 
-    result_row = result_row[:26]
-    result_row_labels = result_row_labels[:26]
+    result_row = result_row[:22]
+    result_row_labels = result_row_labels[:22]
     return result_row, result_row_labels
 
 
@@ -477,73 +477,75 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
     #use results from previous global search used to generate PEM evaluation data
     #Note that this path will need to be updated before running parameter estimation
     #with the PEM evaluation data
-    if data == 'PEM evaluation': 
-        df_results = pd.read_pickle(('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/'
-                                     '230924_ModelA_PEM_rep3/GENERATE PEM EVALUATION DATA/' 
-                                     + 'GLOBAL SEARCH RESULTS ' + model + '.pkl'))
-        mse_values_PEM_evaluation_data = calculate_mse_k_PEM_evaluation(df_results)
-        label = 'chi_sq_' + str(k_PEM_evaluation)
-        df_results[label] = mse_values_PEM_evaluation_data
+    # if data == 'PEM evaluation': 
+    #     df_results = pd.read_pickle(('/Users/kdreyer/Documents/Github/COVID_Dx_GAMES/Results/'
+    #                                  '230924_ModelA_PEM_rep3/GENERATE PEM EVALUATION DATA/' 
+    #                                  + 'GLOBAL SEARCH RESULTS ' + model + '.pkl'))
+    #     mse_values_PEM_evaluation_data = calculate_mse_k_PEM_evaluation(df_results)
+    #     label = 'chi_sq_' + str(k_PEM_evaluation)
+    #     df_results[label] = mse_values_PEM_evaluation_data
 
-    #run global seach
-    else:
-        df_params = generateParams(problem_free, n_search, p_all, problem_all_params, model)
+    # #run global seach
+    # else:
+    #     df_params = generateParams(problem_free, n_search, p_all, problem_all_params, model)
         
-        print('Starting global search...')
-        #set parallelization condition for GS
-        if conditions_dictionary['parallelization'] == 'yes':
-            parallelization_GS = 'yes'
-        else:
-            parallelization_GS = 'no'
-        if model == 'model A' or model == 'model C' or model == 'model D':
-            parallelization_GS = 'no'
+    #     print('Starting global search...')
+    #     #set parallelization condition for GS
+    #     if conditions_dictionary['parallelization'] == 'yes':
+    #         parallelization_GS = 'yes'
+    #     else:
+    #         parallelization_GS = 'no'
+    #     if model == 'model A' or model == 'model C' or model == 'model D':
+    #         parallelization_GS = 'no'
             
-        #perform GS without parallelization
-        if parallelization_GS == 'no':
-            output = []
-            for row in df_params.itertuples(name = None):
-                signal.alarm(100)
-                try:
-                    result = solvePar(row)
+    #     #perform GS without parallelization
+    #     if parallelization_GS == 'no':
+    #         output = []
+    #         for row in df_params.itertuples(name = None):
+    #             signal.alarm(100)
+    #             try:
+    #                 result = solvePar(row)
                
-                except Exception:
-                    print('timed out')
-                    result = 3
-                finally:
-                    signal.alarm(0)
+    #             except Exception:
+    #                 print('timed out')
+    #                 result = 3
+    #             finally:
+    #                 signal.alarm(0)
          
-                output.append(result)
+    #             output.append(result)
    
-        #perform GS with parallelization
-        elif parallelization_GS == 'yes':
-            with mp.Pool(conditions_dictionary["num_cores"]) as pool:
-              result = pool.imap(solvePar, df_params.itertuples(name = None))
-              pool.close()
-              pool.join()
-              output = [[round(x,4)] for x in result]
+    #     #perform GS with parallelization
+    #     elif parallelization_GS == 'yes':
+    #         with mp.Pool(conditions_dictionary["num_cores"]) as pool:
+    #           result = pool.imap(solvePar, df_params.itertuples(name = None))
+    #           pool.close()
+    #           pool.join()
+    #           output = [[round(x,4)] for x in result]
                     
-        #Restructure global search results
-        chi_sq_list = []
-        for pset in range(0, len(output)):
-            chi_sq_list.append(output[pset])
+    #     #Restructure global search results
+    #     chi_sq_list = []
+    #     for pset in range(0, len(output)):
+    #         chi_sq_list.append(output[pset])
  
-        df_results = df_params
-        df_results['chi_sq'] = chi_sq_list
+    #     df_results = df_params
+    #     df_results['chi_sq'] = chi_sq_list
 
-        with pd.ExcelWriter('GLOBAL SEARCH RESULTS.xlsx') as writer:  # doctest: +SKIP
-            df_results.to_excel(writer, sheet_name='GS results')
-        print('Global search complete.')
+    #     with pd.ExcelWriter('GLOBAL SEARCH RESULTS.xlsx') as writer:  # doctest: +SKIP
+    #         df_results.to_excel(writer, sheet_name='GS results')
+    #     print('Global search complete.')
         
-    '''2. Filter'''
-    #set column to sort by
-    if data == 'PEM evaluation':
-        sort_column = 'chi_sq_' + str(k_PEM_evaluation)
-    else:
-        sort_column = 'chi_sq'
+    # '''2. Filter'''
+    # #set column to sort by
+    # if data == 'PEM evaluation':
+    #     sort_column = 'chi_sq_' + str(k_PEM_evaluation)
+    # else:
+    #     sort_column = 'chi_sq'
     
     #filter global search data
-    filtered_data, initial_guesses = filterGlobalSearch(df_results, n_initial_guesses, 
-                                                        all_param_labels, sort_column)
+    # filtered_data, initial_guesses = filterGlobalSearch(df_results, n_initial_guesses, 
+    #                                                     all_param_labels, sort_column)
+
+    initial_guesses = pd.read_pickle('/Users/kdreyer/Desktop/ig_from_modelB_rep1_opt.pkl')
     print('Filtering complete.')
     
     '''3. Optimization'''

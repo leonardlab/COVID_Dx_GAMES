@@ -34,12 +34,12 @@ def init() -> Tuple[dict, dict, dict]:
     # 1. Define and create folder for saving results
     # =============================================================================
     #This will be the name of the run-specific results folder. 
-    folder_name = 'Test_run'
+    folder_name = '231004_test_modelB_rep2_low_rep1_opt'
 
     # =============================================================================
     # 2. Define modelID, free parameters, and bounds
     # =============================================================================
-    modelID = 'model D'
+    modelID = 'model B'
     
     real_param_labels_all = ['k_cas13', 'k_degv', 'k_txn', 'k_FSS', 'k_RHA',
                             'k_loc_deactivation', 'k_scale_deactivation'] #real labels for p_all
@@ -74,7 +74,7 @@ def init() -> Tuple[dict, dict, dict]:
         p_labels_all = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9']
         
     #Change param labels to generalizable param labels
-    # p_labels_all = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7'] 
+    p_labels_all = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7'] 
     num_free_params = len(real_param_labels_free)
     initial_params_dictionary = {}
     params = []
@@ -160,7 +160,7 @@ def init() -> Tuple[dict, dict, dict]:
     #'parameter estimation', #'generate PEM evaluation data', or ' ' for test
     conditions_dictionary["run_type"] = ' '  
     conditions_dictionary["n_search"] = 5000
-    conditions_dictionary["n_initial_guesses"] = 24
+    conditions_dictionary["n_initial_guesses"] = 1
     #PEM evaluation data set to use for PEM: starts at 1, not 0. 
     #Only relevant if data == 'PEM evaluation'
     conditions_dictionary['k_PEM_evaluation'] = 1
