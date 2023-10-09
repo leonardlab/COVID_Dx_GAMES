@@ -634,7 +634,7 @@ def resultsPanel(
     ax2.set_title('vRNA = 10fM', fontsize = 10, fontweight = 'bold')
   
     if varyCondition == 'RT':
-        objective = 5
+        objective = 4
         if 'rep2' in data:
             y_max_1 = 0.15
             y_max_10 = 0.85
@@ -647,7 +647,7 @@ def resultsPanel(
      
         
     elif varyCondition == 'RNAse':
-        objective = 4
+        objective = 6
         if 'rep2' in data:
             y_max_1 = 0.3
             y_max_10 = 1.0 #0.5
@@ -659,7 +659,7 @@ def resultsPanel(
             y_max_10 = 1.0 #0.85
     
     elif varyCondition == 'T7':
-        objective = 6
+        objective = 5
         if 'rep2' in data:
             y_max_1 = 0.45
             y_max_10 = 1.0
