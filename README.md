@@ -64,7 +64,7 @@ However, GAMES v1.0.1 code was successfully run on Linux, and on Windows *withou
  <br />
 
 ## Test running the code: <br />
-The code is currently set up to run a test for model D (the final model) and data set 2, with the calibrated parameter set from the high tolerance run. This run will solve the model ODEs and plot each of the 6 modeling objectives and a parity plot between the experimental data and simulation values. <br />
+The code is currently set up to run a test for model D (the final model) and data set 2, with the calibrated parameter set from the low tolerance run, using the low error tolerances in the ODE solver. This run will solve the model ODEs and plot each of the 6 modeling objectives and a parity plot between the experimental data and simulation values. <br />
 - Update folder_name in Settings_COVID_Dx.py to the desired folder name for the run, which is where the above plots will be saved (this needs to be updated each time the code in run or the previous results will be overwritten) <br />
 - Run Test_COVID_Dx.py to execute the test run <br />
 
@@ -78,7 +78,7 @@ The code is currently set up to run Model D (the final model) with data set 2. <
 -- Update solveForOpt() in Run_COVID_Dx.py: remove p8 and p9 from function arguments and list of p values (line 347), and update result_row and result_row_labels to grab correct indices: [:22] for both
 - To run the code with other experimental data sets, change conditions_dictionary["data"] in Settings_COVID_Dx.py to appropriate data set
 
-## Updating the code to run with low solver error tolerances
-As we note in the manuscript, the default error tolerances for the ODE solver resulted in negative concentration values for some model states in some simulations. The code is currently set up to run with the default error tolerances. To update the code to run with the low error tolerances:
-- Add the arguments atol = self.abs_tol and rtol = self.rel_tol to the solver function call in gen_mechanism.py (currently set to line 127)
+## Updating the code to run with high solver error tolerances
+As we note in the manuscript, the default error tolerances for the ODE solver resulted in negative concentration values for some model states in some simulations. The code is currently set up to run with the low error tolerances. To update the code to run with the default error tolerances:
+- Remove the arguments atol = self.abs_tol and rtol = self.rel_tol in the solver function call in gen_mechanism.py (currently set in line 127)
  
