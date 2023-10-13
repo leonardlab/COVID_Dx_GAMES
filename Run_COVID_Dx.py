@@ -98,8 +98,8 @@ def check_filters(solutions: list, mse: float) -> float:
             
     filter_code = 0
     #max val filter for fluorophore output
-    # if max(solutions) < 2000:
-    #     filter_code = 1
+    if max(solutions) < 2000:
+        filter_code = 1
             
     mse = max(mse, filter_code)
             

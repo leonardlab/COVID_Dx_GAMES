@@ -34,7 +34,7 @@ def init() -> Tuple[dict, dict, dict]:
     # 1. Define and create folder for saving results
     # =============================================================================
     #This will be the name of the run-specific results folder. 
-    folder_name = '231004_test_modelB_rep2_low_rep1_opt'
+    folder_name = '231013_test_modelB_rep3_low_rep1_opt'
 
     # =============================================================================
     # 2. Define modelID, free parameters, and bounds
@@ -158,7 +158,7 @@ def init() -> Tuple[dict, dict, dict]:
     #data set 3 out of sample data: 'rep3 all echo without low iCas13 or 0 vRNA not in slice drop high error'
     conditions_dictionary["data"] = 'rep2 slice drop high error'
     #'parameter estimation', #'generate PEM evaluation data', or ' ' for test
-    conditions_dictionary["run_type"] = ' '  
+    conditions_dictionary["run_type"] = 'parameter estimation' 
     conditions_dictionary["n_search"] = 5000
     conditions_dictionary["n_initial_guesses"] = 1
     #PEM evaluation data set to use for PEM: starts at 1, not 0. 
