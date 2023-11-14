@@ -156,8 +156,66 @@ def defineExp(data: str, k_PEM_evaluation: int
                 err = list(columnData.iloc[1:])
                 err = [i/maxVal for i in err]
                 timecourses_err.append(err)
-                error = error + err          
-                
+                error = error + err 
+
+    elif data == 'all echo not in slice drop high error':
+        labels1 = [[1.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.005, 1, 90], [20.0, 2.5, 0.005, 1, 90]]
+        labels10 = [[1.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.005, 10, 90], [20.0, 2.5, 0.005, 10, 90]]
+        labels_T7 = labels1 + labels10
+        
+        labels1 = [[5.0, 0.5, 0.005, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 10.0, 0.005, 1, 90]]
+        labels10 = [[5.0, 0.5, 0.005, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 10.0, 0.005, 10, 90]]
+        labels_RT = labels1 + labels10
+        
+        labels1 = [[5.0, 2.5, 0.001, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.02, 1, 90]]
+        labels10 = [[5.0, 2.5, 0.001, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.02, 10, 90]]
+        labels_RNase =labels1 + labels10
+        
+        labels_slice = labels_T7 + labels_RT + labels_RNase
+
+        drop_labels = [
+            [5.0, 10.0, 0.001, 1, 90], [1.0, 2.5, 0.001, 10.0, 90.0], [20.0, 10.0, 0.001, 1.0, 90.0],
+            [5.0, 0.5, 0.005, 10.0, 90.0], [20.0, 0.5, 0.005, 1.0, 90.0], [1.0, 2.5, 0.001, 1.0, 90.0], 
+            [20.0, 0.5, 0.005, 10.0, 90.0]
+        ]
+
+        x = []
+        exp_data = []
+        error = []
+        timecourses = []
+        timecourses_err = []
+        maxVal = 0.6599948235700113
+
+        for (columnName, columnData) in df_data.iteritems():
+            label = list(columnData.iloc[0])
+            if label == [20.0, 10.0, 0.001, 10.0, 90.0] or label == [20.0, 10.0, 0.001, 0.0, 90.0] or label == [5.0, 2.5, 0.001, 0.0, 90.0]:
+                continue
+
+            elif label in labels_slice or label in drop_labels:
+                continue
+
+            else:
+                x.append(label)
+                timecourse = list(columnData.iloc[1:])
+                timecourse = [i/maxVal for i in timecourse]
+                timecourses.append(timecourse)
+                exp_data = exp_data + timecourse
+
+        for (columnName, columnData) in df_error.iteritems():
+            label = list(columnData.iloc[0])
+            if label == [20.0, 10.0, 0.001, 10.0, 90.0] or label == [20.0, 10.0, 0.001, 0.0, 90.0] or label == [5.0, 2.5, 0.001, 0.0, 90.0]:
+                continue
+
+            elif label in labels_slice or label in drop_labels:
+                continue
+
+            else:
+                err = list(columnData.iloc[1:])
+                err = [i/maxVal for i in err]
+                timecourses_err.append(err)
+                error = error + err 
+
+
     elif data == 'all echo':
         x = []
         exp_data = []
@@ -291,6 +349,54 @@ def defineExp(data: str, k_PEM_evaluation: int
                 error = error + err    
 
 
+    elif data == 'rep2 all echo not in slice drop high error':
+        labels1 = [[1.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.005, 1, 90], [20.0, 2.5, 0.005, 1, 90]]
+        labels10 = [[1.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.005, 10, 90], [20.0, 2.5, 0.005, 10, 90]]
+        labels_T7 = labels1 + labels10
+        
+        labels1 = [[5.0, 0.5, 0.005, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 10.0, 0.005, 1, 90]]
+        labels10 = [[5.0, 0.5, 0.005, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 10.0, 0.005, 10, 90]]
+        labels_RT = labels1 + labels10
+        
+        labels1 = [[5.0, 2.5, 0.001, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.02, 1, 90]]
+        labels10 = [[5.0, 2.5, 0.001, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.02, 10, 90]]
+        labels_RNase =labels1 + labels10
+        
+        labels_slice = labels_T7 + labels_RT + labels_RNase
+
+        drop_labels = [[20.0, 2.5, 0.02, 10, 90]]
+
+        x = []
+        exp_data = []
+        error = []
+        timecourses = []
+        timecourses_err = []
+        maxVal = 2.94995531724754
+
+        for (columnName, columnData) in df_data.iteritems():
+            label = list(columnData.iloc[0]) 
+            if label in labels_slice or label in drop_labels:
+                continue
+
+            else:
+                x.append(label)
+                timecourse = list(columnData.iloc[1:])
+                timecourse = [i/maxVal for i in timecourse]
+                timecourses.append(timecourse)
+                exp_data = exp_data + timecourse
+
+        for (columnName, columnData) in df_error.iteritems():
+            label = list(columnData.iloc[0])
+            if label in labels_slice or label in drop_labels:
+                continue
+
+            else:
+                err = list(columnData.iloc[1:])
+                err = [i/maxVal for i in err]
+                timecourses_err.append(err)
+                error = error + err 
+
+
     elif data == 'rep2 slice drop high error':
         labels1 = [[1.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.005, 1, 90], [20.0, 2.5, 0.005, 1, 90]]
         labels10 = [[1.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.005, 10, 90], [20.0, 2.5, 0.005, 10, 90]]
@@ -380,6 +486,54 @@ def defineExp(data: str, k_PEM_evaluation: int
                 err = [i/maxVal for i in err]
                 timecourses_err.append(err)
                 error = error + err    
+
+
+    elif data == 'rep3 all echo not in slice drop high error':
+        labels1 = [[1.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.005, 1, 90], [20.0, 2.5, 0.005, 1, 90]]
+        labels10 = [[1.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.005, 10, 90], [20.0, 2.5, 0.005, 10, 90]]
+        labels_T7 = labels1 + labels10
+        
+        labels1 = [[5.0, 0.5, 0.005, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 10.0, 0.005, 1, 90]]
+        labels10 = [[5.0, 0.5, 0.005, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 10.0, 0.005, 10, 90]]
+        labels_RT = labels1 + labels10
+        
+        labels1 = [[5.0, 2.5, 0.001, 1, 90], [5.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.02, 1, 90]]
+        labels10 = [[5.0, 2.5, 0.001, 10, 90], [5.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.02, 10, 90]]
+        labels_RNase =labels1 + labels10
+        
+        labels_slice = labels_T7 + labels_RT + labels_RNase
+
+        drop_labels = [[5.0, 10.0, 0.02, 10, 90]]
+
+        x = []
+        exp_data = []
+        error = []
+        timecourses = []
+        timecourses_err = []
+        maxVal = 1.12314566577301
+
+        for (columnName, columnData) in df_data.iteritems():
+            label = list(columnData.iloc[0]) 
+            if label in labels_slice or label in drop_labels:
+                continue
+
+            else:
+                x.append(label)
+                timecourse = list(columnData.iloc[1:])
+                timecourse = [i/maxVal for i in timecourse]
+                timecourses.append(timecourse)
+                exp_data = exp_data + timecourse
+
+        for (columnName, columnData) in df_error.iteritems():
+            label = list(columnData.iloc[0])
+            if label in labels_slice or label in drop_labels:
+                continue
+
+            else:
+                err = list(columnData.iloc[1:])
+                err = [i/maxVal for i in err]
+                timecourses_err.append(err)
+                error = error + err 
 
 
     elif data == 'rep3 slice drop high error':

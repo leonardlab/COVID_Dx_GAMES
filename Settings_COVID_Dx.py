@@ -152,6 +152,9 @@ def init() -> Tuple[dict, dict, dict]:
     #data set 2: 'rep2 slice drop high error'
     #data set 3: 'rep3 slice drop high error'
     #PEM evaluation data: 'PEM evaluation'
+    #data set 1 out of sample data: 'all echo not in slice drop high error'
+    #data set 2 out of sample data: 'rep2 all echo not in slice drop high error'
+    #data set 3 out of sample data: 'rep2 all echo not in slice drop high error'
     conditions_dictionary["data"] = 'rep2 slice drop high error'
     #'parameter estimation', #'generate PEM evaluation data', or ' ' for test
     conditions_dictionary["run_type"] = ' '  
