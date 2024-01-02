@@ -54,9 +54,10 @@ def init() -> Tuple[dict, dict, dict]:
         
     elif modelID == 'model C':
         real_param_labels_free = real_param_labels_all
-        p_all = [0.00198, 30.6, 36, 0.6, 7.8, 1, 1] #use for 1st round
+        p_all = [0.00198, 30.6, 36, 0.6, 7.8, 1, 1]
 
     elif modelID == 'model D':
+        #initial guesses for global search
         p_all = [0.00198, 30.6, 36, 0.6, 1.0, 1.0, 1.0, 1, 1]
 
         # p_all = [0.00063618, 239.9315589, 858.2136969, 0.027772651, 1.753931699, 10.64957523, 42.38269934, 61.82812743, 8.241330405] #rep1 best fit high tol
@@ -152,9 +153,9 @@ def init() -> Tuple[dict, dict, dict]:
     #data set 2: 'rep2 slice drop high error'
     #data set 3: 'rep3 slice drop high error'
     #PEM evaluation data: 'PEM evaluation'
-    #data set 1 out of sample data: 'all echo not in slice drop high error'
-    #data set 2 out of sample data: 'rep2 all echo not in slice drop high error'
-    #data set 3 out of sample data: 'rep2 all echo not in slice drop high error'
+    #data set 1 out of sample data: 'all echo without low iCas13 or 0 vRNA not in slice drop high error'
+    #data set 2 out of sample data: 'rep2 all echo without low iCas13 or 0 vRNA not in slice drop high error'
+    #data set 3 out of sample data: 'rep3 all echo without low iCas13 or 0 vRNA not in slice drop high error'
     conditions_dictionary["data"] = 'rep2 slice drop high error'
     #'parameter estimation', #'generate PEM evaluation data', or ' ' for test
     conditions_dictionary["run_type"] = ' '  

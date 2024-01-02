@@ -158,7 +158,7 @@ def defineExp(data: str, k_PEM_evaluation: int
                 timecourses_err.append(err)
                 error = error + err 
 
-    elif data == 'all echo not in slice drop high error':
+    elif data == 'all echo without low iCas13 or 0 vRNA not in slice drop high error':
         labels1 = [[1.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.005, 1, 90], [20.0, 2.5, 0.005, 1, 90]]
         labels10 = [[1.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.005, 10, 90], [20.0, 2.5, 0.005, 10, 90]]
         labels_T7 = labels1 + labels10
@@ -195,11 +195,13 @@ def defineExp(data: str, k_PEM_evaluation: int
                 continue
 
             else:
-                x.append(label)
-                timecourse = list(columnData.iloc[1:])
-                timecourse = [i/maxVal for i in timecourse]
-                timecourses.append(timecourse)
-                exp_data = exp_data + timecourse
+                if label[3] != 0.0:
+                    if label[4] != 4.5:
+                        x.append(label)
+                        timecourse = list(columnData.iloc[1:])
+                        timecourse = [i/maxVal for i in timecourse]
+                        timecourses.append(timecourse)
+                        exp_data = exp_data + timecourse
 
         for (columnName, columnData) in df_error.iteritems():
             label = list(columnData.iloc[0])
@@ -210,10 +212,12 @@ def defineExp(data: str, k_PEM_evaluation: int
                 continue
 
             else:
-                err = list(columnData.iloc[1:])
-                err = [i/maxVal for i in err]
-                timecourses_err.append(err)
-                error = error + err 
+                if label[3] != 0.0:
+                    if label[4] != 4.5:
+                        err = list(columnData.iloc[1:])
+                        err = [i/maxVal for i in err]
+                        timecourses_err.append(err)
+                        error = error + err 
 
 
     elif data == 'all echo':
@@ -349,7 +353,7 @@ def defineExp(data: str, k_PEM_evaluation: int
                 error = error + err    
 
 
-    elif data == 'rep2 all echo not in slice drop high error':
+    elif data == 'rep2 all echo without low iCas13 or 0 vRNA not in slice drop high error':
         labels1 = [[1.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.005, 1, 90], [20.0, 2.5, 0.005, 1, 90]]
         labels10 = [[1.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.005, 10, 90], [20.0, 2.5, 0.005, 10, 90]]
         labels_T7 = labels1 + labels10
@@ -379,11 +383,13 @@ def defineExp(data: str, k_PEM_evaluation: int
                 continue
 
             else:
-                x.append(label)
-                timecourse = list(columnData.iloc[1:])
-                timecourse = [i/maxVal for i in timecourse]
-                timecourses.append(timecourse)
-                exp_data = exp_data + timecourse
+                if label[3] != 0.0:
+                    if label[4] != 4.5:
+                        x.append(label)
+                        timecourse = list(columnData.iloc[1:])
+                        timecourse = [i/maxVal for i in timecourse]
+                        timecourses.append(timecourse)
+                        exp_data = exp_data + timecourse
 
         for (columnName, columnData) in df_error.iteritems():
             label = list(columnData.iloc[0])
@@ -391,10 +397,12 @@ def defineExp(data: str, k_PEM_evaluation: int
                 continue
 
             else:
-                err = list(columnData.iloc[1:])
-                err = [i/maxVal for i in err]
-                timecourses_err.append(err)
-                error = error + err 
+                if label[3] != 0.0:
+                    if label[4] != 4.5:
+                        err = list(columnData.iloc[1:])
+                        err = [i/maxVal for i in err]
+                        timecourses_err.append(err)
+                        error = error + err 
 
 
     elif data == 'rep2 slice drop high error':
@@ -488,7 +496,7 @@ def defineExp(data: str, k_PEM_evaluation: int
                 error = error + err    
 
 
-    elif data == 'rep3 all echo not in slice drop high error':
+    elif data == 'rep3 all echo without low iCas13 or 0 vRNA not in slice drop high error':
         labels1 = [[1.0, 2.5, 0.005, 1, 90], [5.0, 2.5, 0.005, 1, 90], [20.0, 2.5, 0.005, 1, 90]]
         labels10 = [[1.0, 2.5, 0.005, 10, 90], [5.0, 2.5, 0.005, 10, 90], [20.0, 2.5, 0.005, 10, 90]]
         labels_T7 = labels1 + labels10
@@ -518,11 +526,13 @@ def defineExp(data: str, k_PEM_evaluation: int
                 continue
 
             else:
-                x.append(label)
-                timecourse = list(columnData.iloc[1:])
-                timecourse = [i/maxVal for i in timecourse]
-                timecourses.append(timecourse)
-                exp_data = exp_data + timecourse
+                if label[3] != 0.0:
+                    if label[4] != 4.5:
+                        x.append(label)
+                        timecourse = list(columnData.iloc[1:])
+                        timecourse = [i/maxVal for i in timecourse]
+                        timecourses.append(timecourse)
+                        exp_data = exp_data + timecourse
 
         for (columnName, columnData) in df_error.iteritems():
             label = list(columnData.iloc[0])
@@ -530,10 +540,12 @@ def defineExp(data: str, k_PEM_evaluation: int
                 continue
 
             else:
-                err = list(columnData.iloc[1:])
-                err = [i/maxVal for i in err]
-                timecourses_err.append(err)
-                error = error + err 
+                if label[3] != 0.0:
+                    if label[4] != 4.5:
+                        err = list(columnData.iloc[1:])
+                        err = [i/maxVal for i in err]
+                        timecourses_err.append(err)
+                        error = error + err 
 
 
     elif data == 'rep3 slice drop high error':

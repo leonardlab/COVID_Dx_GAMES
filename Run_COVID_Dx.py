@@ -177,10 +177,16 @@ def solveAll(
             for i, state in enumerate(model_states):
                 df_all_states.at[state, str(doses)] = solutions_all[i]
     #Normalize solutions
+    #option to print max solution value in slice simulations for
+    #normalizing out of sample data
+    # print(max(solutions))
     if max(solutions) == 0:
         solutions_norm = [0] * len(solutions)
     else:    
-        solutions_norm = [i/max(solutions) for i in solutions]  
+        solutions_norm = [i/max(solutions) for i in solutions]
+        #option to normalize by specified max value for normalizing
+        #out of sample dataß
+        # solutions_norm = [i/[max in sample data] for i in solutions] 
 
     #Normalize df solutions
     for column in dfSimResults:
