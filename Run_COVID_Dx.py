@@ -544,6 +544,11 @@ def runParameterEstimation() -> Tuple[pd.DataFrame, list, list, pd.DataFrame]:
     #filter global search data
     filtered_data, initial_guesses = filterGlobalSearch(df_results, n_initial_guesses, 
                                                         all_param_labels, sort_column)
+    
+    #if using generate_IG.py to specify initial guess for optimization, comment out
+    #above global search code and uncomment following line (update path to ig file)
+    # initial_guesses = pd.read_pickle('/Users/kdreyer/Desktop/ig_from_modelB_rep1_opt.pkl')
+
     print('Filtering complete.')
     
     '''3. Optimization'''
